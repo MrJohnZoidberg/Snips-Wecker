@@ -15,7 +15,7 @@ class AlarmClock:
         self.saved_alarms_path = alarmclock_config['saved_alarms_path']
         self.ringing_volume = str(alarmclock_config['volume'])
         self.timeout = int(alarmclock_config['ringing_timeout'])
-        open(self.saved_alarms_path, 'a').close()  # Create file, if not available
+        open("saved_alarms", 'a').close()  # Create file, if not available
         self.alarms = self.read_alarms()  # read saved alarms from file
         self.save_alarms()  # because past alarms may have been deleted with self.read_alarms()
         self.format_time = self._FormatTime()
