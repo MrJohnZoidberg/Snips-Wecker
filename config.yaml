@@ -1,0 +1,48 @@
+# This is the main configuration file for SnipsAssistant
+
+General:
+  Localisation:
+    language: de  # no effect yet
+    week_start: monday  # no effect yet
+
+Connection:
+  MQTT:
+    host: localhost
+    port: 1883
+
+Modules:
+  Weather:
+    api_base_url: http://api.openweathermap.org/data/2.5
+    api_key: 6d1f38XXXXXXXXXXXXXXXXXXXXXXXXXX
+    default_city: Toronto
+    units: metric
+
+  Jokes:
+    topics:  # defaults: witze
+    - witze
+    max_length: 100  # default: 100
+    language: de  # default: de
+
+  Notes:
+    notebook_path: /home/pi/.notebook
+
+  Shoppinglist:
+    shoppinglist_path: /home/pi/.shoppinglist
+
+  Timer:
+    volume: -500  # default: -500 milli dB
+    ringing_timeout: 600  # default: 600 seconds (= 10 minutes)
+
+  Alarmclock:
+    saved_alarms_path: /home/pi/.saved_alarms
+    volume: -500  # default: -500 milli dB
+    ringing_timeout: 600  # default: 600 seconds (= 10 minutes)
+
+  News:
+    url:  # the URL of the news rss feed
+
+  Calendar:
+    caldav_url:  # Example nextcloud: https://<host>/remote.php/dav/
+    caldav_username:
+    caldav_password:  # password or app password if two-factor authentication is enabled
+    saved_calendars_path: /home/pi/.calendar  # default: /home/pi/.calendar

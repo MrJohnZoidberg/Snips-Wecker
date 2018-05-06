@@ -6,6 +6,9 @@ import json
 from alarmclock import AlarmClock
 import snipsDefaults as snips
 
+with open('config.yaml') as config_file:
+    config = yaml.load(config_file)
+
 # MQTT client to connect to the bus
 mqtt_client = mqtt.Client()
 
