@@ -5,19 +5,15 @@ import time
 import threading
 import os
 import subprocess
-import pickle
 
 
 class AlarmClock:
     def __init__(self, config):
         self.script_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
         alarmclock_config = config['Modules']['Alarmclock']
-        self.saved_alarms_path = alarmclock_config['saved_alarms_path']
         self.ringing_volume = str(alarmclock_config['volume'])
         self.timeout = int(alarmclock_config['ringing_timeout'])
-        open("/var/lib/snips/skills/Snips-Wecker/saved_alarms", 'a').close()  # Create file, if not available
-        self.alarms = self.read_alarms()  # read saved alarms from file
-        self.save_alarms()  # because past alarms may have been deleted with self.read_alarms()
+        self.alarms = []
         self.format_time = self._FormatTime()
         self.slots = {}  # for confirmation before delete: slots -> self.slots
         self.ringing = 0
@@ -30,7 +26,6 @@ class AlarmClock:
             now_time = self.format_time.now_time()
             if now_time in self.alarms:
                 del self.alarms[self.alarms.index(now_time)]
-                self.save_alarms()
                 self.ring()
             time.sleep(3)
 
@@ -39,7 +34,6 @@ class AlarmClock:
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if alarm_time not in self.alarms:
             self.alarms.append(alarm_time)  # add alarm to list
-            self.save_alarms()
         if self.format_time.delta_days(alarm_time) >= 0:
             f_time = self.format_time
             return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(f_time.future_part(alarm_time),
@@ -99,7 +93,6 @@ class AlarmClock:
             return "Diese Zeit liegt in der Vergangenheit."
         if alarm_time in self.alarms:
             self.alarms.remove(alarm_time)
-            self.save_alarms()
             return "Der Alarm {0} um {1} Uhr {2} wurde entfernt.".format(self.format_time.future_part(alarm_time, 1),
                                                                          self.format_time.alarm_hour(alarm_time),
                                                                          self.format_time.alarm_minute(alarm_time))
@@ -140,7 +133,6 @@ class AlarmClock:
             for alarm in self.alarms:
                 if alarm_date.date() == alarm.date():
                     self.alarms.remove(alarm)
-                    self.save_alarms()
             return "Alle Alarme {0} wurden entfernt.".format(self.format_time.future_part(alarm_date, 1))
         else:
             return "Vorgang wurde abgebrochen."
@@ -199,31 +191,6 @@ class AlarmClock:
             stdout_data = self.player.communicate(input=b"q")[0]  # send "q" key to omxplayer command
             self.ringing_timeout.cancel()
             return stdout_data
-
-    def save_alarms(self):
-        with open(self.saved_alarms_path, "wb") as f:
-            pickle.dump(self.alarms, f)
-
-    def read_alarms(self):
-        try:
-            with open(self.saved_alarms_path, 'rb') as f:
-                in_file = pickle.load(f)
-                self.format_time = self._FormatTime()  # --------------------------------------------------------------
-                now_time = self.format_time.now_time()
-            alarms_in_past = []
-            for element in in_file:
-                delta_seconds = (element - now_time).seconds  # calculate the days between alarm and now
-                delta_days = (element - now_time).days
-                if delta_days < 0:
-                    alarms_in_past.append(element)  # alarm is in past
-                else:
-                    if delta_seconds == 0:
-                        alarms_in_past.append(element)  # alarm shouldn't ring because too short after start
-            for element in alarms_in_past:
-                in_file.remove(element)
-            return in_file
-        except EOFError:  # if no list in file
-            return []
 
     class _FormatTime:
         @staticmethod
