@@ -3,6 +3,7 @@
 
 import paho.mqtt.client as mqtt
 import json
+import yaml
 from alarmclock import AlarmClock
 import snipsDefaults as snips
 
