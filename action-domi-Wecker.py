@@ -1,10 +1,31 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import ConfigParser
+import io
 import paho.mqtt.client as mqtt
 import json
 from alarmclock import AlarmClock
 import snipsDefaults as snips
+
+CONFIGURATION_ENCODING_FORMAT = "utf-8"
+CONFIG_INI = "config.ini"
+
+class SnipsConfigParser(ConfigParser.SafeConfigParser):
+    def to_dict(self):
+        return {section : {option_name : option for option_name, option in self.items(section)} for section in self.sections()}
+
+
+def read_configuration_file(configuration_file):
+    try:
+        with io.open(configuration_file, encoding=CONFIGURATION_ENCODING_FORMAT) as f:
+            conf_parser = SnipsConfigParser()
+            conf_parser.readfp(f)
+            return conf_parser.to_dict()
+    except (IOError, ConfigParser.Error) as e:
+        return dict()
+
+conf = read_configuration_file(CONFIG_INI)
 
 # MQTT client to connect to the bus
 mqtt_client = mqtt.Client()
@@ -41,4 +62,5 @@ if __name__ == "__main__":
     mqtt_client.on_connect = on_connect
     mqtt_client.on_message = on_message
     mqtt_client.connect(snips.mqtt_host, snips.mqtt_port)
+    alarmclock = AlarmClock(config)
     mqtt_client.loop_forever()
