@@ -24,4 +24,6 @@ if [ ! -f ./.saved_alarms ]; then
     sudo chown _snips-skills .saved_alarms
 fi
 
-mkdir -p .mplayer
+if [ -d /usr/lib/python2.7/dist-packages/pygame ]; then
+    cp -r /usr/lib/python2.7/dist-packages/pygame ./venv/lib/python2.7/site-packages/
+fi
