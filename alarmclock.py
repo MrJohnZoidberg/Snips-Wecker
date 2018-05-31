@@ -4,13 +4,15 @@ import datetime
 import time
 import threading
 import io
+import os
+import subprocess
 import pickle
-import pygame
 
 
 class AlarmClock:
     def __init__(self, config):
-        self.ringing_volume = 0.3
+        self.script_dir = os.path.abspath(os.path.dirname(__file__))
+        self.ringing_volume = "-20"
         self.timeout = 15
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
@@ -185,7 +187,11 @@ class AlarmClock:
         return response
 
     def ring(self):
-        self.mixer.music.play(-1)
+        self.player = subprocess.Popen(["mplayer", "-loop", "0", "-really-quiet", "-af",
+                                        "volume=" + self.ringing_volume,
+                                        self.script_dir + "/alarm-sound.mp3"],
+                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
         self.ringing_timeout.start()
 

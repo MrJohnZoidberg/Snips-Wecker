@@ -39,7 +39,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
-    if alarmclock.mixer.music.get_busy:
+    if alarmclock.ringing == 1:
         if msg.topic == 'hermes/hotword/default/detected':
             alarmclock.stop()
     else:

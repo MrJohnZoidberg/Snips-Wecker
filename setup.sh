@@ -1,5 +1,7 @@
 #!/usr/bin/env bash -e
 
+#rm -rf ./.config ./.mplayer
+
 VENV=venv
 
 if [ ! -d "$VENV" ]
@@ -22,8 +24,4 @@ pip install -r requirements.txt
 if [ ! -f ./.saved_alarms ]; then
     touch .saved_alarms
     sudo chown _snips-skills .saved_alarms
-fi
-
-if [ -d /usr/lib/python2.7/dist-packages/pygame ]; then
-    cp -rf /usr/lib/python2.7/dist-packages/pygame ./venv/lib/python2.7/site-packages/
 fi
