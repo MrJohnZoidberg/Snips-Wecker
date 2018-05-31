@@ -13,7 +13,7 @@ class AlarmClock:
     def __init__(self, config):
         self.script_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
         self.ringing_volume = "-20"
-        self.timeout = 4
+        self.timeout = 10
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
         self.format_time = self._FormatTime()
