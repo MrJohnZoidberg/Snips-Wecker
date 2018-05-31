@@ -208,7 +208,7 @@ class AlarmClock:
 
         @staticmethod
         def alarm_time_str(slots):
-            return slots['time'].split(".")[0]
+            return slots['time'].split(".")[0][:-3]
 
         @staticmethod
         def now_time(day_format=0):
