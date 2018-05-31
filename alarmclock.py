@@ -35,8 +35,6 @@ class AlarmClock:
     def set(self, slots):
         alarm_time_str = self.format_time.alarm_time_str(slots)  # remove the timezone and else numbers from time string
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        print(self.format_time.delta_days(alarm_time))
-        print((alarm_time - self.format_time.now_time()).seconds)
         if self.format_time.delta_days(alarm_time) >= 0:
             if (alarm_time - self.format_time.now_time()).seconds >= 120:
                 if alarm_time not in self.alarms:
@@ -186,13 +184,10 @@ class AlarmClock:
         return response
 
     def ring(self):
-        print("ringing...")
         self.player = subprocess.Popen(["mplayer", "-loop", "0", "-really-quiet", "-af",
                                         "volume=" + self.ringing_volume,
-                                        self.script_dir + "/alarm-sound.mp3"], stdin=subprocess.PIPE,
+                                        "alarm-sound.mp3"], stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(self.player.stdout)
-        print(self.script_dir)
         self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
         self.ringing_timeout.start()
