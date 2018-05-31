@@ -31,7 +31,7 @@ class AlarmClock:
             time.sleep(3)
 
     def set(self, slots):
-        alarm_time_str = slots['time'][:-10]  # remove the timezone and seconds from time string
+        alarm_time_str = self.format_time.alarm_time_str(slots)  # remove the timezone and else numbers from time string
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         print(self.format_time.delta_days(alarm_time))
         print((alarm_time - self.format_time.now_time()).seconds)
@@ -75,7 +75,7 @@ class AlarmClock:
         return response
 
     def is_alarm(self, slots):
-        alarm_time_str = slots['time'][:-10]
+        alarm_time_str = self.format_time.alarm_time_str(slots)
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if alarm_time in self.alarms:
             is_alarm = 1
@@ -93,7 +93,7 @@ class AlarmClock:
         return is_alarm, response
 
     def delete_alarm(self, slots):
-        alarm_time_str = slots['time'][:-10]
+        alarm_time_str = self.format_time.alarm_time_str(slots)
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if self.format_time.delta_days(alarm_time) < 0:
             return "Diese Zeit liegt in der Vergangenheit."
@@ -205,6 +205,10 @@ class AlarmClock:
     class _FormatTime:
         def __init__(self):
             pass
+
+        @staticmethod
+        def alarm_time_str(slots):
+            return slots['time'].split(".")[0]
 
         @staticmethod
         def now_time(day_format=0):
