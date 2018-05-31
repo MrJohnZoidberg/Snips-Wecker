@@ -33,7 +33,7 @@ class AlarmClock:
     def set(self, slots):
         alarm_time_str = slots['time'][:-10]  # remove the timezone and seconds from time string
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        print(self.format_time.delta_days(alarm_time))
+        print(type(self.format_time.delta_days(alarm_time)), self.format_time.delta_days(alarm_time))
         if self.format_time.delta_days(alarm_time) >= 0:
             if alarm_time not in self.alarms:
                 self.alarms.append(alarm_time)  # add alarm to list
