@@ -1,6 +1,7 @@
 #!/usr/bin/env bash -e
 
-#rm -rf ./.config ./.mplayer
+sudo rm -rf /var/lib/snips/skills/.config
+sudo rm -rf /var/lib/snips/skills/.mplayer
 
 VENV=venv
 
