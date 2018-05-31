@@ -23,9 +23,6 @@ class AlarmClock:
         self.keep_running = 1  # important for program exit (will be then 0)
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
-        self.mixer = pygame.mixer
-        self.mixer.init()
-        self.mixer.music.load("alarm-sound.mp3")
 
     def clock(self):
         while self.keep_running == 1:
