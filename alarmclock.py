@@ -186,8 +186,8 @@ class AlarmClock:
     def ring(self):
         self.player = subprocess.Popen(["mplayer", "-loop", "0", "-really-quiet", "-af",
                                         "volume=" + self.ringing_volume,
-                                        self.script_dir + "/alarm-sound.mp3"], stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                        self.script_dir + "/alarm-sound.mp3"], cwd=self.script_dir + "/.mplayer",
+                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
         self.ringing_timeout.start()
