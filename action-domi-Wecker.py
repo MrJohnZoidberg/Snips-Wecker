@@ -39,8 +39,8 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
-    if msg.topic == 'hermes/hotword/default/detected':
-        if alarmclock.ringing == 1:
+    if alarmclock.ringing == 1:
+        if msg.topic == 'hermes/hotword/default/detected':
             alarmclock.stop()
     else:
         slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
