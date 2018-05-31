@@ -188,6 +188,7 @@ class AlarmClock:
         self.player = subprocess.Popen(["omxplayer", "--loop", "--no-osd", "--vol", self.ringing_volume,
                                         "alarm-sound.mp3"], stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(self.player)
         self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
         self.ringing_timeout.start()
