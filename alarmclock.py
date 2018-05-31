@@ -190,8 +190,11 @@ class AlarmClock:
         self.ringing_timeout.start()
 
     def stop(self):
-        self.ringing_timeout.cancel()
-        self.mixer.music.stop()
+        if self.ringing == 1:
+            self.ringing = 0
+            stdout_data = self.player.communicate(input=b"q")[0]  # send "q" key to mplayer command
+            self.ringing_timeout.cancel()
+            return stdout_data
 
     def save_alarms(self):
         with io.open(self.saved_alarms_path, "wb") as f:
