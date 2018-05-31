@@ -13,7 +13,7 @@ class AlarmClock:
     def __init__(self, config):
         self.script_dir = os.path.abspath(os.path.dirname(__file__))
         self.ringing_volume = "-20"
-        self.timeout = 10
+        self.timeout = 15
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
         self.format_time = self._FormatTime()
@@ -195,7 +195,7 @@ class AlarmClock:
     def stop(self):
         if self.ringing == 1:
             self.ringing = 0
-            stdout_data = self.player.communicate(input=b"q")[0]  # send "q" key to omxplayer command
+            stdout_data = self.player.communicate(input=b"q")[0]  # send "q" key to mplayer command
             self.ringing_timeout.cancel()
             return stdout_data
 
