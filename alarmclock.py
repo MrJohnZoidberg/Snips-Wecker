@@ -192,6 +192,7 @@ class AlarmClock:
                                         self.script_dir + "/alarm-sound.mp3"], stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print(self.player.stdout)
+        print(self.script_dir)
         self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
         self.ringing_timeout.start()
