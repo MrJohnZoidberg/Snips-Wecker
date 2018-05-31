@@ -196,7 +196,7 @@ class AlarmClock:
     def stop(self):
         if self.ringing == 1:
             self.ringing = 0
-            stdout_data = self.player.communicate(input=b"q")[0]  # send "q" key to mplayer command
+            stdout_data = self.player.communicate(input="q")[0]  # send "q" key to mplayer command
             self.ringing_timeout.cancel()
             return stdout_data
 
