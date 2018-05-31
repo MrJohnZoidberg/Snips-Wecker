@@ -3,19 +3,20 @@
 import datetime
 import time
 import threading
-import os
+import io
 import subprocess
+import pickle
 
 
 class AlarmClock:
     def __init__(self, config):
-        self.script_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-        alarmclock_config = config['Modules']['Alarmclock']
-        self.ringing_volume = str(alarmclock_config['volume'])
-        self.timeout = int(alarmclock_config['ringing_timeout'])
+        self.ringing_volume = "-500"
+        self.timeout = 4
         self.alarms = []
+        self.saved_alarms_path = ".saved_alarms"
         self.format_time = self._FormatTime()
-        self.slots = {}  # for confirmation before delete: slots -> self.slots
+        self.slots = {}
+        self.wanted_intents = []
         self.ringing = 0
         self.keep_running = 1  # important for program exit (will be then 0)
         self.thread = threading.Thread(target=self.clock)
@@ -179,7 +180,7 @@ class AlarmClock:
 
     def ring(self):
         self.player = subprocess.Popen(["omxplayer", "--loop", "--no-osd", "--vol", self.ringing_volume,
-                                        self.script_dir + "/resources/timer-sound.mp3"], stdin=subprocess.PIPE,
+                                        "timer-sound.mp3"], stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
@@ -192,7 +193,14 @@ class AlarmClock:
             self.ringing_timeout.cancel()
             return stdout_data
 
+    def save_alarms(self):
+        with io.open(self.saved_alarms_path, "wb") as f:
+            pickle.dump(self.alarms, f)
+
     class _FormatTime:
+        def __init__(self):
+            pass
+
         @staticmethod
         def now_time(day_format=0):
             now = datetime.datetime.now()

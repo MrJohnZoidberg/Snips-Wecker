@@ -1,4 +1,4 @@
-#/usr/bin/env bash -e
+#!/usr/bin/env bash -e
 
 VENV=venv
 
@@ -18,3 +18,8 @@ fi
 . $VENV/bin/activate
 
 pip install -r requirements.txt
+
+if [ ! -f ./.saved_alarms ]; then
+    touch .saved_alarms
+    sudo chown _snips-skills .saved_alarms
+fi
