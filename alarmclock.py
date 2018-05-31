@@ -4,12 +4,14 @@ import datetime
 import time
 import threading
 import io
+import os
 import subprocess
 import pickle
 
 
 class AlarmClock:
     def __init__(self, config):
+        self.script_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
         self.ringing_volume = "-500"
         self.timeout = 4
         self.alarms = []
@@ -186,7 +188,7 @@ class AlarmClock:
     def ring(self):
         print("ringing...")
         self.player = subprocess.Popen(["omxplayer", "--loop", "--no-osd", "--vol", self.ringing_volume,
-                                        "alarm-sound.mp3"], stdin=subprocess.PIPE,
+                                        self.script_dir + "/alarm-sound.mp3"], stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print(self.player)
         self.ringing = 1
