@@ -184,6 +184,7 @@ class AlarmClock:
         return response
 
     def ring(self):
+        print("ringing...")
         self.player = subprocess.Popen(["omxplayer", "--loop", "--no-osd", "--vol", self.ringing_volume,
                                         "alarm-sound.mp3"], stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
