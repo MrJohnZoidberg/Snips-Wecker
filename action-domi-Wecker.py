@@ -5,7 +5,6 @@ import ConfigParser
 import io
 import paho.mqtt.client as mqtt
 import json
-import yaml
 from alarmclock import AlarmClock
 
 CONFIGURATION_ENCODING_FORMAT = "utf-8"
@@ -29,9 +28,6 @@ def read_configuration_file(configuration_file):
 
 conf = read_configuration_file(CONFIG_INI)
 print("Conf:", conf)
-
-with open('config.yaml') as config_file:
-    config = yaml.load(config_file)
 
 # MQTT client to connect to the bus
 mqtt_client = mqtt.Client()
