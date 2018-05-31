@@ -111,6 +111,6 @@ def dialogue(session_id, text, intent_filter):
 if __name__ == "__main__":
     mqtt_client.on_connect = on_connect
     mqtt_client.on_message = on_message
-    mqtt_client.connect("localhost", "1338")
+    mqtt_client.connect("localhost", "1883")
     alarmclock = AlarmClock(conf)
     mqtt_client.loop_forever()
