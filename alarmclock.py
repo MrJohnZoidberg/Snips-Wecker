@@ -33,16 +33,20 @@ class AlarmClock:
     def set(self, slots):
         alarm_time_str = slots['time'][:-10]  # remove the timezone and seconds from time string
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        print(type(self.format_time.delta_days(alarm_time)), self.format_time.delta_days(alarm_time))
+        print(self.format_time.delta_days(alarm_time))
+        print((alarm_time - self.format_time.now_time()).seconds)
         if self.format_time.delta_days(alarm_time) >= 0:
-            if alarm_time not in self.alarms:
-                self.alarms.append(alarm_time)  # add alarm to list
-            f_time = self.format_time
-            return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(f_time.future_part(alarm_time),
-                                                                         f_time.alarm_hour(alarm_time),
-                                                                         f_time.alarm_minute(alarm_time))
+            if (alarm_time - self.format_time.now_time()).seconds >= 120:
+                if alarm_time not in self.alarms:
+                    self.alarms.append(alarm_time)  # add alarm to list
+                f_time = self.format_time
+                return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(f_time.future_part(alarm_time),
+                                                                             f_time.alarm_hour(alarm_time),
+                                                                             f_time.alarm_minute(alarm_time))
+            else:
+                return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
         else:  # if date is in the past
-            return "Die Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
+            return "Diese Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
 
     def get_on_date(self, slots):
         alarm_date_str = slots['date'][:-16]  # remove the timezone and time from time string
