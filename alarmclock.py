@@ -12,7 +12,7 @@ import pickle
 class AlarmClock:
     def __init__(self, config):
         self.script_dir = os.path.abspath(os.path.dirname(__file__))
-        self.ringing_volume = "-20"
+        self.ringing_volume = "-1800"
         self.timeout = 15
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
@@ -185,8 +185,7 @@ class AlarmClock:
 
     def ring(self):
         print(self.script_dir + "/alarm-sound.mp3")
-        self.player = subprocess.Popen(["mplayer", "-loop", "0", "-really-quiet", "-af",
-                                        "volume=" + self.ringing_volume,
+        self.player = subprocess.Popen(["omxplayer", "--loop", "--vol", self.ringing_volume,
                                         self.script_dir + "/alarm-sound.mp3"],
                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.ringing = 1
@@ -196,7 +195,7 @@ class AlarmClock:
     def stop(self):
         if self.ringing == 1:
             self.ringing = 0
-            stdout_data = self.player.communicate(input="q")[0]  # send "q" key to mplayer command
+            stdout_data = self.player.communicate(input=b"q")[0]  # send "q" key to mplayer command
             self.ringing_timeout.cancel()
             return stdout_data
 
