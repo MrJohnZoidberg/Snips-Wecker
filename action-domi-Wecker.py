@@ -27,7 +27,6 @@ def read_configuration_file(configuration_file):
 
 
 conf = read_configuration_file(CONFIG_INI)
-print("Conf:", conf)
 
 # MQTT client to connect to the bus
 mqtt_client = mqtt.Client()
