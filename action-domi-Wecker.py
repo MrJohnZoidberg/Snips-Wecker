@@ -44,7 +44,8 @@ def on_message(client, userdata, msg):
             alarmclock.stop()
     else:
         print(data)
-        return
+        if 'sessionId' not in data.keys():
+            return
         session_id = data['sessionId']
         try:
             slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
