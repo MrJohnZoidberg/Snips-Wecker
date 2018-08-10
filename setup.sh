@@ -25,5 +25,5 @@ if [ ! -f ./.saved_alarms ]; then
 fi
 
 if [ -d /usr/lib/python2.7/dist-packages/pygame ]; then
-    cp -r /usr/lib/python2.7/dist-packages/pygame ./venv/lib/python2.7/site-packages/
+    cp -rf /usr/lib/python2.7/dist-packages/pygame ./venv/lib/python2.7/site-packages/
 fi
