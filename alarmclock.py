@@ -8,11 +8,10 @@ import os
 import subprocess
 import pickle
 
-
 class AlarmClock:
     def __init__(self, config):
         self.script_dir = os.path.abspath(os.path.dirname(__file__))
-        self.ringing_volume = "-20"
+        self.ringing_volume = int("20")
         self.timeout = 15
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
@@ -185,7 +184,7 @@ class AlarmClock:
 
     def ring(self):
         sound_file = self.script_dir + "/alarm-sound.mp3"
-        calc_volume = self.ringing_volume * 300  # 0-100 --> 0-30000
+        calc_volume = abs(self.ringing_volume) * 300  # 0-100 --> 0-30000
                                                  # (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
         self.player = subprocess.Popen(["mpg123", "--loop", "-1", "-C", "-f", calc_volume, sound_file],
                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
