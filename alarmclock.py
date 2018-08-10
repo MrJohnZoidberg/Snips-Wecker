@@ -198,10 +198,11 @@ class AlarmClock:
             self.ringing = 0
             print("Stopping...")
             #stdout_data = self.player.communicate(input=b"q")[0]  # send "q" key to mpg123 command
-            for i in range(6):
-                self.player.communicate(input="+")
-                print("Volume higher...")
-                time.sleep(1)
+            #for i in range(6):
+                #self.player.communicate(input="+")
+            self.player.stdin.write("q")
+                #print("Volume higher...")
+                #time.sleep(1)
             self.ringing_timeout.cancel()
 
     def save_alarms(self):
