@@ -186,7 +186,7 @@ class AlarmClock:
         sound_file = self.script_dir + "/alarm-sound.mp3"
         calc_volume = abs(self.ringing_volume) * 300  # 0-100 --> 0-30000
                                                  # (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
-        self.player = subprocess.Popen(["mpg123", "--loop", "-1", "-C", "-f", calc_volume, sound_file],
+        self.player = subprocess.Popen(["mpg123", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file],
                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
