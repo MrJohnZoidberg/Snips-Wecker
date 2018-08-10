@@ -43,6 +43,8 @@ def on_message(client, userdata, msg):
         if msg.topic == 'hermes/hotword/default/detected':
             alarmclock.stop()
     else:
+        print(data)
+        return
         session_id = data['sessionId']
         try:
             slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
