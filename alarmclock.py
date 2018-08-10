@@ -22,6 +22,7 @@ class AlarmClock:
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         self.mixer = pygame.mixer
+        self.mixer.pre_init()
         self.mixer.init()
         self.mixer.music.load("alarm-sound.mp3")
 
