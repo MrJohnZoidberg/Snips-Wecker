@@ -4,15 +4,13 @@ import datetime
 import time
 import threading
 import io
-import os
-import subprocess
 import pickle
+import pygame
 
 
 class AlarmClock:
     def __init__(self, config):
-        self.script_dir = os.path.abspath(os.path.dirname(__file__))
-        self.ringing_volume = "-20"
+        self.ringing_volume = 0.3
         self.timeout = 15
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
@@ -23,6 +21,8 @@ class AlarmClock:
         self.keep_running = 1  # important for program exit (will be then 0)
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
+        self.mixer = pygame.mixer()
+        self.mixer.music.load("alarm-sound.mp3")
 
     def clock(self):
         while self.keep_running == 1:
@@ -184,21 +184,13 @@ class AlarmClock:
         return response
 
     def ring(self):
-        print(self.script_dir + "/alarm-sound.mp3")
-        self.player = subprocess.Popen(["mplayer", "-loop", "0", "-really-quiet", "-af",
-                                        "volume=" + self.ringing_volume,
-                                        self.script_dir + "/alarm-sound.mp3"],
-                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.ringing = 1
+        self.mixer.music.play(-1)
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
         self.ringing_timeout.start()
 
     def stop(self):
-        if self.ringing == 1:
-            self.ringing = 0
-            stdout_data = self.player.communicate(input="q")[0]  # send "q" key to mplayer command
-            self.ringing_timeout.cancel()
-            return stdout_data
+        self.ringing_timeout.cancel()
+        self.mixer.music.stop()
 
     def save_alarms(self):
         with io.open(self.saved_alarms_path, "wb") as f:
