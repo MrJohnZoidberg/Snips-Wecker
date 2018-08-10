@@ -33,7 +33,8 @@ mqtt_client = mqtt.Client()
 
 
 def on_connect(client, userdata, flags, rc):
-    client.subscribe("hermes/intent/#")
+    client.subscribe('hermes/intent/#')
+    client.subscribe('hermes/hotword/default/detected')
 
 
 def on_message(client, userdata, msg):

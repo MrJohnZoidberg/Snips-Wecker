@@ -184,14 +184,15 @@ class AlarmClock:
 
     def ring(self):
         sound_file = self.script_dir + "/alarm-sound.mp3"
-        calc_volume = abs(self.ringing_volume) * 300  # 0-100 --> 0-30000
-                                                 # (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
+        # 0-100 --> 0-30000  (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
+        calc_volume = abs(self.ringing_volume) * 300
+        # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
         self.player = subprocess.Popen(["mpg123", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file],
                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.ringing = 1
         print("Ringing...", sound_file, calc_volume)
-        #self.ringing_timeout = threading.Timer(self.timeout, self.stop)
-        #self.ringing_timeout.start()
+        self.ringing_timeout = threading.Timer(self.timeout, self.stop)
+        self.ringing_timeout.start()
 
     def stop(self):
         if self.ringing == 1:
