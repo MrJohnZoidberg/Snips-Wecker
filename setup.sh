@@ -2,6 +2,8 @@
 
 VENV=venv
 
+rm -rf ../.config
+
 if [ ! -d "$VENV" ]
 then
 
