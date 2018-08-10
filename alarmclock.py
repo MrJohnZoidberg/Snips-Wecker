@@ -24,7 +24,6 @@ class AlarmClock:
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
 
-
     def clock(self):
         while self.keep_running == 1:
             now_time = self.format_time.now_time()
@@ -185,12 +184,11 @@ class AlarmClock:
         return response
 
     def ring(self):
-        print(self.script_dir + "/alarm-sound.mp3")
-        self.player = subprocess.Popen(["mplayer", "-loop", "0", "-really-quiet", "-af",
-                                        "volume=" + self.ringing_volume,
-                                        self.script_dir + "/alarm-sound.mp3"],
-                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        print(self.player.stdout)
+        sound_file = self.script_dir + "/alarm-sound.mp3"
+        calc_volume = self.ringing_volume * 300  # 0-100 --> 0-30000
+                                                 # (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
+        self.player = subprocess.Popen(["mpg123", "--loop", "-1", "-C", "-f", calc_volume, sound_file],
+                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.ringing = 1
         self.ringing_timeout = threading.Timer(self.timeout, self.stop)
         self.ringing_timeout.start()
@@ -198,7 +196,7 @@ class AlarmClock:
     def stop(self):
         if self.ringing == 1:
             self.ringing = 0
-            stdout_data = self.player.communicate(input="q")[0]  # send "q" key to mplayer command
+            stdout_data = self.player.communicate(input="q")[0]  # send "q" key to mpg123 command
             self.ringing_timeout.cancel()
             return stdout_data
 
