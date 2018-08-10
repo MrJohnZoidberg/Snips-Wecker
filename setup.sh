@@ -1,8 +1,5 @@
 #!/usr/bin/env bash -e
 
-sudo rm -rf /var/lib/snips/skills/.config
-sudo rm -rf /var/lib/snips/skills/.mplayer
-
 VENV=venv
 
 if [ ! -d "$VENV" ]
@@ -25,4 +22,8 @@ pip install -r requirements.txt
 if [ ! -f ./.saved_alarms ]; then
     touch .saved_alarms
     sudo chown _snips-skills .saved_alarms
+fi
+
+if [ -d /usr/lib/python2.7/dist-packages/pygame ]; then
+    cp -r /usr/lib/python2.7/dist-packages/pygame ./venv/lib/python2.7/site-packages/
 fi
