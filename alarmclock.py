@@ -210,9 +210,7 @@ class AlarmClock:
         audio_wav = wav_file.read()
         wav_file.close()
         #self.mqtt_client.publish('hermes/audioServer/default/playBytes/blablub', payload=audio_wav)
-        publish.single('hermes/audioServer/default/playBytes/blablub', payload=audio_wav, qos=0, retain=False,
-                       hostname="localhost", port=1883, client_id="", keepalive=60, will=None, tls=None,
-                       protocol=mqtt.MQTTv311)
+        publish.single('hermes/audioServer/default/playBytes/blablub', payload=audio_wav, hostname="localhost", port=1883)
         print("Ringing...")
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
