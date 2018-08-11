@@ -12,8 +12,8 @@ import pickle
 class AlarmClock:
     def __init__(self, config):
         self.script_dir = os.path.abspath(os.path.dirname(__file__))
-        self.ringing_volume = config['global']['ringing_volume']
-        self.ringing_timeout = config['global']['ringing_timeout']
+        self.ringing_volume = config['secret']['ringing_volume']
+        self.ringing_timeout = config['secret']['ringing_timeout']
         if not self.ringing_volume:  # if dictionaray not filled with values
             self.ringing_volume = 20
         else:
