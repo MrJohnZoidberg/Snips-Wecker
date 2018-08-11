@@ -31,7 +31,7 @@ class AlarmClock:
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         self.player = None
-        self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
+        self.timeout_thread = None
 
     def clock(self):
         while True:
@@ -199,6 +199,7 @@ class AlarmClock:
         # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
         self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
         self.ringing = 1
+        self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
         self.timeout_thread.start()
 
     def stop(self):

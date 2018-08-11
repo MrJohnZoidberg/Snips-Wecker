@@ -58,7 +58,8 @@ def on_message(client, userdata, msg):
         session_id = data['sessionId']
 
         if msg.topic == 'hermes/dialogueManager/sessionStarted':
-            mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({"sessionId": session_id}))
+            mqtt_client.publish('hermes/dialogueManager/endSession',
+                                json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
             client.unsubscribe('hermes/dialogueManager/sessionStarted')
             return
 
