@@ -198,13 +198,14 @@ class AlarmClock:
         return response
 
     def ring(self):
-        sound_file = self.script_dir + "/alarm-sound.mp3"
+        #sound_file = self.script_dir + "/alarm-sound.mp3"
         # 0-100 --> 0-30000  (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
         calc_volume = abs(self.ringing_volume) * 300
         # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
         #self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
         #self.mqtt_client.publish('hermes/external/alarmclock/ringing', json.dumps({"text": "test"}))
 
+        sound_file = "/home/pi/ringtone2.wav"
         fp = open(sound_file, 'rb')
         f = fp.read()
         self.mqtt_client.publish('hermes/audioServer/default/playBytes/blablub', payload=bytearray(f))
