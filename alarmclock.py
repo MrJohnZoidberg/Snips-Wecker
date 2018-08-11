@@ -205,10 +205,10 @@ class AlarmClock:
         #self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
         #self.mqtt_client.publish('hermes/external/alarmclock/ringing', json.dumps({"text": "test"}))
 
-        fp = open(sound_file, 'rb')
-        f = fp.read()
-        self.mqtt_client.publish('hermes/audioServer/default/playBytes/blablub', payload=bytearray(f))
-        fp.close()
+        wav_file = open(sound_file, 'rb')
+        audio_wav = wav_file.read()
+        self.mqtt_client.publish('hermes/audioServer/default/playBytes/blablub', payload=audio_wav)
+        wav_file.close()
         print("Ringing...")
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
