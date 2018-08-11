@@ -36,6 +36,7 @@ class AlarmClock:
         self.timeout_thread = None
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.connect("localhost", "1883")
+        self.mqtt_client.loop()
 
     def clock(self):
         while True:
