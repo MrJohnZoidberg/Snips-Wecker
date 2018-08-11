@@ -203,7 +203,7 @@ class AlarmClock:
         calc_volume = abs(self.ringing_volume) * 300
         # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
         #self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
-        self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({}))
+        self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({"text": "test"}))
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
         self.timeout_thread.start()
