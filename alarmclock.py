@@ -202,8 +202,8 @@ class AlarmClock:
         # 0-100 --> 0-30000  (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
         calc_volume = abs(self.ringing_volume) * 300
         # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
-        self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
-        self.mqtt_client.publish('hermes/external/alarmclock/ringing', json.dumps({}))
+        #self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
+        self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({}))
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
         self.timeout_thread.start()
@@ -211,7 +211,7 @@ class AlarmClock:
     def stop(self):
         if self.ringing == 1:
             self.ringing = 0
-            self.player.terminate()
+            #self.player.terminate()
             self.timeout_thread.cancel()
 
     def save_alarms(self):
