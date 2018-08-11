@@ -101,9 +101,10 @@ def on_message(client, userdata, msg):
                          "In der nächsten Zeit gibt es {num} Alarme. Bist du dir sicher?".format(num=number),
                          alarmclock.wanted_intents)
         elif intentId == user_intent('deleteAlarmsAllConfirm'):
-            alarmclock.wanted_intents = []
-            slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
-            say(session_id, alarmclock.delete_all(slots))
+            if 'domi:deleteAlarmsAllConfirm' in alarmclock.wanted_intents:
+                alarmclock.wanted_intents = []
+                slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+                say(session_id, alarmclock.delete_all(slots))
         elif intentId == user_intent('getAlarmsAll'):
             say(session_id, alarmclock.get_all())
 
