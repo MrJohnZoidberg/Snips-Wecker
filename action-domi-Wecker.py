@@ -32,6 +32,10 @@ def user_intent(intentname):
     return USERNAME_INTENTS + ":" + intentname
 
 
+def get_slots(data):
+    return {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+
+
 # MQTT client to connect to the bus
 mqtt_client = mqtt.Client()
 
@@ -46,20 +50,27 @@ def on_message(client, userdata, msg):
     if alarmclock.ringing == 1:
         if msg.topic == 'hermes/hotword/default/detected':
             alarmclock.stop()
+            client.subscribe('hermes/dialogueManager/sessionStarted')
     else:
         if 'sessionId' not in data.keys():  # if 'hermes/hotword/default/detected'
             return
-        session_id = data['sessionId']
-        intentId = data['intent']['intentName']
 
+        session_id = data['sessionId']
+
+        if msg.topic == 'hermes/dialogueManager/sessionStarted':
+            mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({"sessionId": session_id}))
+            client.unsubscribe('hermes/dialogueManager/sessionStarted')
+            return
+
+        intentId = data['intent']['intentName']
         if intentId == user_intent('newAlarm'):
-            slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+            slots = get_slots(data)
             say(session_id, alarmclock.set(slots))
         elif intentId == user_intent('getAlarmsDate'):
-            slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+            slots = get_slots(data)
             say(session_id, alarmclock.get_on_date(slots))
         elif intentId == user_intent('isAlarm'):
-            slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+            slots = get_slots(data)
             is_alarm, response = alarmclock.is_alarm(slots)
             if is_alarm == 1:
                 say(session_id, response)
@@ -71,10 +82,10 @@ def on_message(client, userdata, msg):
                 alarmclock.wanted_intents = []
                 say(session_id, alarmclock.set(alarmclock.remembered_slots))
         elif intentId == user_intent('deleteAlarm'):
-            slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+            slots = get_slots(data)
             say(session_id, alarmclock.delete_alarm(slots))
         elif intentId == user_intent('deleteAlarmsDateTry'):
-            slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+            slots = get_slots(data)
             alarms, response = alarmclock.delete_date_try(slots)
             if alarms == 0:
                 say(session_id, response)
@@ -84,7 +95,7 @@ def on_message(client, userdata, msg):
         elif intentId == user_intent('deleteAlarmsDateConfirm'):
             if intentId in alarmclock.wanted_intents:
                 alarmclock.wanted_intents = []
-                slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+                slots = get_slots(data)
                 say(session_id, alarmclock.delete_date(slots))
             else:
                 say(session_id, "")
@@ -103,7 +114,7 @@ def on_message(client, userdata, msg):
         elif intentId == user_intent('deleteAlarmsAllConfirm'):
             if 'domi:deleteAlarmsAllConfirm' in alarmclock.wanted_intents:
                 alarmclock.wanted_intents = []
-                slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+                slots = get_slots(data)
                 say(session_id, alarmclock.delete_all(slots))
         elif intentId == user_intent('getAlarmsAll'):
             say(session_id, alarmclock.get_all())
