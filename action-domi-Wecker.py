@@ -7,8 +7,7 @@ import paho.mqtt.client as mqtt
 import json
 from alarmclock import AlarmClock
 
-CONFIGURATION_ENCODING_FORMAT = "utf-8"
-CONFIG_INI = "config.ini"
+USERNAME_INTENTS = "domi"
 
 
 class SnipsConfigParser(ConfigParser.SafeConfigParser):
@@ -18,7 +17,7 @@ class SnipsConfigParser(ConfigParser.SafeConfigParser):
 
 def read_configuration_file(configuration_file):
     try:
-        with io.open(configuration_file, encoding=CONFIGURATION_ENCODING_FORMAT) as f:
+        with io.open(configuration_file, encoding="utf-8") as f:
             conf_parser = SnipsConfigParser()
             conf_parser.readfp(f)
             return conf_parser.to_dict()
@@ -26,7 +25,12 @@ def read_configuration_file(configuration_file):
         return dict()
 
 
-conf = read_configuration_file(CONFIG_INI)
+conf = read_configuration_file("config.ini")
+
+
+def user_intent(intentname):
+    return USERNAME_INTENTS + ":" + intentname
+
 
 # MQTT client to connect to the bus
 mqtt_client = mqtt.Client()
@@ -43,47 +47,44 @@ def on_message(client, userdata, msg):
         if msg.topic == 'hermes/hotword/default/detected':
             alarmclock.stop()
     else:
-        print(data)
         if 'sessionId' not in data.keys():
             return
         session_id = data['sessionId']
         try:
             slots = {slot['slotName']: slot['value']['value'] for slot in data['slots']}
-            user, intentname = data['intent']['intentName'].split(':')
+            intentId = data['intent']['intentName']
 
-            if intentname == 'newAlarm':
+            if intentId == user_intent('newAlarm'):
                 say(session_id, alarmclock.set(slots))
-            elif intentname == 'getAlarmsDate':
+            elif intentId == user_intent('getAlarmsDate'):
                 say(session_id, alarmclock.get_on_date(slots))
-            elif intentname == 'isAlarm':
+            elif intentId == user_intent('isAlarm'):
                 is_alarm, response = alarmclock.is_alarm(slots)
                 if is_alarm == 1:
                     say(session_id, response)
                 else:
-                    alarmclock.wanted_intents = ['domi:isAlarmConfirmNew']
+                    alarmclock.wanted_intents = [user_intent('isAlarmConfirmNew')]
                     dialogue(session_id, response, alarmclock.wanted_intents)
-            elif intentname == 'isAlarmConfirmNew':
-                if intentname in alarmclock.wanted_intents:
+            elif intentId == user_intent('isAlarmConfirmNew'):
+                if intentId in alarmclock.wanted_intents:
                     alarmclock.wanted_intents = []
-                    say(session_id, alarmclock.set(alarmclock.slots))
-                else:
-                    say(session_id, "")
-            elif intentname == 'deleteAlarm':
+                    say(session_id, alarmclock.set(alarmclock.remembered_slots))
+            elif intentId == user_intent('deleteAlarm'):
                 say(session_id, alarmclock.delete_alarm(slots))
-            elif intentname == 'deleteAlarmsDateTry':
+            elif intentId == user_intent('deleteAlarmsDateTry'):
                 alarms, response = alarmclock.delete_date_try(slots)
                 if alarms == 0:
                     say(session_id, response)
                 else:
-                    alarmclock.wanted_intents = ['domi:deleteAlarmsDateConfirm']
+                    alarmclock.wanted_intents = [user_intent('deleteAlarmsDateConfirm')]
                     dialogue(session_id, response, alarmclock.wanted_intents)
-            elif intentname == 'deleteAlarmsDateConfirm':
-                if intentname in alarmclock.wanted_intents:
+            elif intentId == user_intent('deleteAlarmsDateConfirm'):
+                if intentId in alarmclock.wanted_intents:
                     alarmclock.wanted_intents = []
                     say(session_id, alarmclock.delete_date(slots))
                 else:
                     say(session_id, "")
-            elif intentname == 'deleteAlarmsAllTry':
+            elif intentId == user_intent('deleteAlarmsAllTry'):
                 number = alarmclock.delete_all_try()
                 if number == 0:
                     say(session_id, "Es sind keine Alarme gestellt.")
@@ -95,10 +96,10 @@ def on_message(client, userdata, msg):
                     dialogue(session_id,
                              "In der nächsten Zeit gibt es {num} Alarme. Bist du dir sicher?".format(num=number),
                              alarmclock.wanted_intents)
-            elif intentname == 'deleteAlarmsAllConfirm':
+            elif intentId == user_intent('deleteAlarmsAllConfirm'):
                 alarmclock.wanted_intents = []
                 say(session_id, alarmclock.delete_all(slots))
-            elif intentname == 'getAlarmsAll':
+            elif intentId == user_intent('getAlarmsAll'):
                 say(session_id, alarmclock.get_all())
         except KeyError:
             say(session_id, "Ich habe dich leider nicht verstanden.")

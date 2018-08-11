@@ -8,23 +8,33 @@ import os
 import subprocess
 import pickle
 
+
 class AlarmClock:
     def __init__(self, config):
         self.script_dir = os.path.abspath(os.path.dirname(__file__))
-        self.ringing_volume = int("20")
-        self.timeout = 15
+        self.ringing_volume = config['global']['ringing_volume']
+        self.ringing_timeout = config['global']['ringing_timeout']
+        if not self.ringing_volume:  # if dictionaray not filled with values
+            self.ringing_volume = 20
+        else:
+            self.ringing_volume = int(self.ringing_volume)
+        if not self.ringing_timeout:
+            self.ringing_timeout = 15
+        else:
+            self.ringing_timeout = int(self.ringing_timeout)
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
         self.format_time = self._FormatTime()
-        self.slots = {}
+        self.remembered_slots = {}
         self.wanted_intents = []
         self.ringing = 0
-        self.keep_running = 1  # important for program exit (will be then 0)
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
+        self.player = None
+        self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
 
     def clock(self):
-        while self.keep_running == 1:
+        while True:
             now_time = self.format_time.now_time()
             if now_time in self.alarms:
                 del self.alarms[self.alarms.index(now_time)]
@@ -88,7 +98,7 @@ class AlarmClock:
                        "{0} um {1} Uhr {2} einen Wecker stellen?".format(self.format_time.future_part(alarm_time, 1),
                                                                          self.format_time.alarm_hour(alarm_time),
                                                                          self.format_time.alarm_minute(alarm_time))
-            self.slots = slots  # save slots for setting new alarm on confirmation
+            self.remembered_slots = slots  # save slots for setting new alarm on confirmation
         return is_alarm, response
 
     def delete_alarm(self, slots):
@@ -126,14 +136,14 @@ class AlarmClock:
         else:
             alarms = False
             response = "{0} gibt es keinen Alarm.".format(self.format_time.future_part(alarm_date, day_format=1))
-        if alarms == 1:
-            self.slots = slots
+        if alarms:
+            self.remembered_slots = slots
         return alarms, response
 
     def delete_date(self, slots):
         if slots['answer'] == "yes":
             # date was saved above in global self.slots
-            alarm_date_str = self.slots['date'][:-16]  # remove the timezone and time from date string
+            alarm_date_str = self.remembered_slots['date'][:-16]  # remove the timezone and time from date string
             alarm_date = datetime.datetime.strptime(alarm_date_str, "%Y-%m-%d")
             for alarm in self.alarms:
                 if alarm_date.date() == alarm.date():
@@ -187,17 +197,15 @@ class AlarmClock:
         # 0-100 --> 0-30000  (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
         calc_volume = abs(self.ringing_volume) * 300
         # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
-        self.player = subprocess.Popen(["mpg123", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file],
-                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.player = subprocess.Popen(["mpg123", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
         self.ringing = 1
-        self.ringing_timeout = threading.Timer(self.timeout, self.stop)
-        self.ringing_timeout.start()
+        self.timeout_thread.start()
 
     def stop(self):
         if self.ringing == 1:
             self.ringing = 0
             self.player.terminate()
-            self.ringing_timeout.cancel()
+            self.timeout_thread.cancel()
 
     def save_alarms(self):
         with io.open(self.saved_alarms_path, "wb") as f:
