@@ -63,14 +63,14 @@ def on_message(client, userdata, msg):
             client.unsubscribe('hermes/dialogueManager/sessionStarted')
             return
 
-        intentId = data['intent']['intentName']
-        if intentId == user_intent('newAlarm'):
+        intent_id = data['intent']['intentName']
+        if intent_id == user_intent('newAlarm'):
             slots = get_slots(data)
             say(session_id, alarmclock.set(slots))
-        elif intentId == user_intent('getAlarmsDate'):
+        elif intent_id == user_intent('getAlarmsDate'):
             slots = get_slots(data)
             say(session_id, alarmclock.get_on_date(slots))
-        elif intentId == user_intent('isAlarm'):
+        elif intent_id == user_intent('isAlarm'):
             slots = get_slots(data)
             is_alarm, response = alarmclock.is_alarm(slots)
             if is_alarm == 1:
@@ -78,14 +78,14 @@ def on_message(client, userdata, msg):
             else:
                 alarmclock.wanted_intents = [user_intent('isAlarmConfirmNew')]
                 dialogue(session_id, response, alarmclock.wanted_intents)
-        elif intentId == user_intent('isAlarmConfirmNew'):
-            if intentId in alarmclock.wanted_intents:
+        elif intent_id == user_intent('isAlarmConfirmNew'):
+            if intent_id in alarmclock.wanted_intents:
                 alarmclock.wanted_intents = []
                 say(session_id, alarmclock.set(alarmclock.remembered_slots))
-        elif intentId == user_intent('deleteAlarm'):
+        elif intent_id == user_intent('deleteAlarm'):
             slots = get_slots(data)
             say(session_id, alarmclock.delete_alarm(slots))
-        elif intentId == user_intent('deleteAlarmsDateTry'):
+        elif intent_id == user_intent('deleteAlarmsDateTry'):
             slots = get_slots(data)
             alarms, response = alarmclock.delete_date_try(slots)
             if alarms == 0:
@@ -93,14 +93,14 @@ def on_message(client, userdata, msg):
             else:
                 alarmclock.wanted_intents = [user_intent('deleteAlarmsDateConfirm')]
                 dialogue(session_id, response, alarmclock.wanted_intents)
-        elif intentId == user_intent('deleteAlarmsDateConfirm'):
-            if intentId in alarmclock.wanted_intents:
+        elif intent_id == user_intent('deleteAlarmsDateConfirm'):
+            if intent_id in alarmclock.wanted_intents:
                 alarmclock.wanted_intents = []
                 slots = get_slots(data)
                 say(session_id, alarmclock.delete_date(slots))
             else:
                 say(session_id, "")
-        elif intentId == user_intent('deleteAlarmsAllTry'):
+        elif intent_id == user_intent('deleteAlarmsAllTry'):
             number = alarmclock.delete_all_try()
             if number == 0:
                 say(session_id, "Es sind keine Alarme gestellt.")
@@ -112,12 +112,12 @@ def on_message(client, userdata, msg):
                 dialogue(session_id,
                          "In der nächsten Zeit gibt es {num} Alarme. Bist du dir sicher?".format(num=number),
                          alarmclock.wanted_intents)
-        elif intentId == user_intent('deleteAlarmsAllConfirm'):
+        elif intent_id == user_intent('deleteAlarmsAllConfirm'):
             if 'domi:deleteAlarmsAllConfirm' in alarmclock.wanted_intents:
                 alarmclock.wanted_intents = []
                 slots = get_slots(data)
                 say(session_id, alarmclock.delete_all(slots))
-        elif intentId == user_intent('getAlarmsAll'):
+        elif intent_id == user_intent('getAlarmsAll'):
             say(session_id, alarmclock.get_all())
 
 

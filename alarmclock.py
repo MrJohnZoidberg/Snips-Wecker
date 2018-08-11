@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-
-import datetime
-import time
-import threading
-import io
-import os
-import subprocess
-import pickle
+#                                   Explanations:
+import datetime                     # date and time
+import time                         # sleep in the clock thread
+import threading                    # clock thread in background and alarm timeout
+import io                           # opening alarm list file
+import os                           # script directory
+import subprocess                   # mpg123 command
+import pickle                       # saving alarms in list
+import paho.mqtt.client as mqtt     # sending mqtt messages
+import json                         # payload in mqtt messages
 
 
 class AlarmClock:
@@ -32,6 +34,8 @@ class AlarmClock:
         self.clock_thread.start()
         self.player = None
         self.timeout_thread = None
+        self.mqtt_client = mqtt.Client()
+        self.mqtt_client.connect("localhost", "1883")
 
     def clock(self):
         while True:
@@ -198,6 +202,7 @@ class AlarmClock:
         calc_volume = abs(self.ringing_volume) * 300
         # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
         self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
+        self.mqtt_client.publish('hermes/external/alarmclock/ringing')
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
         self.timeout_thread.start()
