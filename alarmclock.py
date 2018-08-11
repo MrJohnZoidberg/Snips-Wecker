@@ -8,6 +8,7 @@ import os                           # script directory
 import subprocess                   # mpg123 command
 import pickle                       # saving alarms in list
 import paho.mqtt.client as mqtt     # sending mqtt messages
+import paho.mqtt.publish as publish
 import json                         # payload in mqtt messages
 
 
@@ -207,8 +208,11 @@ class AlarmClock:
 
         wav_file = open(sound_file, 'rb')
         audio_wav = wav_file.read()
-        self.mqtt_client.publish('hermes/audioServer/default/playBytes/blablub', payload=audio_wav)
         wav_file.close()
+        #self.mqtt_client.publish('hermes/audioServer/default/playBytes/blablub', payload=audio_wav)
+        publish.single('hermes/audioServer/default/playBytes/blablub', payload=audio_wav, qos=0, retain=False,
+                       hostname="localhost", port=1883, client_id="", keepalive=60, will=None, tls=None,
+                       protocol=mqtt.MQTTv311)
         print("Ringing...")
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
