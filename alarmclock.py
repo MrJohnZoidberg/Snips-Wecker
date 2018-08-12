@@ -261,10 +261,10 @@ class AlarmClock(mqtt.Client):
             #self.player.terminate()
             self.timeout_thread.cancel()
 
-    def on_connect(self):
+    def on_connect(self, alarmclock, userdata, flags, rc):
         self.subscribe('hermes/hotword/default/detected')
 
-    def on_message(self):
+    def on_message(self, alarmclock, userdata, msg):
         # TODO: Subscribe not working
         print("Ballalalalalalalallalllalalalalalalallla")
         if self.ringing == 1:
