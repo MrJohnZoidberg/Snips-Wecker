@@ -48,6 +48,7 @@ def on_message(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
     session_id = data['sessionId']
     intent_id = data['intent']['intentName']
+
     if intent_id == user_intent('newAlarm'):
         slots = get_slots(data)
         say(session_id, alarmclock.set(slots))

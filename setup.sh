@@ -19,9 +19,9 @@ fi
 
 pip install -r requirements.txt
 
-if [ ! -f ./.saved_alarms ]; then
-    touch .saved_alarms
-    sudo chown _snips-skills .saved_alarms
+if [ ! -f ./.saved_alarms.json ]; then
+    touch .saved_alarms.json
+    sudo chown _snips-skills .saved_alarms.json
 fi
 
 if [ ! -f ./.temporary_ringtone ]; then

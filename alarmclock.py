@@ -4,7 +4,6 @@ import datetime                      # date and time
 import time                          # sleep in the clock thread
 import threading                     # clock thread in background and alarm timeout
 import io                            # opening alarm list file
-import pickle                        # saving alarms in list
 import paho.mqtt.client as mqtt      # sending mqtt messages
 import paho.mqtt.publish as publish  # publish ringtone to soundserver
 import json                          # payload in mqtt messages
@@ -15,7 +14,8 @@ class AlarmClock:
     def __init__(self, config):
         self.ringing_volume = config['secret']['ringing_volume']
         self.ringing_timeout = config['secret']['ringing_timeout']
-        self.bedroom_siteid = config['secret']['bedroom_site-id']
+        self.dict_siteid = config['secret']['dict_site-id']
+        self.default_room = config['secret']['default_room']
         if not self.ringing_volume:  # if dictionaray not filled with values
             self.ringing_volume = 50
         else:
@@ -26,14 +26,19 @@ class AlarmClock:
             self.ringing_timeout = 15
         else:
             self.ringing_timeout = int(self.ringing_timeout)
-        if not self.bedroom_siteid:
-            self.bedroom_siteid = "default"
-        self.alarms = []
-        self.saved_alarms_path = ".saved_alarms"
+        if not self.dict_siteid:
+            self.dict_siteid = {'default': 'Schlafzimmer'}
+        else:
+            self.dict_siteid = dict(self.dict_siteid)
+        if not self.default_room:
+            self.default_room = "Schlafzimmer"
+        self.alarms = {}
+        self.saved_alarms_path = ".saved_alarms.json"
         self.format_time = self._FormatTime()
         self.remembered_slots = {}
         self.wanted_intents = []
         self.ringing = 0
+        self.current_siteid = None
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         self.timeout_thread = None
@@ -59,18 +64,24 @@ class AlarmClock:
     def clock(self):
         while True:
             now_time = self.format_time.now_time()
-            if now_time in self.alarms:
-                del self.alarms[self.alarms.index(now_time)]
+            if now_time in self.alarms.keys():
+                self.current_siteid = self.alarms[now_time]['siteId']
+                del self.alarms[now_time]
                 self.ring()
             time.sleep(3)
 
     def set(self, slots):
-        alarm_time_str = self.format_time.alarm_time_str(slots)  # remove the timezone and else numbers from time string
+        if 'room' in slots.keys():
+            alarm_site_id = self.dict_siteid[slots['room']]
+        else:
+            alarm_site_id = self.dict_siteid[self.default_room]
+        # remove the timezone and else numbers from time string
+        alarm_time_str = self.format_time.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if self.format_time.delta_days(alarm_time) >= 0:
             if (alarm_time - self.format_time.now_time()).seconds >= 120:
-                if alarm_time not in self.alarms:
-                    self.alarms.append(alarm_time)  # add alarm to list
+                if alarm_time not in self.alarms.keys():
+                    self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
                 f_time = self.format_time
                 return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(f_time.future_part(alarm_time),
                                                                              f_time.alarm_hour(alarm_time),
@@ -86,7 +97,7 @@ class AlarmClock:
         if self.format_time.delta_days(alarm_date, day_format=1) < 0:
             return "Dieser Tag liegt in der Vergangenheit."
         alarms_on_date = []
-        for alarm in self.alarms:
+        for alarm, details in self.alarms:
             if alarm_date.date() == alarm.date():
                 alarms_on_date.append(alarm)
         if len(alarms_on_date) > 1:
@@ -109,7 +120,7 @@ class AlarmClock:
     def is_alarm(self, slots):
         alarm_time_str = self.format_time.alarm_time_str(slots)
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        if alarm_time in self.alarms:
+        if alarm_time in self.alarms.keys():
             is_alarm = 1
             response = "Ja, {0} wird ein Alarm um {1} Uhr {2} " \
                        "klingeln.".format(self.format_time.future_part(alarm_time, 1),
@@ -129,8 +140,8 @@ class AlarmClock:
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if self.format_time.delta_days(alarm_time) < 0:
             return "Diese Zeit liegt in der Vergangenheit."
-        if alarm_time in self.alarms:
-            self.alarms.remove(alarm_time)
+        if alarm_time in self.alarms.keys():
+            del self.alarms[alarm_time]
             return "Der Alarm {0} um {1} Uhr {2} wurde entfernt.".format(self.format_time.future_part(alarm_time, 1),
                                                                          self.format_time.alarm_hour(alarm_time),
                                                                          self.format_time.alarm_minute(alarm_time))
@@ -143,7 +154,7 @@ class AlarmClock:
         if self.format_time.delta_days(alarm_date, day_format=1) < 0:
             return "Dieser Tag liegt in der Vergangenheit."
         alarms_on_date = []
-        for alarm in self.alarms:
+        for alarm, details in self.alarms:
             if alarm_date.date() == alarm.date():
                 alarms_on_date.append(alarm)
         if len(alarms_on_date) > 1:
@@ -168,9 +179,9 @@ class AlarmClock:
             # date was saved above in global self.slots
             alarm_date_str = self.remembered_slots['date'][:-16]  # remove the timezone and time from date string
             alarm_date = datetime.datetime.strptime(alarm_date_str, "%Y-%m-%d")
-            for alarm in self.alarms:
+            for alarm, details in self.alarms:
                 if alarm_date.date() == alarm.date():
-                    self.alarms.remove(alarm)
+                    del self.alarms[alarm]
             return "Alle Alarme {0} wurden entfernt.".format(self.format_time.future_part(alarm_date, 1))
         else:
             return "Vorgang wurde abgebrochen."
@@ -180,7 +191,7 @@ class AlarmClock:
 
     def delete_all(self, slots):
         if slots['answer'] == "yes":
-            self.alarms = []
+            self.alarms = {}
             self.save_alarms()
             return "Es wurden alle Alarme entfernt."
         else:
@@ -190,35 +201,44 @@ class AlarmClock:
         if len(self.alarms) == 0:
             response = "Es gibt keine gestellten Alarme."
         elif len(self.alarms) == 1:
+            single_alarm = ""
+            for alarm, details in self.alarms:
+                single_alarm = alarm
             response = "Es gibt {0} einen Alarm um {1} Uhr {2} .".format(
-                self.format_time.future_part(self.alarms[0], 1),
-                self.format_time.alarm_hour(self.alarms[0]),
-                self.format_time.alarm_minute(self.alarms[0]))
+                self.format_time.future_part(single_alarm, 1),
+                self.format_time.alarm_hour(single_alarm),
+                self.format_time.alarm_minute(single_alarm))
         elif 2 <= len(self.alarms) <= 5:
             response = "Es gibt {0} Alarme in der nächsten Zeit. ".format(len(self.alarms))
-            for alarm in self.alarms[:-1]:
+            alarms_list = []
+            for alarm, details in self.alarms:
+                alarms_list.append(alarm)
+            for alarm in alarms_list[:-1]:
                 response = response + "einen {0} um {1} Uhr {2}, ".format(self.format_time.future_part(alarm, 1),
                                                                           self.format_time.alarm_hour(alarm),
                                                                           self.format_time.alarm_minute(alarm))
             response = response + "und einen {0} um {1} Uhr {2} .".format(
-                self.format_time.future_part(self.alarms[-1], 1),
-                self.format_time.alarm_hour(self.alarms[-1]),
-                self.format_time.alarm_minute(self.alarms[-1]))
+                self.format_time.future_part(alarms_list[-1], 1),
+                self.format_time.alarm_hour(alarms_list[-1]),
+                self.format_time.alarm_minute(alarms_list[-1]))
         else:
-            response = "Die nächsten sechs Alarme sind ".format(len(self.alarms))
-            for alarm in self.alarms[:6]:
+            response = "Die nächsten sechs Alarme sind "
+            alarms_list = []
+            for alarm, details in self.alarms:
+                alarms_list.append(alarm)
+            for alarm in alarms_list[:6]:
                 response = response + "einmal {0} um {1} Uhr {2}, ".format(self.format_time.future_part(alarm, 1),
                                                                            self.format_time.alarm_hour(alarm),
                                                                            self.format_time.alarm_minute(alarm))
-            response = response + "und {0} um {1} Uhr {2} .".format(self.format_time.future_part(self.alarms[-1], 1),
-                                                                    self.format_time.alarm_hour(self.alarms[-1]),
-                                                                    self.format_time.alarm_minute(self.alarms[-1]))
+            response = response + "und {0} um {1} Uhr {2} .".format(self.format_time.future_part(alarms_list[-1], 1),
+                                                                    self.format_time.alarm_hour(alarms_list[-1]),
+                                                                    self.format_time.alarm_minute(alarms_list[-1]))
         return response
 
     def ring(self):
         self.mqtt_client.subscribe('hermes/hotword/default/detected')
-        self.mqtt_client.subscribe('hermes/audioServer/{site_id}/playFinished'.format(site_id=self.bedroom_siteid))
-        publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.bedroom_siteid),
+        self.mqtt_client.subscribe('hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid))
+        publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.current_siteid),
                        payload=self.ringtone_wav, hostname="localhost", port=1883)
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
@@ -235,11 +255,11 @@ class AlarmClock:
             if msg.topic == 'hermes/hotword/default/detected':
                 self.stop_ringing()
                 client.subscribe('hermes/dialogueManager/sessionStarted')
-            elif msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.bedroom_siteid):
-                publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.bedroom_siteid),
+            elif msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
+                publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.current_siteid),
                                payload=self.ringtone_wav, hostname="localhost", port=1883)
                 self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
-                    site_id=self.bedroom_siteid))
+                    site_id=self.current_siteid))
         else:
             data = json.loads(msg.payload.decode("utf-8"))
             session_id = data['sessionId']
@@ -249,17 +269,18 @@ class AlarmClock:
                 client.unsubscribe('hermes/dialogueManager/sessionStarted')
 
     def save_alarms(self):
-        with io.open(self.saved_alarms_path, "wb") as f:
-            pickle.dump(self.alarms, f)
+        json_alarms = json.dumps(self.alarms)
+        with io.open(self.saved_alarms_path, "w") as f:
+            f.write(json_alarms)
 
     class _FormatTime:
         def __init__(self):
             pass
 
         @staticmethod
-        def alarm_time_str(slots):
+        def alarm_time_str(slots_time):
             # example string: "2015-04-08 09:39:00 +02:00"
-            return "{}:{}".format(slots['time'].split(":")[0], slots['time'].split(":")[1])
+            return "{}:{}".format(slots_time.split(":")[0], slots_time.split(":")[1])
 
         @staticmethod
         def now_time(day_format=0):
