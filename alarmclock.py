@@ -255,10 +255,16 @@ class AlarmClock:
             #self.player.terminate()
             self.timeout_thread.cancel()
 
-    def on_mqtt_connect(self, client, userdata, flags, rc):
+    @staticmethod
+    def on_mqtt_connect(client, userdata, flags, rc):
         client.subscribe('hermes/hotword/default/detected')
 
-    def on_mqtt_message(self, client, userdata, msg):
+    @staticmethod
+    def on_mqtt_message(client, userdata, msg):
+        print("Ballalalalalalalallalllalalalalalalallla")
+
+    """
+    def on_mqtt_message(client, userdata, msg):
         # TODO: Subscribe not working
         print("Ballalalalalalalallalllalalalalalalallla")
         if self.ringing == 1:
@@ -288,6 +294,7 @@ class AlarmClock:
             #    self.mqtt_client.publish('hermes/dialogueManager/endSession',
             #                             json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
             #    client.unsubscribe('hermes/dialogueManager/sessionStarted')
+    """
 
     def save_alarms(self):
         json_alarms = json.dumps(self.alarms)
