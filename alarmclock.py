@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-#                                   Explanations:
-import datetime                     # date and time
-import time                         # sleep in the clock thread
-import threading                    # clock thread in background and alarm timeout
-import io                           # opening alarm list file
-import os                           # script directory
-import subprocess                   # mpg123 command
-import pickle                       # saving alarms in list
-import paho.mqtt.client as mqtt     # sending mqtt messages
-import paho.mqtt.publish as publish
-import json                         # payload in mqtt messages
+#                                    Explanations:
+import datetime                      # date and time
+import time                          # sleep in the clock thread
+import threading                     # clock thread in background and alarm timeout
+import io                            # opening alarm list file
+import os                            # script directory
+import pickle                        # saving alarms in list
+import paho.mqtt.client as mqtt      # sending mqtt messages
+import paho.mqtt.publish as publish  # publish ringtone to soundserver
+import json                          # payload in mqtt messages
+from pydub import AudioSegment       # change volume of ringtone
+import tempfile                      # save temporary ringtone
 
 
 class AlarmClock:
@@ -17,14 +18,19 @@ class AlarmClock:
         self.script_dir = os.path.abspath(os.path.dirname(__file__))
         self.ringing_volume = config['secret']['ringing_volume']
         self.ringing_timeout = config['secret']['ringing_timeout']
+        self.bedroom_siteid = config['secret']['bedroom_site-id']
         if not self.ringing_volume:  # if dictionaray not filled with values
-            self.ringing_volume = 20
+            self.ringing_volume = 50
         else:
             self.ringing_volume = int(self.ringing_volume)
+            if self.ringing_volume < 0:
+                self.ringing_volume = 0
         if not self.ringing_timeout:
             self.ringing_timeout = 15
         else:
             self.ringing_timeout = int(self.ringing_timeout)
+        if not self.bedroom_siteid:
+            self.bedroom_siteid = "default"
         self.alarms = []
         self.saved_alarms_path = ".saved_alarms"
         self.format_time = self._FormatTime()
@@ -33,9 +39,23 @@ class AlarmClock:
         self.ringing = 0
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
-        self.player = None
         self.timeout_thread = None
+
+        # Edit ringtone volume
+        sound_file = self.script_dir + "/alarm-sound.wav"
+        ringtone = AudioSegment.from_wav(sound_file)
+        ringtone -= ringtone.max_dBFS
+        calc_volume = (100 - (self.ringing_volume * 0.8 + 20)) * 0.9
+        ringtone -= calc_volume
+        wav_file = tempfile.TemporaryFile()
+        ringtone.export(wav_file, format='wav')
+        wav_file.seek(0)
+        self.ringtone_wav = wav_file.read()
+        wav_file.close()
+
+        # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
+        self.mqtt_client.on_message = self.on_mqtt_message
         self.mqtt_client.connect("localhost", "1883")
         self.mqtt_client.loop()
 
@@ -199,28 +219,37 @@ class AlarmClock:
         return response
 
     def ring(self):
-        sound_file = self.script_dir + "/alarm-sound.wav"
-        # 0-100 --> 0-30000  (source: https://sourceforge.net/p/mpg123/feature-requests/35/)
-        calc_volume = abs(self.ringing_volume) * 300
-        # very important (execute where Snips is running on, e.g. on a Raspi): "sudo usermod -a -G audio _snips-skills"
-        #self.player = subprocess.Popen(["mpg123", "--quiet", "--loop", "-1", "-C", "-f", str(calc_volume), sound_file])
-        #self.mqtt_client.publish('hermes/external/alarmclock/ringing', json.dumps({"text": "test"}))
-
-        wav_file = open(sound_file, 'rb')
-        audio_wav = wav_file.read()
-        wav_file.close()
-        #self.mqtt_client.publish('hermes/audioServer/default/playBytes/blablub', payload=audio_wav)
-        publish.single('hermes/audioServer/default/playBytes/blablub', payload=audio_wav, hostname="localhost", port=1883)
-        print("Ringing...")
+        self.mqtt_client.subscribe('hermes/hotword/default/detected')
+        self.mqtt_client.subscribe('hermes/audioServer/{site_id}/playFinished'.format(site_id=self.bedroom_siteid))
+        publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.bedroom_siteid),
+                       payload=self.ringtone_wav, hostname="localhost", port=1883)
         self.ringing = 1
-        self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop)
+        self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
         self.timeout_thread.start()
 
-    def stop(self):
+    def stop_ringing(self):
         if self.ringing == 1:
             self.ringing = 0
             #self.player.terminate()
             self.timeout_thread.cancel()
+
+    def on_mqtt_message(self, client, userdata, msg):
+        if self.ringing == 1:
+            if msg.topic == 'hermes/hotword/default/detected':
+                self.stop_ringing()
+                client.subscribe('hermes/dialogueManager/sessionStarted')
+            elif msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.bedroom_siteid):
+                publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.bedroom_siteid),
+                               payload=self.ringtone_wav, hostname="localhost", port=1883)
+                self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
+                    site_id=self.bedroom_siteid))
+        else:
+            data = json.loads(msg.payload.decode("utf-8"))
+            session_id = data['sessionId']
+            if msg.topic == 'hermes/dialogueManager/sessionStarted':
+                self.mqtt_client.publish('hermes/dialogueManager/endSession',
+                                    json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
+                client.unsubscribe('hermes/dialogueManager/sessionStarted')
 
     def save_alarms(self):
         with io.open(self.saved_alarms_path, "wb") as f:
