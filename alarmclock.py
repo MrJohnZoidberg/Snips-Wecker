@@ -8,6 +8,7 @@ import paho.mqtt.client as mqtt      # sending mqtt messages
 import paho.mqtt.publish as publish  # publish ringtone to soundserver
 import json                          # payload in mqtt messages
 from pydub import AudioSegment       # change volume of ringtone
+import ast
 
 
 class AlarmClock:
@@ -29,7 +30,7 @@ class AlarmClock:
         if not self.dict_siteid:
             self.dict_siteid = {'default': 'Schlafzimmer'}
         else:
-            self.dict_siteid = dict(self.dict_siteid)
+            self.dict_siteid = ast.literal_eval(self.dict_siteid)
         if not self.default_room:
             self.default_room = "Schlafzimmer"
         self.alarms = {}
