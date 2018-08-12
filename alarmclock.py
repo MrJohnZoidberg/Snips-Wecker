@@ -4,18 +4,15 @@ import datetime                      # date and time
 import time                          # sleep in the clock thread
 import threading                     # clock thread in background and alarm timeout
 import io                            # opening alarm list file
-import os                            # script directory
 import pickle                        # saving alarms in list
 import paho.mqtt.client as mqtt      # sending mqtt messages
 import paho.mqtt.publish as publish  # publish ringtone to soundserver
 import json                          # payload in mqtt messages
 from pydub import AudioSegment       # change volume of ringtone
-import tempfile                      # save temporary ringtone
 
 
 class AlarmClock:
     def __init__(self, config):
-        self.script_dir = os.path.abspath(os.path.dirname(__file__))
         self.ringing_volume = config['secret']['ringing_volume']
         self.ringing_timeout = config['secret']['ringing_timeout']
         self.bedroom_siteid = config['secret']['bedroom_site-id']
@@ -42,12 +39,12 @@ class AlarmClock:
         self.timeout_thread = None
 
         # Edit ringtone volume
-        sound_file = self.script_dir + "/alarm-sound.wav"
+        sound_file = "alarm-sound.wav"
         ringtone = AudioSegment.from_wav(sound_file)
         ringtone -= ringtone.max_dBFS
         calc_volume = (100 - (self.ringing_volume * 0.8 + 20)) * 0.9
         ringtone -= calc_volume
-        wav_file = tempfile.TemporaryFile()
+        wav_file = open(".temporary_ringtone", "r+w")
         ringtone.export(wav_file, format='wav')
         wav_file.seek(0)
         self.ringtone_wav = wav_file.read()

@@ -23,3 +23,8 @@ if [ ! -f ./.saved_alarms ]; then
     touch .saved_alarms
     sudo chown _snips-skills .saved_alarms
 fi
+
+if [ ! -f ./.temporary_ringtone ]; then
+    touch .saved_alarms
+    sudo chown _snips-skills .saved_alarms
+fi
