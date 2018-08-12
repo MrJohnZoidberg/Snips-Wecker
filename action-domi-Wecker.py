@@ -121,4 +121,5 @@ if __name__ == "__main__":
     mqtt_client.on_message = on_message
     mqtt_client.connect("localhost", "1883")
     alarmclock = AlarmClock(conf)
+    alarmclock.mqtt_run()
     mqtt_client.loop_forever()
