@@ -18,8 +18,10 @@ class AlarmClock:
         self.dict_siteid = config['secret']['dict_site-id']
         self.default_room = config['secret']['default_room']
         if not self.ringing_volume:  # if dictionaray not filled with values
-            self.ringing_volume = 60
+            self.ringing_volume = 50
         else:
+            if str(self.ringing_volume)[-1] == "%":
+                self.ringing_volume = str(self.ringing_volume)[:-1]
             self.ringing_volume = int(self.ringing_volume)
             if self.ringing_volume < 0:
                 self.ringing_volume = 0
@@ -28,7 +30,11 @@ class AlarmClock:
         if not self.ringing_timeout:
             self.ringing_timeout = 30
         else:
+            if str(self.ringing_timeout)[-1] == "s":
+                self.ringing_timeout = str(self.ringing_timeout)[:-1]
             self.ringing_timeout = int(self.ringing_timeout)
+            if self.ringing_timeout < 5:
+                self.ringing_timeout = 5
         if not self.dict_siteid:
             self.dict_siteid = {'default': 'Schlafzimmer'}
         else:
@@ -128,7 +134,7 @@ class AlarmClock:
         return response
 
     def is_alarm(self, slots):
-        alarm_time_str = self.format_time.alarm_time_str(slots)
+        alarm_time_str = self.format_time.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if alarm_time in self.alarms.keys():
             is_alarm = 1
@@ -146,7 +152,7 @@ class AlarmClock:
         return is_alarm, response
 
     def delete_alarm(self, slots):
-        alarm_time_str = self.format_time.alarm_time_str(slots)
+        alarm_time_str = self.format_time.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if self.format_time.delta_days(alarm_time) < 0:
             return "Diese Zeit liegt in der Vergangenheit."
