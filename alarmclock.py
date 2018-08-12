@@ -255,6 +255,8 @@ class AlarmClock:
             self.timeout_thread.cancel()
 
     def on_mqtt_message(self, client, userdata, msg):
+        # TODO: Subscribe not working
+        print("Ballalalalalalalallalllalalalalalalallla")
         if self.ringing == 1:
             #if msg.topic == 'hermes/hotword/default/detected':
             #    self.stop_ringing()
