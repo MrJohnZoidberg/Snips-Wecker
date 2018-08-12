@@ -64,6 +64,9 @@ class AlarmClock:
         self.mqtt_client.connect("localhost", "1883")
         self.mqtt_client.loop()
 
+        self.mqttc = self.AlarmMQTT()
+        self.mqttc.run()
+
     def clock(self):
         while True:
             now_time = self.format_time.now_time()
@@ -386,3 +389,16 @@ class AlarmClock:
                                                                           int(alarm_time.day),
                                                                           int(alarm_time.month))
             return future_part
+
+    class AlarmMQTT(mqtt.Client):
+        def on_connect(self, client, userdata, flags, rc):
+            self.subscribe("hermes/hotword/default/detected")
+
+        def on_message(self, client, userdata, msg):
+            print("hellllo")
+
+        def run(self):
+            self.connect("localhost", "1883")
+            rc = 0
+            while rc == 0:
+                rc = self.loop()
