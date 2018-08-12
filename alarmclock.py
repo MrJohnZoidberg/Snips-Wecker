@@ -59,8 +59,8 @@ class AlarmClock:
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
-        self.mqtt_client.on_connect(self.on_mqtt_connect)
-        self.mqtt_client.on_message(self.on_mqtt_message)
+        self.mqtt_client.on_connect = self.on_mqtt_connect
+        self.mqtt_client.on_message = self.on_mqtt_message
         self.mqtt_client.connect("localhost", "1883")
         self.mqtt_client.loop()
 
