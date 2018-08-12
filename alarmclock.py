@@ -59,8 +59,8 @@ class AlarmClock:
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
-        self.mqtt_client.on_connect = self.on_mqtt_connect
-        self.mqtt_client.on_message = self.on_mqtt_message
+        self.mqtt_client.on_connect(self.on_mqtt_connect)
+        self.mqtt_client.on_message(self.on_mqtt_message)
         self.mqtt_client.connect("localhost", "1883")
         self.mqtt_client.loop()
 
@@ -255,12 +255,10 @@ class AlarmClock:
             #self.player.terminate()
             self.timeout_thread.cancel()
 
-    @staticmethod
-    def on_mqtt_connect(client, userdata, flags, rc):
+    def on_mqtt_connect(self, client, userdata, flags, rc):
         client.subscribe('hermes/hotword/default/detected')
 
-    @staticmethod
-    def on_mqtt_message(client, userdata, msg):
+    def on_mqtt_message(self, client, userdata, msg):
         print("Ballalalalalalalallalllalalalalalalallla")
 
     """
