@@ -8,7 +8,8 @@ import paho.mqtt.client as mqtt      # sending mqtt messages
 import paho.mqtt.publish as publish  # publish ringtone to soundserver
 import json                          # payload in mqtt messages
 from pydub import AudioSegment       # change volume of ringtone
-import ast
+import ast                           # convert string to dictionary
+import uuid
 
 
 class AlarmClock:
@@ -237,9 +238,11 @@ class AlarmClock:
         return response
 
     def ring(self):
-        self.mqtt_client.subscribe('hermes/hotword/default/detected')
+        #self.mqtt_client.subscribe('hermes/hotword/default/detected')
         self.mqtt_client.subscribe('hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid))
-        publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.current_siteid),
+        self.current_ring_id = uuid.uuid4()
+        publish.single('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(site_id=self.current_siteid,
+                                                                                 ring_id=self.current_ring_id),
                        payload=self.ringtone_wav, hostname="localhost", port=1883)
         self.ringing = 1
         self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
@@ -253,21 +256,28 @@ class AlarmClock:
 
     def on_mqtt_message(self, client, userdata, msg):
         if self.ringing == 1:
-            if msg.topic == 'hermes/hotword/default/detected':
-                self.stop_ringing()
-                client.subscribe('hermes/dialogueManager/sessionStarted')
-            elif msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
-                publish.single('hermes/audioServer/{site_id}/playBytes/ring'.format(site_id=self.current_siteid),
-                               payload=self.ringtone_wav, hostname="localhost", port=1883)
-                self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
-                    site_id=self.current_siteid))
+            #if msg.topic == 'hermes/hotword/default/detected':
+            #    self.stop_ringing()
+            #    client.subscribe('hermes/dialogueManager/sessionStarted')
+            if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
+                data = json.loads(msg.payload.decode("utf-8"))
+                if data['id'] == self.current_ring_id:
+                    self.current_ring_id = uuid.uuid4()
+                    publish.single('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
+                        site_id=self.current_siteid, ring_id=uuid.uuid4()),
+                        payload=self.ringtone_wav, hostname="localhost", port=1883)
         else:
-            data = json.loads(msg.payload.decode("utf-8"))
-            session_id = data['sessionId']
-            if msg.topic == 'hermes/dialogueManager/sessionStarted':
-                self.mqtt_client.publish('hermes/dialogueManager/endSession',
-                                         json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
-                client.unsubscribe('hermes/dialogueManager/sessionStarted')
+            if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
+                data = json.loads(msg.payload.decode("utf-8"))
+                if data['id'] == self.current_ring_id:
+                    self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
+                        site_id=self.current_siteid))
+            #data = json.loads(msg.payload.decode("utf-8"))
+            #session_id = data['sessionId']
+            #if msg.topic == 'hermes/dialogueManager/sessionStarted':
+            #    self.mqtt_client.publish('hermes/dialogueManager/endSession',
+            #                             json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
+            #    client.unsubscribe('hermes/dialogueManager/sessionStarted')
 
     def save_alarms(self):
         json_alarms = json.dumps(self.alarms)
