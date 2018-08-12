@@ -18,7 +18,7 @@ class AlarmClock:
         self.dict_siteid = config['secret']['dict_site-id']
         self.default_room = config['secret']['default_room']
         if not self.ringing_volume:  # if dictionaray not filled with values
-            self.ringing_volume = 50
+            self.ringing_volume = 60
         else:
             self.ringing_volume = int(self.ringing_volume)
             if self.ringing_volume < 0:
