@@ -11,7 +11,7 @@ import ast                           # convert string to dictionary
 import uuid
 
 
-class AlarmClock():
+class AlarmClock:
     def __init__(self, config):
         self.ringing_volume = config['secret']['ringing_volume']
         self.ringing_timeout = config['secret']['ringing_timeout']
@@ -23,6 +23,8 @@ class AlarmClock():
             self.ringing_volume = int(self.ringing_volume)
             if self.ringing_volume < 0:
                 self.ringing_volume = 0
+            elif self.ringing_volume > 100:
+                self.ringing_volume = 100
         if not self.ringing_timeout:
             self.ringing_timeout = 15
         else:
@@ -40,6 +42,7 @@ class AlarmClock():
         self.wanted_intents = []
         self.ringing = 0
         self.current_siteid = None
+        self.current_ring_id = None
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         self.timeout_thread = None
@@ -48,7 +51,7 @@ class AlarmClock():
         sound_file = "alarm-sound.wav"
         ringtone = AudioSegment.from_wav(sound_file)
         ringtone -= ringtone.max_dBFS
-        calc_volume = (100 - (self.ringing_volume * 0.8 + 20)) * 0.7
+        calc_volume = (100 - (self.ringing_volume * 0.8 + 20)) * 0.6
         ringtone -= calc_volume
         wav_file = open(".temporary_ringtone", "r+w")
         ringtone.export(wav_file, format='wav')
@@ -68,6 +71,9 @@ class AlarmClock():
             if now_time in self.alarms.keys():
                 self.current_siteid = self.alarms[now_time]['siteId']
                 del self.alarms[now_time]
+                self.mqtt_client.subscribe('hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid))
+                self.mqtt_client.subscribe('hermes/audioServer/{site_id}/playFinished'.format(
+                    site_id=self.current_siteid))
                 self.ring()
                 self.ringing = 1
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
@@ -240,48 +246,35 @@ class AlarmClock():
         return response
 
     def ring(self):
-        #self.mqttc.subscribe('hermes/hotword/default/detected')
-        self.mqtt_client.subscribe('hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid))
         self.current_ring_id = uuid.uuid4()
-        #publish.single('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(site_id=self.current_siteid,
-        #                                                                         ring_id=self.current_ring_id),
-        #               payload=self.ringtone_wav, hostname="localhost", port=1883)
-        print("Ringtone played hopefully")
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
             site_id=self.current_siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
 
     def stop_ringing(self):
         if self.ringing == 1:
             self.ringing = 0
-            #self.player.terminate()
             self.timeout_thread.cancel()
 
     def on_message(self, bla, userdata, msg):
         if self.ringing == 1:
-            #if msg.topic == 'hermes/hotword/default/detected':
-            #    self.stop_ringing()
-            #    client.subscribe('hermes/dialogueManager/sessionStarted')
-            if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
+            if msg.topic == 'hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid):
+                self.stop_ringing()
+                self.mqtt_client.unsubscribe('hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid))
                 self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
                     site_id=self.current_siteid))
+                self.mqtt_client.subscribe('hermes/dialogueManager/sessionStarted')
+            elif msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
                 data = json.loads(msg.payload.decode("utf-8"))
                 if uuid.UUID(data['id']) == self.current_ring_id:
                     self.current_ring_id = uuid.uuid4()
                     self.ring()
-        #else:
-            #if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
-            #    print("tuuut")
-            #    data = json.loads(msg.payload.decode("utf-8"))
-            #    if data['id'] == self.current_ring_id:
-            #        print("aaataaa")
-            #        self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
-            #            site_id=self.current_siteid))
-            #data = json.loads(msg.payload.decode("utf-8"))
-            #session_id = data['sessionId']
-            #if msg.topic == 'hermes/dialogueManager/sessionStarted':
-            #    self.mqtt_client.publish('hermes/dialogueManager/endSession',
-            #                             json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
-            #    client.unsubscribe('hermes/dialogueManager/sessionStarted')
+        else:
+            data = json.loads(msg.payload.decode("utf-8"))
+            session_id = data['sessionId']
+            if msg.topic == 'hermes/dialogueManager/sessionStarted':
+                self.mqtt_client.publish('hermes/dialogueManager/endSession',
+                                         json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
+                self.mqtt_client.unsubscribe('hermes/dialogueManager/sessionStarted')
 
     def save_alarms(self):
         json_alarms = json.dumps(self.alarms)
