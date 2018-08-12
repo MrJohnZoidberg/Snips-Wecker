@@ -26,7 +26,7 @@ class AlarmClock:
             elif self.ringing_volume > 100:
                 self.ringing_volume = 100
         if not self.ringing_timeout:
-            self.ringing_timeout = 15
+            self.ringing_timeout = 30
         else:
             self.ringing_timeout = int(self.ringing_timeout)
         if not self.dict_siteid:
@@ -255,7 +255,7 @@ class AlarmClock:
             self.ringing = 0
             self.timeout_thread.cancel()
 
-    def on_message(self, bla, userdata, msg):
+    def on_message(self, alarmclock, userdata, msg):
         if self.ringing == 1:
             if msg.topic == 'hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid):
                 self.stop_ringing()
