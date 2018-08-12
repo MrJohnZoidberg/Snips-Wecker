@@ -59,6 +59,7 @@ class AlarmClock:
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
+        self.mqtt_client.on_connect = self.on_mqtt_connect
         self.mqtt_client.on_message = self.on_mqtt_message
         self.mqtt_client.connect("localhost", "1883")
         self.mqtt_client.loop()
@@ -253,6 +254,9 @@ class AlarmClock:
             self.ringing = 0
             #self.player.terminate()
             self.timeout_thread.cancel()
+
+    def on_mqtt_connect(self, client, userdata, flags, rc):
+        client.subscribe('hermes/hotword/default/detected')
 
     def on_mqtt_message(self, client, userdata, msg):
         # TODO: Subscribe not working
