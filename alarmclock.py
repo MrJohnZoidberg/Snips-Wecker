@@ -245,7 +245,7 @@ class AlarmClock:
             session_id = data['sessionId']
             if msg.topic == 'hermes/dialogueManager/sessionStarted':
                 self.mqtt_client.publish('hermes/dialogueManager/endSession',
-                                    json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
+                                         json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
                 client.unsubscribe('hermes/dialogueManager/sessionStarted')
 
     def save_alarms(self):
