@@ -257,7 +257,6 @@ class AlarmClock():
             self.timeout_thread.cancel()
 
     def on_message(self, bla, userdata, msg):
-        print("Ballalalalalalalallalllalalalalalalallla")
         if self.ringing == 1:
             #if msg.topic == 'hermes/hotword/default/detected':
             #    self.stop_ringing()
@@ -265,14 +264,10 @@ class AlarmClock():
             if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
                 self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
                     site_id=self.current_siteid))
-                print("Tadaaa")
                 data = json.loads(msg.payload.decode("utf-8"))
-                if data['id'] == self.current_ring_id:
-                    print("OK")
-                print("Current-ring-id", self.current_ring_id)
-                print("check-ring-id", data['id'])
-                self.current_ring_id = uuid.uuid4()
-                self.ring()
+                if uuid.UUID(data['id']) == self.current_ring_id:
+                    self.current_ring_id = uuid.uuid4()
+                    self.ring()
         #else:
             #if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
             #    print("tuuut")
