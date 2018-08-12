@@ -296,9 +296,7 @@ class AlarmClock(mqtt.Client):
 
     def mqtt_run(self):
         self.connect(host="localhost", port=1883)
-        rc = 0
-        while rc == 0:
-            rc = self.loop()
+        self.loop_start()
 
     def save_alarms(self):
         json_alarms = json.dumps(self.alarms)
