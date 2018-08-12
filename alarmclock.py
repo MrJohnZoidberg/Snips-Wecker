@@ -49,7 +49,7 @@ class AlarmClock:
         sound_file = "alarm-sound.wav"
         ringtone = AudioSegment.from_wav(sound_file)
         ringtone -= ringtone.max_dBFS
-        calc_volume = (100 - (self.ringing_volume * 0.8 + 20)) * 0.9
+        calc_volume = (100 - (self.ringing_volume * 0.8 + 20)) * 0.7
         ringtone -= calc_volume
         wav_file = open(".temporary_ringtone", "r+w")
         ringtone.export(wav_file, format='wav')
@@ -260,16 +260,20 @@ class AlarmClock:
             #    self.stop_ringing()
             #    client.subscribe('hermes/dialogueManager/sessionStarted')
             if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
+                print("Tadaaa")
                 data = json.loads(msg.payload.decode("utf-8"))
                 if data['id'] == self.current_ring_id:
+                    print("OK")
                     self.current_ring_id = uuid.uuid4()
                     publish.single('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
                         site_id=self.current_siteid, ring_id=uuid.uuid4()),
                         payload=self.ringtone_wav, hostname="localhost", port=1883)
         else:
             if msg.topic == 'hermes/audioServer/{site_id}/playFinished'.format(site_id=self.current_siteid):
+                print("tuuut")
                 data = json.loads(msg.payload.decode("utf-8"))
                 if data['id'] == self.current_ring_id:
+                    print("aaataaa")
                     self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
                         site_id=self.current_siteid))
             #data = json.loads(msg.payload.decode("utf-8"))
