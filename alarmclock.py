@@ -257,11 +257,7 @@ class AlarmClock():
             #self.player.terminate()
             self.timeout_thread.cancel()
 
-    def on_connect(self, bla, userdata, flags, rc):
-        self.mqtt_client.subscribe('hermes/hotword/default/detected')
-
     def on_message(self, bla, userdata, msg):
-        # TODO: Subscribe not working
         print("Ballalalalalalalallalllalalalalalalallla")
         if self.ringing == 1:
             #if msg.topic == 'hermes/hotword/default/detected':
@@ -274,6 +270,8 @@ class AlarmClock():
                 data = json.loads(msg.payload.decode("utf-8"))
                 if data['id'] == self.current_ring_id:
                     print("OK")
+                print("Current-ring-id", self.current_ring_id)
+                print("check-ring-id", data['id'])
                 self.current_ring_id = uuid.uuid4()
                 self.ring()
         #else:
