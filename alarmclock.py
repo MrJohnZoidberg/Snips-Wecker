@@ -20,8 +20,6 @@ class AlarmClock:
         if not self.ringing_volume:  # if dictionaray not filled with values
             self.ringing_volume = 50
         else:
-            if str(self.ringing_volume)[-1] == "%":
-                self.ringing_volume = str(self.ringing_volume)[:-1]
             self.ringing_volume = int(self.ringing_volume)
             if self.ringing_volume < 0:
                 self.ringing_volume = 0
