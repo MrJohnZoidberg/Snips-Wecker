@@ -80,6 +80,7 @@ class AlarmClock:
                     site_id=self.current_siteid))
                 self.ring()
                 self.ringing = 1
+                self.mqtt_client.publish('external/alarmlock/ringing', payload=self.current_siteid)
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
                 self.timeout_thread.start()
             time.sleep(3)
