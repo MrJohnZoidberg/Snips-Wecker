@@ -28,3 +28,5 @@ if [ ! -f ./.temporary_ringtone ]; then
     touch .temporary_ringtone
     sudo chown _snips-skills .temporary_ringtone
 fi
+
+cp config.ini.default config.ini
