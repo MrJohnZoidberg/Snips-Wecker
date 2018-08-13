@@ -257,7 +257,7 @@ class AlarmClock:
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
             site_id=self.current_siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
 
-    def on_message_playfinished(self, client=None, userdata=None, msg=None):
+    def on_message_playfinished(self, client, userdata, msg):
         print("Finished playing.......................................")
         if self.ringing == 1:
             data = json.loads(msg.payload.decode("utf-8"))
@@ -265,7 +265,7 @@ class AlarmClock:
                 self.current_ring_id = uuid.uuid4()
                 self.ring()
 
-    def stop_ringing(self, client=None, userdata=None, msg=None):
+    def stop_ringing(self, client, userdata, msg):
         if self.ringing == 1:
             self.ringing = 0
             self.timeout_thread.cancel()
