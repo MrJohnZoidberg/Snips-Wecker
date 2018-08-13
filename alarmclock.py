@@ -66,8 +66,8 @@ class AlarmClock:
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_message = self.on_message
-        self.mqtt_client.subscribe('hermes/external/alarmclock/stopringing')
-        self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword())
+        self.mqtt_client.message_callback_add('hermes/external/alarmclock/stopringing', self.stop_ringing)
+        self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
         self.mqtt_client.connect(host="localhost", port=1883)
         self.mqtt_client.loop_start()
 
@@ -78,7 +78,7 @@ class AlarmClock:
                 self.current_siteid = self.alarms[now_time]['siteId']
                 del self.alarms[now_time]
                 self.mqtt_client.message_callback_add('hermes/audioServer/#/playFinished',
-                                                      self.on_message_playfinished())
+                                                      self.on_message_playfinished)
                 self.ring()
                 self.ringing = 1
                 self.mqtt_client.publish('external/alarmlock/ringing', payload="Hello world!")
@@ -257,7 +257,7 @@ class AlarmClock:
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
             site_id=self.current_siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
 
-    def stop_ringing(self):
+    def stop_ringing(self, client=None, userdata=None, msg=None):
         if self.ringing == 1:
             self.ringing = 0
             self.timeout_thread.cancel()
@@ -286,8 +286,7 @@ class AlarmClock:
         self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
 
     def on_message(self, client, userdata, msg):
-        if msg.topic == 'hermes/external/alarmclock/stopringing':
-            self.stop_ringing()
+        pass
         '''
         if self.ringing == 1:
             if msg.topic == 'hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid):
