@@ -66,7 +66,7 @@ class AlarmClock:
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_message = self.on_message
-        self.mqtt_client.message_callback_add('hermes/external/alarmclock/stopringing', self.stop_ringing)
+        self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.stop_ringing)
         self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
         self.mqtt_client.connect(host="localhost", port=1883)
         self.mqtt_client.loop_start()
@@ -77,8 +77,8 @@ class AlarmClock:
             if now_time in self.alarms.keys():
                 self.current_siteid = self.alarms[now_time]['siteId']
                 del self.alarms[now_time]
-                self.mqtt_client.message_callback_add('hermes/audioServer/#/playFinished',
-                                                      self.on_message_playfinished)
+                self.mqtt_client.message_callback_add('hermes/audioServer/{siteId}/playFinished'.format(
+                    siteId=self.current_siteid), self.on_message_playfinished)
                 self.ring()
                 self.ringing = 1
                 self.mqtt_client.publish('external/alarmlock/ringing', payload="Hello world!")
@@ -261,6 +261,8 @@ class AlarmClock:
         if self.ringing == 1:
             self.ringing = 0
             self.timeout_thread.cancel()
+            self.mqtt_client.message_callback_remove('hermes/audioServer/{siteId}/playFinished'.format(
+                siteId=self.current_siteid))
 
     def on_message_playfinished(self, client=None, userdata=None, msg=None):
         if self.ringing == 1:
@@ -274,7 +276,8 @@ class AlarmClock:
             self.stop_ringing()
             data = json.loads(msg.payload.decode("utf-8"))
             if data['siteId'] == self.current_siteid:
-                self.mqtt_client.message_callback_remove('hermes/audioServer/#/playFinished')
+                self.mqtt_client.message_callback_remove('hermes/audioServer/{siteId}/playFinished'.format(
+                    siteId=self.current_siteid))
                 self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
                                                       self.on_message_sessionstarted)
 
