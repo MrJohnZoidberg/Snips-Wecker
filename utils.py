@@ -42,11 +42,11 @@ class Utils:
             dsiteid = ast.literal_eval(dsiteid)
         return dsiteid
 
-    def get_dfroom(self):
-        dfroom = self.config['global']['default_room']
-        if not dfroom:
-            dfroom = "Schlafzimmer"
-        return dfroom
+    def get_dfsiteid(self):
+        dfsiteid = self.config['global']['default_site-id']
+        if not dfsiteid:
+            dfsiteid = "Schlafzimmer"
+        return dfsiteid
 
     @staticmethod
     def edit_volume(sound_file, volume):
