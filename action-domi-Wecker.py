@@ -12,7 +12,9 @@ USERNAME_INTENTS = "domi"
 
 class SnipsConfigParser(ConfigParser.SafeConfigParser):
     def to_dict(self):
-        return {section: {option_name: option for option_name, option in self.items(section)} for section in self.sections()}
+        return {section: {
+            option_name: option for option_name, option in self.items(section)
+        } for section in self.sections()}
 
 
 def read_configuration_file(configuration_file):
@@ -21,7 +23,7 @@ def read_configuration_file(configuration_file):
             conf_parser = SnipsConfigParser()
             conf_parser.readfp(f)
             return conf_parser.to_dict()
-    except (IOError, ConfigParser.Error) as e:
+    except (IOError, ConfigParser.Error):
         return dict()
 
 
