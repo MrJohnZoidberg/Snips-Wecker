@@ -1,7 +1,6 @@
 [global]
-ringing_volume=
-ringing_timeout=
-dict_site-id=
-default_room=
-
+ringing_volume=50
+ringing_timeout=30s
+dict_site-id={'default': 'Schlafzimmer'}
+default_room=Schlafzimmer
 [secret]
