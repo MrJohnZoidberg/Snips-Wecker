@@ -80,7 +80,7 @@ class AlarmClock:
                     site_id=self.current_siteid))
                 self.ring()
                 self.ringing = 1
-                self.mqtt_client.publish('external/alarmlock/ringing', payload=self.current_siteid)
+                self.mqtt_client.publish('hermes/external/alarmlock/ringing', payload=self.current_siteid)
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
                 self.timeout_thread.start()
             time.sleep(3)
@@ -262,7 +262,9 @@ class AlarmClock:
 
     def on_message(self, alarmclock, userdata, msg):
         if self.ringing == 1:
-            if msg.topic == 'hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid):
+            if msg.topic == 'hermes/external/alarmclock/stopringing':
+                self.stop_ringing()
+            elif msg.topic == 'hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid):
                 self.stop_ringing()
                 self.mqtt_client.unsubscribe('hermes/hotword/{site_id}/detected'.format(site_id=self.current_siteid))
                 self.mqtt_client.unsubscribe('hermes/audioServer/{site_id}/playFinished'.format(
