@@ -67,7 +67,7 @@ class AlarmClock:
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.subscribe('hermes/external/alarmclock/stopringing')
-        self.mqtt_client.message_callback_add('hermes/hotword/#/detected', self.on_message_hotword())
+        self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword())
         self.mqtt_client.connect(host="localhost", port=1883)
         self.mqtt_client.loop_start()
 
@@ -286,7 +286,7 @@ class AlarmClock:
         self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
 
     def on_message(self, client, userdata, msg):
-        if msg.payload == 'hermes/external/alarmclock/stopringing':
+        if msg.topic == 'hermes/external/alarmclock/stopringing':
             self.stop_ringing()
         '''
         if self.ringing == 1:
