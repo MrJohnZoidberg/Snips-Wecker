@@ -3,65 +3,30 @@
 import datetime                      # date and time
 import time                          # sleep in the clock thread
 import threading                     # clock thread in background and alarm timeout
-import io                            # opening alarm list file
 import paho.mqtt.client as mqtt      # sending mqtt messages
 import json                          # payload in mqtt messages
-from pydub import AudioSegment       # change volume of ringtone
-import ast                           # convert string to dictionary
 import uuid                          # indentifier for wav-data send to audioserver
+from utils import Utils
 
 
 class AlarmClock:
     def __init__(self, config):
-        self.ringing_volume = config['secret']['ringing_volume']
-        self.ringing_timeout = config['secret']['ringing_timeout']
-        self.dict_siteid = config['secret']['dict_site-id']
-        self.default_room = config['secret']['default_room']
-        if not self.ringing_volume:  # if dictionaray not filled with values
-            self.ringing_volume = 50
-        else:
-            self.ringing_volume = int(self.ringing_volume)
-            if self.ringing_volume < 0:
-                self.ringing_volume = 0
-            elif self.ringing_volume > 100:
-                self.ringing_volume = 100
-        if not self.ringing_timeout:
-            self.ringing_timeout = 30
-        else:
-            if str(self.ringing_timeout)[-1] == "s":
-                self.ringing_timeout = str(self.ringing_timeout)[:-1]
-            self.ringing_timeout = int(self.ringing_timeout)
-            if self.ringing_timeout < 5:
-                self.ringing_timeout = 5
-        if not self.dict_siteid:
-            self.dict_siteid = {'default': 'Schlafzimmer'}
-        else:
-            self.dict_siteid = ast.literal_eval(self.dict_siteid)
-        if not self.default_room:
-            self.default_room = "Schlafzimmer"
+        self.utils = Utils(config)
+        self.ringing_timeout = self.utils.get_ringtmo()
+        self.dict_siteid = self.utils.get_dsiteid()
+        self.default_room = self.utils.get_dfroom()
         self.alarms = {}
         self.saved_alarms_path = ".saved_alarms.json"
         self.format_time = self._FormatTime()
         self.remembered_slots = {}
         self.wanted_intents = []
-        self.ringing = 0
+        self.ringing = False
         self.current_siteid = None
         self.current_ring_id = None
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         self.timeout_thread = None
-
-        # Edit ringtone volume
-        sound_file = "alarm-sound.wav"
-        ringtone = AudioSegment.from_wav(sound_file)
-        ringtone -= ringtone.max_dBFS
-        calc_volume = (100 - (self.ringing_volume * 0.8 + 20)) * 0.6
-        ringtone -= calc_volume
-        wav_file = open(".temporary_ringtone", "r+w")
-        ringtone.export(wav_file, format='wav')
-        wav_file.seek(0)
-        self.ringtone_wav = wav_file.read()
-        wav_file.close()
+        self.ringtone_wav = self.utils.edit_volume("alarm-sound.wav", self.utils.get_ringvol())
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
@@ -81,7 +46,7 @@ class AlarmClock:
             if (alarm_time - self.format_time.now_time()).seconds >= 120:
                 if alarm_time not in self.alarms.keys():
                     self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
-                self.mqtt_client.publish('external/alarmlock/newalarm', "Hello world!")
+                self.mqtt_client.publish('external/alarmlock/newalarm', json.dumps({'siteId': self.current_siteid}))
                 f_time = self.format_time
                 return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(f_time.future_part(alarm_time),
                                                                              f_time.alarm_hour(alarm_time),
@@ -192,7 +157,7 @@ class AlarmClock:
     def delete_all(self, slots):
         if slots['answer'] == "yes":
             self.alarms = {}
-            self.save_alarms()
+            self.utils.save_alarms(self.alarms, self.saved_alarms_path)
             return "Es wurden alle Alarme entfernt."
         else:
             return "Vorgang wurde abgebrochen."
@@ -243,7 +208,7 @@ class AlarmClock:
                 del self.alarms[now_time]
                 self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
                 self.ring()
-                self.ringing = 1
+                self.ringing = True
                 self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': self.current_siteid}))
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
                 self.timeout_thread.start()
@@ -260,20 +225,20 @@ class AlarmClock:
         print("Finished playing.......................................")
         self.mqtt_client.message_callback_remove('hermes/audioServer/{siteId}/playFinished'.format(
             siteId=self.current_siteid))
-        if self.ringing == 1:
+        if self.ringing:
             data = json.loads(msg.payload.decode("utf-8"))
             if uuid.UUID(data['id']) == self.current_ring_id:
                 self.current_ring_id = uuid.uuid4()
                 self.ring()
 
     def stop_ringing(self):
-        if self.ringing == 1:
-            self.ringing = 0
+        if self.ringing:
+            self.ringing = False
             self.timeout_thread.cancel()
 
     def on_message_hotword(self, client, userdata, msg):
         print("Hotword detected.......................................")
-        if self.ringing == 1:
+        if self.ringing:
             self.stop_ringing()
             data = json.loads(msg.payload.decode("utf-8"))
             if data['siteId'] == self.current_siteid:
@@ -314,11 +279,6 @@ class AlarmClock:
                                          json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
                 self.mqtt_client.unsubscribe('hermes/dialogueManager/sessionStarted')
         '''
-
-    def save_alarms(self):
-        json_alarms = json.dumps(self.alarms)
-        with io.open(self.saved_alarms_path, "w") as f:
-            f.write(json_alarms)
 
     class _FormatTime:
         def __init__(self):

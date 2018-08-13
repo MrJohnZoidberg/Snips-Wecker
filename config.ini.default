@@ -1,0 +1,7 @@
+[global]
+ringing_volume=
+ringing_timeout=
+dict_site-id=
+default_room=
+
+[secret]
