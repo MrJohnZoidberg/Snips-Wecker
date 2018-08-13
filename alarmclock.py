@@ -241,23 +241,25 @@ class AlarmClock:
             if now_time in self.alarms.keys():
                 self.current_siteid = self.alarms[now_time]['siteId']
                 del self.alarms[now_time]
-                self.mqtt_client.message_callback_add('hermes/audioServer/{siteId}/playFinished'.format(
-                    siteId=self.current_siteid), self.on_message_playfinished)
                 self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
                 self.ring()
                 self.ringing = 1
-                self.mqtt_client.publish('external/alarmlock/ringing', payload="Hello world!")
+                self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': self.current_siteid}))
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
                 self.timeout_thread.start()
             time.sleep(3)
 
     def ring(self):
+        self.mqtt_client.message_callback_add('hermes/audioServer/{siteId}/playFinished'.format(
+            siteId=self.current_siteid), self.on_message_playfinished)
         self.current_ring_id = uuid.uuid4()
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
             site_id=self.current_siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
 
     def on_message_playfinished(self, client, userdata, msg):
         print("Finished playing.......................................")
+        self.mqtt_client.message_callback_remove('hermes/audioServer/{siteId}/playFinished'.format(
+            siteId=self.current_siteid))
         if self.ringing == 1:
             data = json.loads(msg.payload.decode("utf-8"))
             if uuid.UUID(data['id']) == self.current_ring_id:
@@ -268,8 +270,6 @@ class AlarmClock:
         if self.ringing == 1:
             self.ringing = 0
             self.timeout_thread.cancel()
-            self.mqtt_client.message_callback_remove('hermes/audioServer/{siteId}/playFinished'.format(
-                siteId=self.current_siteid))
 
     def on_message_hotword(self, client, userdata, msg):
         print("Hotword detected.......................................")
