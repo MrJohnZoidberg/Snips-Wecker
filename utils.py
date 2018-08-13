@@ -37,16 +37,16 @@ class Utils:
     def get_dsiteid(self):
         dsiteid = self.config['global']['dict_site-id']
         if not dsiteid:
-            dsiteid = {'default': 'Schlafzimmer'}
+            dsiteid = {'Schlafzimmer': 'default'}
         else:
             dsiteid = ast.literal_eval(dsiteid)
         return dsiteid
 
-    def get_dfsiteid(self):
-        dfsiteid = self.config['global']['default_site-id']
-        if not dfsiteid:
-            dfsiteid = "default"
-        return dfsiteid
+    def get_dfroom(self):
+        dfroom = self.config['global']['default_room']
+        if not dfroom:
+            dfroom = "Schlafzimmer"
+        return dfroom
 
     @staticmethod
     def edit_volume(sound_file, volume):

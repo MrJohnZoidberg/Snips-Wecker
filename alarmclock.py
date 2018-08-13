@@ -14,7 +14,7 @@ class AlarmClock:
         self.utils = Utils(config)
         self.ringing_timeout = self.utils.get_ringtmo()
         self.dict_siteid = self.utils.get_dsiteid()
-        self.default_siteid = self.utils.get_dfsiteid()
+        self.default_room = self.utils.get_dfroom()
         self.alarms = {}
         self.saved_alarms_path = ".saved_alarms.json"
         self.format_time = self._FormatTime()
@@ -38,7 +38,7 @@ class AlarmClock:
         if 'room' in slots.keys():
             alarm_site_id = self.dict_siteid[slots['room']]
         else:
-            alarm_site_id = self.dict_siteid[self.default_siteid]
+            alarm_site_id = self.dict_siteid[self.default_room]
         # remove the timezone and else numbers from time string
         alarm_time_str = self.format_time.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
