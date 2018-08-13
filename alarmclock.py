@@ -81,8 +81,8 @@ class AlarmClock:
                 self.mqtt_client.subscribe('hermes/external/alarmclock/stopringing')
                 self.ring()
                 self.ringing = 1
-                self.mqtt_client.publish('external/alarmlock/ringing',
-                                         payload=json.dumps({'siteId': self.current_siteid}))
+                self.mqtt_client.publish('external/alarmlock/ringing', "Hello world!")
+                self.mqtt_client.publish('hermes/external/alarmlock/ringing', "Hello world!")
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
                 self.timeout_thread.start()
             time.sleep(3)
@@ -99,6 +99,8 @@ class AlarmClock:
             if (alarm_time - self.format_time.now_time()).seconds >= 120:
                 if alarm_time not in self.alarms.keys():
                     self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
+                self.mqtt_client.publish('external/alarmlock/newalarm', "Hello world!")
+                self.mqtt_client.publish('hermes/external/alarmlock/newalarm', "Hello world!")
                 f_time = self.format_time
                 return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(f_time.future_part(alarm_time),
                                                                              f_time.alarm_hour(alarm_time),
