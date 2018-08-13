@@ -81,7 +81,7 @@ class AlarmClock:
                 self.mqtt_client.subscribe('hermes/external/alarmclock/stopringing')
                 self.ring()
                 self.ringing = 1
-                self.mqtt_client.publish('hermes/external/alarmlock/ringing',
+                self.mqtt_client.publish('external/alarmlock/ringing',
                                          payload=json.dumps({'siteId': self.current_siteid}))
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
                 self.timeout_thread.start()
