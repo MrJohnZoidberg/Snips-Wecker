@@ -101,7 +101,9 @@ class AlarmClock:
                 if alarm_time not in self.alarms.keys():
                     self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
                 self.mqtt_client.publish('external/alarmlock/newalarm', "Hello world!")
-                self.mqtt_client.publish('hermes/external/alarmlock/newalarm', "Hello world!")
+                print("Starting notification session...")
+                self.mqtt_client.publish('hermes/dialogueManager/startSession', json.dumps({'siteId': 'default', 'init':
+                                             {'type': "notification", 'text': "Hallo welt."}}))
                 f_time = self.format_time
                 return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(f_time.future_part(alarm_time),
                                                                              f_time.alarm_hour(alarm_time),
