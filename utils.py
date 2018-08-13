@@ -45,7 +45,7 @@ class Utils:
     def get_dfsiteid(self):
         dfsiteid = self.config['global']['default_site-id']
         if not dfsiteid:
-            dfsiteid = "Schlafzimmer"
+            dfsiteid = "default"
         return dfsiteid
 
     @staticmethod
