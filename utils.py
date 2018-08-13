@@ -11,7 +11,7 @@ class Utils:
         self.config = config
 
     def get_ringvol(self):
-        ringvol = self.config['secret']['ringing_volume']
+        ringvol = self.config['global']['ringing_volume']
         if not ringvol:  # if dictionaray not filled with values
             ringvol = 50
         else:
@@ -23,7 +23,7 @@ class Utils:
         return ringvol
 
     def get_ringtmo(self):
-        ringtmo = self.config['secret']['ringing_timeout']
+        ringtmo = self.config['global']['ringing_timeout']
         if not ringtmo:
             ringtmo = 30
         else:
@@ -35,7 +35,7 @@ class Utils:
         return ringtmo
 
     def get_dsiteid(self):
-        dsiteid = self.config['secret']['dict_site-id']
+        dsiteid = self.config['global']['dict_site-id']
         if not dsiteid:
             dsiteid = {'default': 'Schlafzimmer'}
         else:
@@ -43,7 +43,7 @@ class Utils:
         return dsiteid
 
     def get_dfroom(self):
-        dfroom = self.config['secret']['default_room']
+        dfroom = self.config['global']['default_room']
         if not dfroom:
             dfroom = "Schlafzimmer"
         return dfroom
