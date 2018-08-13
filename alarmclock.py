@@ -71,21 +71,6 @@ class AlarmClock:
         self.mqtt_client.connect(host="localhost", port=1883)
         self.mqtt_client.loop_start()
 
-    def clock(self):
-        while True:
-            now_time = self.format_time.now_time()
-            if now_time in self.alarms.keys():
-                self.current_siteid = self.alarms[now_time]['siteId']
-                del self.alarms[now_time]
-                self.mqtt_client.message_callback_add('hermes/audioServer/{siteId}/playFinished'.format(
-                    siteId=self.current_siteid), self.on_message_playfinished)
-                self.ring()
-                self.ringing = 1
-                self.mqtt_client.publish('external/alarmlock/ringing', payload="Hello world!")
-                self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
-                self.timeout_thread.start()
-            time.sleep(3)
-
     def set(self, slots):
         if 'room' in slots.keys():
             alarm_site_id = self.dict_siteid[slots['room']]
@@ -252,10 +237,33 @@ class AlarmClock:
                                                                     self.format_time.alarm_minute(alarms_list[-1]))
         return response
 
+    def clock(self):
+        while True:
+            now_time = self.format_time.now_time()
+            if now_time in self.alarms.keys():
+                self.current_siteid = self.alarms[now_time]['siteId']
+                del self.alarms[now_time]
+                self.mqtt_client.message_callback_add('hermes/audioServer/{siteId}/playFinished'.format(
+                    siteId=self.current_siteid), self.on_message_playfinished)
+                self.ring()
+                self.ringing = 1
+                self.mqtt_client.publish('external/alarmlock/ringing', payload="Hello world!")
+                self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
+                self.timeout_thread.start()
+            time.sleep(3)
+
     def ring(self):
         self.current_ring_id = uuid.uuid4()
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
             site_id=self.current_siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
+
+    def on_message_playfinished(self, client=None, userdata=None, msg=None):
+        print("Finished playing.......................................")
+        if self.ringing == 1:
+            data = json.loads(msg.payload.decode("utf-8"))
+            if uuid.UUID(data['id']) == self.current_ring_id:
+                self.current_ring_id = uuid.uuid4()
+                self.ring()
 
     def stop_ringing(self, client=None, userdata=None, msg=None):
         if self.ringing == 1:
@@ -263,13 +271,6 @@ class AlarmClock:
             self.timeout_thread.cancel()
             self.mqtt_client.message_callback_remove('hermes/audioServer/{siteId}/playFinished'.format(
                 siteId=self.current_siteid))
-
-    def on_message_playfinished(self, client=None, userdata=None, msg=None):
-        if self.ringing == 1:
-            data = json.loads(msg.payload.decode("utf-8"))
-            if uuid.UUID(data['id']) == self.current_ring_id:
-                self.current_ring_id = uuid.uuid4()
-                self.ring()
 
     def on_message_hotword(self, client=None, userdata=None, msg=None):
         if self.ringing == 1:
