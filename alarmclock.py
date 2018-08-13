@@ -5,6 +5,7 @@ import time                          # sleep in the clock thread
 import threading                     # clock thread in background and alarm timeout
 import io                            # opening alarm list file
 import paho.mqtt.client as mqtt      # sending mqtt messages
+import paho.mqtt.publish as publish
 import json                          # payload in mqtt messages
 from pydub import AudioSegment       # change volume of ringtone
 import ast                           # convert string to dictionary
@@ -81,8 +82,8 @@ class AlarmClock:
                 self.mqtt_client.subscribe('hermes/external/alarmclock/stopringing')
                 self.ring()
                 self.ringing = 1
-                self.mqtt_client.publish('external/alarmlock/ringing', "Hello world!")
-                self.mqtt_client.publish('hermes/external/alarmlock/ringing', "Hello world!")
+                publish.single('external/alarmlock/ringing', payload="Hello world!", hostname="localhost", port=1883)
+                publish.single('hermes/external/alarmlock/ringing', payload="Hello world!", hostname="localhost", port=1883)
                 self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
                 self.timeout_thread.start()
             time.sleep(3)
