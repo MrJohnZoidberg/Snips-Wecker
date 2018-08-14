@@ -23,10 +23,12 @@ def on_message_intent(client, userdata, msg):
     intent_id = data['intent']['intentName']
 
     if intent_id == user_intent('newAlarm'):
-        for slot in data['slots']:
-            print("Slotname:", slot['slotName'])
-            for key in slot.keys():
-                print("Key:", key)
+        try:
+            for key, value in data['slots'][0]['value']:
+                print("Key, value:", key, value)
+        except:
+            for value in data['slots'][0]['value']:
+                print("value:", value)
         try:
             slots = get_slots(data)
             say(session_id, alarmclock.set(slots))
