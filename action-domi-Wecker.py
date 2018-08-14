@@ -14,8 +14,6 @@ def user_intent(intentname):
 
 
 def get_slots(data):
-    for slot in data['slots']:
-        print(slot['slotName'], slot['value'], slot['value']['value'])
     return {slot['slotName']: slot['value']['value'] for slot in data['slots']}
 
 
@@ -25,8 +23,13 @@ def on_message_intent(client, userdata, msg):
     intent_id = data['intent']['intentName']
 
     if intent_id == user_intent('newAlarm'):
-        slots = get_slots(data)
-        say(session_id, alarmclock.set(slots))
+        for slot in data['slots']:
+            print(slot['slotName'], slot['value'], slot['value']['value'])
+        try:
+            slots = get_slots(data)
+            say(session_id, alarmclock.set(slots))
+        except:
+            print("Error")
 
     elif intent_id == user_intent('getAlarmsDate'):
         slots = get_slots(data)
