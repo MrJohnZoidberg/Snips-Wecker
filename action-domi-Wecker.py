@@ -14,7 +14,13 @@ def user_intent(intentname):
 
 
 def get_slots(data):
-    return {slot['slotName']: slot['value']['value'] for slot in data['slots']}
+    slot_dict = {}
+    for slot in data['slots']:
+        if slot['value']['kind'] in ["InstantTime", "Custom"]:
+            slot_dict['slotName'] = slot['value']['value']
+        elif slot['value']['kind'] == "TimeInterval":
+            slot_dict['slotName'] = slot['value']['from']
+    return slot_dict
 
 
 def on_message_intent(client, userdata, msg):
@@ -23,17 +29,8 @@ def on_message_intent(client, userdata, msg):
     intent_id = data['intent']['intentName']
 
     if intent_id == user_intent('newAlarm'):
-        for slot in data['slots']:
-            print("slot:", slot['slotName'])
-            print("Going deeper...")
-            print("kind:", slot['value']['kind'])
-            for value in slot['value']:
-                print("value:", value)
-        try:
             slots = get_slots(data)
-            say(session_id, alarmclock.set(slots))
-        except:
-            print("Error")
+            say(session_id, alarmclock.new(slots))
 
     elif intent_id == user_intent('getAlarmsDate'):
         slots = get_slots(data)
@@ -51,7 +48,7 @@ def on_message_intent(client, userdata, msg):
     elif intent_id == user_intent('isAlarmConfirmNew'):
         if intent_id in alarmclock.wanted_intents:
             alarmclock.wanted_intents = []
-            say(session_id, alarmclock.set(alarmclock.remembered_slots))
+            say(session_id, alarmclock.new(alarmclock.remembered_slots))
 
     elif intent_id == user_intent('deleteAlarm'):
         slots = get_slots(data)
@@ -72,7 +69,7 @@ def on_message_intent(client, userdata, msg):
             slots = get_slots(data)
             say(session_id, alarmclock.delete_date(slots))
         else:
-            say(session_id, "")
+            end(session_id)
 
     elif intent_id == user_intent('deleteAlarmsAllTry'):
         number = alarmclock.delete_all_try()
@@ -92,6 +89,7 @@ def on_message_intent(client, userdata, msg):
             alarmclock.wanted_intents = []
             slots = get_slots(data)
             say(session_id, alarmclock.delete_all(slots))
+
     elif intent_id == user_intent('getAlarmsAll'):
         say(session_id, alarmclock.get_all())
 
@@ -101,8 +99,7 @@ def end(session_id):
 
 
 def say(session_id, text):
-    mqtt_client.publish('hermes/dialogueManager/endSession',
-                        json.dumps({'text': text, "sessionId": session_id}))
+    mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({'text': text, "sessionId": session_id}))
 
 
 def dialogue(session_id, text, intent_filter):
