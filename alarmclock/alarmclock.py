@@ -51,8 +51,7 @@ class AlarmClock:
                 if alarm_time not in self.alarms.keys():
                     self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
                 dt = datetime.datetime
-                alarms_str_dict = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): details for dtobj, details in self.alarms}
-                print(alarms_str_dict)
+                alarms_str_dict = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
                 self.mqtt_client.publish('external/alarmlock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
                                                                                             'siteId': alarm_site_id},
                                                                                     'all': alarms_str_dict}))
