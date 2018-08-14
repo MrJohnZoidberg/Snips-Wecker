@@ -5,6 +5,7 @@ from pydub import AudioSegment       # change volume of ringtone
 import ast                           # convert string to dictionary
 import io                            # opening alarm list or config file
 import json                          # dictionary to file
+import datetime                      # check if object is datetime object
 
 
 class SnipsConfigParser(ConfigParser.SafeConfigParser):
@@ -77,6 +78,11 @@ def edit_volume(sound_file, volume):
     ringtone_wav = wav_file.read()
     wav_file.close()
     return ringtone_wav
+
+
+def datetime_converter(dtobj):
+    if isinstance(dtobj, datetime.datetime):
+        return dtobj.__str__()
 
 
 def save_alarms(alarms, path):
