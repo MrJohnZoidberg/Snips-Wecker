@@ -106,9 +106,8 @@ def dialogue(session_id, text, intent_filter):
 
 
 if __name__ == "__main__":
-    mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
-    mqtt_client.on_connect()
     mqtt_client.connect("localhost", "1883")
     conf = read_configuration_file("config.ini")
     alarmclock = AlarmClock(conf)
+    mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
     mqtt_client.loop_forever()
