@@ -30,7 +30,7 @@ class AlarmClock:
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
-        self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.stop_ringing)
+        self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.on_message_stopring)
         self.mqtt_client.connect(host="localhost", port=1883)
         self.mqtt_client.subscribe('external/alarmclock/#')
         self.mqtt_client.subscribe('hermes/#')
@@ -44,6 +44,7 @@ class AlarmClock:
         # remove the timezone and else numbers from time string
         alarm_time_str = self.format_time.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
+        print("Seconds: ", (alarm_time - self.format_time.now_time()).seconds)
         if self.format_time.delta_days(alarm_time) >= 0:
             if (alarm_time - self.format_time.now_time()).seconds >= 120:
                 if alarm_time not in self.alarms.keys():
@@ -234,7 +235,7 @@ class AlarmClock:
                 self.current_ring_id = uuid.uuid4()
                 self.ring()
 
-    def stop_ringing(self, client=None, userdata=None, msg=None):
+    def stop_ringing(self):
         if self.ringing:
             self.ringing = False
             self.timeout_thread.cancel()
@@ -248,6 +249,9 @@ class AlarmClock:
                     siteId=self.current_siteid))
                 self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
                                                       self.on_message_sessionstarted)
+
+    def on_message_stopring(self, client, userdata, msg):
+        self.stop_ringing()
 
     def on_message_sessionstarted(self, client, userdata, msg):
         data = json.loads(msg.payload.decode("utf-8"))
