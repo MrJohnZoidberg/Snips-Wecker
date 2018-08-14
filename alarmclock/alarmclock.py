@@ -52,8 +52,7 @@ class AlarmClock:
                     self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
                 self.mqtt_client.publish('external/alarmlock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
                                                                                             'siteId': alarm_site_id},
-                                                                                    'all': self.alarms},
-                                                                                   default=utils.datetime_converter))
+                                                                                    'all': self.alarms}))
                 return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(ftime.get_future_part(alarm_time),
                                                                              ftime.get_alarm_hour(alarm_time),
                                                                              ftime.get_alarm_minute(alarm_time))
