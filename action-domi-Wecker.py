@@ -14,6 +14,8 @@ def user_intent(intentname):
 
 
 def get_slots(data):
+    for slot in data['slots']:
+        print(slot['slotName'], slot['value'], slot['value']['value'])
     return {slot['slotName']: slot['value']['value'] for slot in data['slots']}
 
 
