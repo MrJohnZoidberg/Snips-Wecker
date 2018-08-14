@@ -248,7 +248,7 @@ class AlarmClock:
         True and the ID matches the one sent out, the ringtone is played again.
         TODO: self.ringing should be a list so alarms can ring simutaneously"""
 
-        if self.ringing:
+        if self.ringing and "playFinished" in msg.topic:
             data = json.loads(msg.payload.decode("utf-8"))
             if uuid.UUID(data['id']) == self.current_ring_id:
                 self.current_ring_id = uuid.uuid4()
