@@ -30,8 +30,11 @@ class AlarmClock:
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
+        self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.stop_ringing)
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.connect(host="localhost", port=1883)
+        self.mqtt_client.subscribe('external/alarmclock/#')
+        self.mqtt_client.subscribe('hermes/#')
         self.mqtt_client.loop_start()
 
     def set(self, slots):
@@ -231,7 +234,7 @@ class AlarmClock:
                 self.current_ring_id = uuid.uuid4()
                 self.ring()
 
-    def stop_ringing(self):
+    def stop_ringing(self, client=None, userdata=None, msg=None):
         if self.ringing:
             self.ringing = False
             self.timeout_thread.cancel()
@@ -255,8 +258,6 @@ class AlarmClock:
         self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
 
     def on_message(self, client, userdata, msg):
-        if msg.topic == 'external/alarmclock/stopringing':
-            self.stop_ringing()
         pass
         '''
         if self.ringing == 1:

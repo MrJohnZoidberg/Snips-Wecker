@@ -17,10 +17,6 @@ def get_slots(data):
     return {slot['slotName']: slot['value']['value'] for slot in data['slots']}
 
 
-def on_connect(client, userdata, flags, rc):
-    client.subscribe('hermes/intent/#')
-
-
 def on_message_intent(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
     session_id = data['sessionId']
@@ -109,7 +105,7 @@ if __name__ == "__main__":
     conf = read_configuration_file("config.ini")
     alarmclock = AlarmClock(conf)
     mqtt_client = mqtt.Client()
-    mqtt_client.on_connect = on_connect
     mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
     mqtt_client.connect("localhost", "1883")
+    mqtt_client.subscribe('hermes/intent/#')
     mqtt_client.loop_forever()
