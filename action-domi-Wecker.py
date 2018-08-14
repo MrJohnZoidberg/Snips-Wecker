@@ -17,9 +17,9 @@ def get_slots(data):
     slot_dict = {}
     for slot in data['slots']:
         if slot['value']['kind'] in ["InstantTime", "Custom"]:
-            slot_dict['slotName'] = slot['value']['value']
+            slot_dict[slot['slotName']] = slot['value']['value']
         elif slot['value']['kind'] == "TimeInterval":
-            slot_dict['slotName'] = slot['value']['from']
+            slot_dict[slot['slotName']] = slot['value']['from']
     return slot_dict
 
 
