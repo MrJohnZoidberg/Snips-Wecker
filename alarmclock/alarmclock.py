@@ -50,7 +50,7 @@ class AlarmClock:
             if (alarm_time - ftime.get_now_time()).seconds >= 120:
                 if alarm_time not in self.alarms.keys():
                     self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
-                self.mqtt_client.publish('external/alarmlock/newalarm', json.dumps({'new': {'datetime': alarm_time,
+                self.mqtt_client.publish('external/alarmlock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
                                                                                             'siteId': alarm_site_id},
                                                                                     'all': self.alarms},
                                                                                    default=utils.datetime_converter))

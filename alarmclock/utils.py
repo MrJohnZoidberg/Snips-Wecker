@@ -83,6 +83,8 @@ def edit_volume(sound_file, volume):
 def datetime_converter(dtobj):
     if isinstance(dtobj, datetime.datetime):
         return dtobj.__str__()
+    else:
+        return dtobj
 
 
 def save_alarms(alarms, path):
