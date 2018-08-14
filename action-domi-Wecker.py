@@ -17,8 +17,8 @@ def get_slots(data):
     return {slot['slotName']: slot['value']['value'] for slot in data['slots']}
 
 
-# MQTT client to connect to the bus
-mqtt_client = mqtt.Client()
+def on_connect(client, userdata, flags, rc):
+    client.subscribe('hermes/intent/#')
 
 
 def on_message_intent(client, userdata, msg):
@@ -106,8 +106,10 @@ def dialogue(session_id, text, intent_filter):
 
 
 if __name__ == "__main__":
-    mqtt_client.connect("localhost", "1883")
     conf = read_configuration_file("config.ini")
     alarmclock = AlarmClock(conf)
+    mqtt_client = mqtt.Client()
+    mqtt_client.on_connect = on_connect
     mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
+    mqtt_client.connect("localhost", "1883")
     mqtt_client.loop_forever()
