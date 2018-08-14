@@ -11,11 +11,39 @@ A skill for Snips.ai with a fully controllable alarm clock.
 
 #### In messages
 
-**hermes/external/alarmclock/stopringing**
+##### hermes/external/alarmclock/stopringing
+
+JSON Payload (I'm working on it):
+
+| Key | Value |
+|-----|-------|
+|siteId	| *String* - Site where the alarmclock should stop ringing|
 
 #### Out messages
 
-**external/alarmlock/ringing**
+##### external/alarmclock/newalarm
+
+JSON Payload:
+
+| Key | Value |
+|-----|-------|
+|new|*JSON Object* - Alarm details: datetime object and siteId (see below: 'new')|
+|all|*Dictionary* - Includes all alarms (see below: 'all')|
+
+'new' - JSON Object:
+
+| Key | Value |
+|-----|-------|
+|datetime|*Datetime Object* - Python object which includes date and time|
+|siteId|*String* - Site where the user created the alarm|
+
+'all' - Dictionary:
+
+| Dict-Keys (description) | Dict-Values (description)|
+|-----|-------|
+|datetime (*Datetime Object* - Python object which includes date and time)|siteId (*String* - Site where the user created the alarm)
+
+**external/alarmclock/ringing**
 
 JSON Payload:
 
@@ -26,6 +54,7 @@ JSON Payload:
 ## TODO
 - README
 - Store alarms after creating new one
+- Ringing in threads (multiple alarms at the same time)
 - subscribe intents only to single confirm, not listen to all
 - Send alarm data over MQTT
 - Publish app in the snips console app store
