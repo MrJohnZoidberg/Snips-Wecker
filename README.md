@@ -34,14 +34,19 @@ JSON Payload:
 
 | Key | Value |
 |-----|-------|
-|datetime|*Datetime Object* - Python object which includes date and time|
+|datetime|*String* - Python object which includes date and time|
 |siteId|*String* - Site where the user created the alarm|
 
 'all' - Dictionary:
 
 | Dict-Keys (description) | Dict-Values (description)|
 |-----|-------|
-|datetime (*Datetime Object* - Python object which includes date and time)|siteId (*String* - Site where the user created the alarm)
+|datetime (*String* - Includes date and time; can be parsed into `datetime` object with `strptime` from module `datetime`)|siteId (*String* - Site where the user created the alarm)|
+
+Example parsing:
+```python
+datetimeobj = datetime.datetime.strptime(data['new']['datetime'], "%Y-%m-%d %H:%M")
+```
 
 **external/alarmclock/ringing**
 
