@@ -34,7 +34,7 @@ class AlarmClock:
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
         # TODO: Subscribe not full audioserver, only 'hermes/audioServer/#/playFinished'
-        self.mqtt_client.message_callback_add('hermes/audioServer/#', self.on_message_playfinished)
+        self.mqtt_client.message_callback_add('hermes/audioServer/#/playFinished', self.on_message_playfinished)
         self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
         self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.on_message_stopring)
         self.mqtt_client.connect(host="localhost", port=1883)
@@ -44,6 +44,9 @@ class AlarmClock:
 
     def new_alarm(self, slots):
         if 'room' in slots.keys():
+            if slots['room'] not in self.dict_siteid.keys():
+                return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der" \
+                       "Anleitung von dieser Wecker-App nach, wie man Räume hinzufügen kann.".format(room=slots['room'])
             alarm_site_id = self.dict_siteid[slots['room']]
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
@@ -257,13 +260,13 @@ class AlarmClock:
 
         """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
         True and the ID matches the one sent out, the ringtone is played again."""
-        if "playFinished" in msg.topic:
-            data = json.loads(msg.payload.decode("utf-8"))
-            # TODO: change audioServer callback
-            if self.ringing_dict[data['siteId']]:
-                # TODO: Find out whether this identification is necessary (check also function description):
-                # if uuid.UUID(data['id']) == self.current_ring_id:
-                self.ring(data['siteId'])
+        # if "playFinished" in msg.topic:
+        data = json.loads(msg.payload.decode("utf-8"))
+        # TODO: change audioServer callback
+        if self.ringing_dict[data['siteId']]:
+            # TODO: Find out whether this identification is necessary (check also function description):
+            # if uuid.UUID(data['id']) == self.current_ring_id:
+            self.ring(data['siteId'])
 
     def on_message_hotword(self, client, userdata, msg):
 
