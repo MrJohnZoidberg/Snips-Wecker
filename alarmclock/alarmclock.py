@@ -47,11 +47,11 @@ class AlarmClock:
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         print("Days: ", (alarm_time - ftime.get_now_time()).days)
 
-        if ftime.get_delta_days(alarm_time) < 0:  # if date is in the past
+        if ftime.get_delta_obj(alarm_time).days < 0:  # if date is in the past
             return "Diese Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
-        elif (alarm_time - ftime.get_now_time()).seconds < 120:
+        elif ftime.get_delta_obj(alarm_time).seconds < 120:
             return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
-        elif (alarm_time - ftime.get_now_time()).seconds >= 120:
+        elif ftime.get_delta_obj(alarm_time).seconds >= 120:
             if alarm_time not in self.alarms.keys():
                 self.alarms[alarm_time] = alarm_site_id  # add alarm to dict
                 # TODO: Correct full code so that siteIds are saved in a list
@@ -70,7 +70,7 @@ class AlarmClock:
     def get_on_date(self, slots):
         wanted_date_str = slots['date'][:-16]  # remove the timezone and time from time string
         wanted_date = datetime.datetime.strptime(wanted_date_str, "%Y-%m-%d")
-        if ftime.get_delta_days(wanted_date, day_format=1) < 0:
+        if ftime.get_delta_obj(wanted_date, only_date=True).days < 0:
             return "Dieser Tag liegt in der Vergangenheit."
         alarms_on_date = []
         for alarm in self.alarms:
@@ -90,7 +90,7 @@ class AlarmClock:
                 ftime.get_alarm_hour(alarms_on_date[0]),
                 ftime.get_alarm_minute(alarms_on_date[0]))
         else:
-            response = "{0} gibt es keinen Alarm.".format(ftime.get_future_part(wanted_date, day_format=1))
+            response = "{0} gibt es keinen Alarm.".format(ftime.get_future_part(wanted_date, only_date=True))
         return response
 
     def is_alarm(self, slots):
@@ -111,7 +111,7 @@ class AlarmClock:
     def delete_alarm(self, slots):
         alarm_str = ftime.alarm_time_str(slots['time'])
         alarm = datetime.datetime.strptime(alarm_str, "%Y-%m-%d %H:%M")
-        if ftime.get_delta_days(alarm) < 0:
+        if ftime.get_delta_obj(alarm).days < 0:
             return "Diese Zeit liegt in der Vergangenheit."
         if alarm in self.alarms.keys():
             del self.alarms[alarm]
@@ -124,7 +124,7 @@ class AlarmClock:
     def delete_date_try(self, slots):
         alarm_date_str = slots['date'][:-16]  # remove the timezone and time from time string
         alarm_date = datetime.datetime.strptime(alarm_date_str, "%Y-%m-%d")
-        if ftime.get_delta_days(alarm_date, day_format=1) < 0:
+        if ftime.get_delta_obj(alarm_date, only_date=True).days < 0:
             return False, "Dieser Tag liegt in der Vergangenheit."
         alarms_on_date = []
         for alarm in self.alarms:
@@ -141,7 +141,7 @@ class AlarmClock:
                 ftime.get_alarm_hour(alarms_on_date[0]),
                 ftime.get_alarm_minute(alarms_on_date[0]))
         else:
-            return False, "{0} gibt es keinen Alarm.".format(ftime.get_future_part(alarm_date, day_format=1))
+            return False, "{0} gibt es keinen Alarm.".format(ftime.get_future_part(alarm_date, only_date=True))
 
     def delete_date(self, slots):
         if slots['answer'] == "yes":

@@ -8,20 +8,20 @@ def alarm_time_str(slots_time):
     return "{}:{}".format(slots_time.split(":")[0], slots_time.split(":")[1])
 
 
-def get_now_time(day_format=0):
+def get_now_time(only_date=False):
     now = datetime.datetime.now()
-    if day_format == 0:
-        now_time_str = "{0}-{1}-{2} {3}:{4}".format(now.year, now.month, now.day, now.hour, now.minute)
-        now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d %H:%M")
-    else:
+    if only_date:
         now_time_str = "{0}-{1}-{2}".format(now.year, now.month, now.day)
         now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d")
+    else:
+        now_time_str = "{0}-{1}-{2} {3}:{4}".format(now.year, now.month, now.day, now.hour, now.minute)
+        now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d %H:%M")
     return now_time
 
 
-def get_delta_days(alarm_time, day_format=0):
-    delta_days = (alarm_time - get_now_time(day_format)).days  # calculate the days between alarm and now
-    return delta_days
+def get_delta_obj(alarm_time, only_date=False):
+    delta_obj = (alarm_time - get_now_time(only_date))  # calculate the days between alarm and now
+    return delta_obj
 
 
 def get_alarm_hour(alarm_time):
@@ -47,10 +47,10 @@ def weekday(alarm_time):
     return alarm_weekday
 
 
-def get_future_part(alarm_time, day_format=0):
-    delta_days = get_delta_days(alarm_time, day_format=1)
+def get_future_part(alarm_time, only_date=False):
+    delta_days = get_delta_obj(alarm_time, only_date=True).days
     if delta_days == 0:
-        if day_format == 0:
+        if not only_date:
             delta_seconds = (alarm_time - get_now_time()).seconds
             delta_hours = delta_seconds // 3600
             minutes_remain = (delta_seconds % 3600) // 60
