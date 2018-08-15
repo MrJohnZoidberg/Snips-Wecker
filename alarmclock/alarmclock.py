@@ -49,9 +49,9 @@ class AlarmClock:
 
         if ftime.get_delta_days(alarm_time) < 0:  # if date is in the past
             return "Diese Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
-        if (alarm_time - ftime.get_now_time()).seconds < 120:
+        elif (alarm_time - ftime.get_now_time()).seconds < 120:
             return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
-        if (alarm_time - ftime.get_now_time()).seconds >= 120:
+        elif (alarm_time - ftime.get_now_time()).seconds >= 120:
             if alarm_time not in self.alarms.keys():
                 self.alarms[alarm_time] = alarm_site_id  # add alarm to dict
                 # TODO: Correct full code so that siteIds are saved in a list
