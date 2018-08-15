@@ -8,24 +8,28 @@ import json                          # payload in mqtt messages
 import uuid                          # indentifier for wav-data send to audioserver
 import utils                         # utils.py
 import formattime as ftime           # ftime.py
+import functools                     # functools.partial for threading.Timeout callback with parameter
 
 
 class AlarmClock:
     def __init__(self, config):
+        # Read config and correct values (in utils) if necessary
         self.ringing_timeout = utils.get_ringtmo(config)
         self.dict_siteid = utils.get_dsiteid(config)
         self.default_room = utils.get_dfroom(config)
-        self.alarms = {}
+        self.ringtone_wav = utils.edit_volume("alarm-sound.wav", utils.get_ringvol(config))
+
+        self.alarms = {}  # { key=datetime_obj: value=siteId_list }
         self.saved_alarms_path = ".saved_alarms.json"
         self.remembered_slots = {}
         self.wanted_intents = []
-        self.ringing = False
+        # TODO: correct full code to dict self.ringing
+        self.ringing = {}  # { key=siteId: value=True/False }
         self.current_siteid = None
         self.current_ring_id = None
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         self.timeout_thread = None
-        self.ringtone_wav = utils.edit_volume("alarm-sound.wav", utils.get_ringvol(config))
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
@@ -42,25 +46,26 @@ class AlarmClock:
             alarm_site_id = self.dict_siteid[slots['room']]
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
-        # remove the timezone and else numbers from time string
+        # remove the timezone and some numbers from time string
         alarm_time_str = ftime.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        print("Days: ", (alarm_time - ftime.get_now_time()).days)
-
         if ftime.get_delta_obj(alarm_time).days < 0:  # if date is in the past
             return "Diese Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
         elif ftime.get_delta_obj(alarm_time).seconds < 120:
             return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
         elif ftime.get_delta_obj(alarm_time).seconds >= 120:
             if alarm_time not in self.alarms.keys():
-                self.alarms[alarm_time] = alarm_site_id  # add alarm to dict
+                if alarm_time in self.alarms.keys():  # if list of siteIds already exists
+                    self.alarms[alarm_time].append(alarm_site_id)
+                else:
+                    self.alarms[alarm_time] = [alarm_site_id]
                 # TODO: Correct full code so that siteIds are saved in a list
             dt = datetime.datetime
-            # dictionary with datetime objects as strings
+            # alarm dictionary with datetime objects as strings { key=datetime_str: value=siteId_list }
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
             self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
                                                                                          'siteId': alarm_site_id},
-                                                                                'all': dic_al_str}))
+                                                                                 'all': dic_al_str}))
             return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(ftime.get_future_part(alarm_time),
                                                                          ftime.get_alarm_hour(alarm_time),
                                                                          ftime.get_alarm_minute(alarm_time))
