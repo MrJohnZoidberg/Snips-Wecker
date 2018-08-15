@@ -26,6 +26,7 @@ class AlarmClock:
         # self.ringing_dict -> { key=siteId: value=True/False }
         self.ringing_dict = {self.dict_siteid[room]: False for room in self.dict_siteid}
         self.current_ring_id = None
+        self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
@@ -33,13 +34,11 @@ class AlarmClock:
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
-        # TODO: Subscribe not full audioserver, only 'hermes/audioServer/#/playFinished'
-        self.mqtt_client.message_callback_add('hermes/audioServer/#/playFinished', self.on_message_playfinished)
         self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
         self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.on_message_stopring)
         self.mqtt_client.connect(host="localhost", port=1883)
-        self.mqtt_client.subscribe('external/alarmclock/#')
-        self.mqtt_client.subscribe('hermes/#')
+        self.mqtt_client.subscribe([('external/alarmclock/#', 0), ('hermes/dialogueManager/#', 0),
+                                    ('hermes/hotword/#', 0), ('hermes/audioserver/#', 0)])
         self.mqtt_client.loop_start()
 
     def new_alarm(self, slots):
@@ -231,6 +230,8 @@ class AlarmClock:
                         del self.alarms[now_time]
                     else:
                         self.alarms[now_time].remove(siteid)
+                    self.mqtt_client.message_callback_add('hermes/audioServer/{}/playFinished'.format(siteid),
+                                                          self.on_message_playfinished)
                     self.ring(siteid)
                     self.ringing_dict[siteid] = True
                     self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': siteid}))
@@ -255,16 +256,16 @@ class AlarmClock:
         self.ringing_dict[siteid] = False
         self.timeout_thr_dict[siteid].cancel()  # cancel timeout thread from siteId
         self.timeout_thr_dict[siteid] = None
+        self.mqtt_client.message_callback_remove('hermes/audioServer/{}/playFinished'.format(siteid))
 
     def on_message_playfinished(self, client, userdata, msg):
 
         """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
         True and the ID matches the one sent out, the ringtone is played again."""
-        # if "playFinished" in msg.topic:
+
         data = json.loads(msg.payload.decode("utf-8"))
-        # TODO: change audioServer callback
         if self.ringing_dict[data['siteId']]:
-            # TODO: Find out whether this identification is necessary (check also function description):
+            # TODO: Find out whether this identification is necessary (check function description when finished):
             # if uuid.UUID(data['id']) == self.current_ring_id:
             self.ring(data['siteId'])
 
@@ -276,6 +277,7 @@ class AlarmClock:
         data = json.loads(msg.payload.decode("utf-8"))
         if self.ringing_dict[data['siteId']]:
             self.stop_ringing(data['siteId'])
+            self.siteids_session_not_ended.append(data['siteId'])
             self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
                                                   self.on_message_sessionstarted)
 
@@ -293,7 +295,8 @@ class AlarmClock:
         immediately and Snips will notify the user that the alarm has ended."""
 
         data = json.loads(msg.payload.decode("utf-8"))
-        session_id = data['sessionId']
-        self.mqtt_client.publish('hermes/dialogueManager/endSession',
-                                 json.dumps({"text": "Alarm beendet", "sessionId": session_id}))
-        self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
+        if data['siteId'] in self.siteids_session_not_ended:
+            self.mqtt_client.publish('hermes/dialogueManager/endSession',
+                                     json.dumps({"text": "Alarm beendet", "sessionId": data['sessionId']}))
+            self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
+            self.siteids_session_not_ended.remove(data['siteId'])
