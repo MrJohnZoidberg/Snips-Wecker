@@ -41,7 +41,7 @@ class AlarmClock:
         self.mqtt_client.subscribe('hermes/#')
         self.mqtt_client.loop_start()
 
-    def new(self, slots):
+    def new_alarm(self, slots):
         if 'room' in slots.keys():
             alarm_site_id = self.dict_siteid[slots['room']]
         else:

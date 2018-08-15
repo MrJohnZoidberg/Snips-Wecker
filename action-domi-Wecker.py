@@ -30,7 +30,7 @@ def on_message_intent(client, userdata, msg):
 
     if intent_id == user_intent('newAlarm'):
             slots = get_slots(data)
-            say(session_id, alarmclock.new(slots))
+            say(session_id, alarmclock.new_alarm(slots))
 
     elif intent_id == user_intent('getAlarmsDate'):
         slots = get_slots(data)
@@ -48,7 +48,7 @@ def on_message_intent(client, userdata, msg):
     elif intent_id == user_intent('isAlarmConfirmNew'):
         if intent_id in alarmclock.wanted_intents:
             alarmclock.wanted_intents = []
-            say(session_id, alarmclock.new(alarmclock.remembered_slots))
+            say(session_id, alarmclock.new_alarm(alarmclock.remembered_slots))
 
     elif intent_id == user_intent('deleteAlarm'):
         slots = get_slots(data)
