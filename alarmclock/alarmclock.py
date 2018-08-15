@@ -23,16 +23,17 @@ class AlarmClock:
         self.saved_alarms_path = ".saved_alarms.json"
         self.remembered_slots = {}
         self.wanted_intents = []
-        # TODO: correct full code to dict self.ringing
-        self.ringing = {}  # { key=siteId: value=True/False }
-        self.current_siteid = None
+        # self.ringing_dict -> { key=siteId: value=True/False }
+        self.ringing_dict = {self.dict_siteid[room]: False for room in self.dict_siteid}
         self.current_ring_id = None
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
-        self.timeout_thread = None
+        # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
+        self.timeout_thr_dict = {self.dict_siteid[room]: None for room in self.dict_siteid}
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
+        # TODO: Subscribe not full audioserver, only 'hermes/audioServer/#/playFinished'
         self.mqtt_client.message_callback_add('hermes/audioServer/#', self.on_message_playfinished)
         self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
         self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.on_message_stopring)
@@ -54,12 +55,11 @@ class AlarmClock:
         elif ftime.get_delta_obj(alarm_time).seconds < 120:
             return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
         elif ftime.get_delta_obj(alarm_time).seconds >= 120:
-            if alarm_time not in self.alarms.keys():
-                if alarm_time in self.alarms.keys():  # if list of siteIds already exists
+            if alarm_time in self.alarms.keys():  # if list of siteIds already exists
+                if alarm_site_id not in self.alarms[alarm_time]:
                     self.alarms[alarm_time].append(alarm_site_id)
-                else:
-                    self.alarms[alarm_time] = [alarm_site_id]
-                # TODO: Correct full code so that siteIds are saved in a list
+            else:
+                self.alarms[alarm_time] = [alarm_site_id]
             dt = datetime.datetime
             # alarm dictionary with datetime objects as strings { key=datetime_str: value=siteId_list }
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
@@ -216,72 +216,73 @@ class AlarmClock:
 
     def clock(self):
 
-        """Checks in a loop if the current time and date matches with one of the alarm dictionary
-        TODO: self.ringing should be a list so alarms can ring simutaneously"""
+        """Checks in a loop if the current time and date matches with one of the alarm dictionary"""
 
         while True:
             now_time = ftime.get_now_time()
             if now_time in self.alarms.keys():
-                self.current_siteid = self.alarms[now_time]
-                del self.alarms[now_time]
-                self.ring()
-                self.ringing = True
-                self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': self.current_siteid}))
-                self.timeout_thread = threading.Timer(self.ringing_timeout, self.stop_ringing)
-                self.timeout_thread.start()
+                # make copy of list for the for-loop, because next step is deleting the alarm
+                current_alarms = self.alarms[now_time]
+                for siteid in current_alarms:
+                    if len(self.alarms[now_time]) == 1:
+                        del self.alarms[now_time]
+                    else:
+                        self.alarms[now_time].remove(siteid)
+                    self.ring(siteid)
+                    self.ringing_dict[siteid] = True
+                    self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': siteid}))
+                    timeout_thread = threading.Timer(self.ringing_timeout, functools.partial(self.stop_ringing, siteid))
+                    self.timeout_thr_dict[siteid] = timeout_thread
+                    timeout_thread.start()
             time.sleep(3)
 
-    def ring(self):
+    def ring(self, siteid):
 
         """Publishes the ringtone wav over MQTT to the soundserver and generates a random
         UUID so that self.on_message_playfinished can identify it to start a new ring."""
 
         self.current_ring_id = uuid.uuid4()
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
-            site_id=self.current_siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
+            site_id=siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
 
-    def stop_ringing(self):
+    def stop_ringing(self, siteid):
 
-        """Sets self.ringing to False so on_message_playfinished won't start a new ring.
-        TODO: self.ringing should be a list so alarms can ring simutaneously
-        TODO: parameter of self.stop_ringing should be the site_id"""
+        """Sets self.ringing_dict[siteId] to False so on_message_playfinished won't start a new ring."""
 
-        self.ringing = False
-        self.timeout_thread.cancel()
+        self.ringing_dict[siteid] = False
+        self.timeout_thr_dict[siteid].cancel()  # cancel timeout thread from siteId
+        self.timeout_thr_dict[siteid] = None
 
     def on_message_playfinished(self, client, userdata, msg):
 
-        """Called when ringtone was played on specific site. If self.ringing is
-        True and the ID matches the one sent out, the ringtone is played again.
-        TODO: self.ringing should be a list so alarms can ring simutaneously"""
+        """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
+        True and the ID matches the one sent out, the ringtone is played again."""
 
-        if self.ringing and "playFinished" in msg.topic:
-            data = json.loads(msg.payload.decode("utf-8"))
-            if uuid.UUID(data['id']) == self.current_ring_id:
-                self.current_ring_id = uuid.uuid4()
-                self.ring()
+        data = json.loads(msg.payload.decode("utf-8"))
+        # TODO: change audioServer callback
+        if self.ringing_dict[data['siteId']] and "playFinished" in msg.topic:
+            # TODO: Find out whether this identification is necessary (check also function description):
+            # if uuid.UUID(data['id']) == self.current_ring_id:
+            self.ring(data['siteId'])
 
     def on_message_hotword(self, client, userdata, msg):
 
         """Called when hotword is recognized while alarm is ringing. If siteId
-        matches the one of the current ringing alarm, it is stopped.
-        TODO: Change current_siteid to dict so that multiple alarms can ring simultaneously
-        """
+        matches the one of the current ringing alarm, it is stopped."""
 
-        if self.ringing:
-            data = json.loads(msg.payload.decode("utf-8"))
-            if data['siteId'] == self.current_siteid:
-                self.stop_ringing()
-                self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
-                                                      self.on_message_sessionstarted)
+        data = json.loads(msg.payload.decode("utf-8"))
+        if self.ringing_dict[data['siteId']]:
+            self.stop_ringing(data['siteId'])
+            self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
+                                                  self.on_message_sessionstarted)
 
     def on_message_stopring(self, client, userdata, msg):
 
-        """Called when message 'external/alarmclock/stopringing' is received via MQTT
-        TODO: self.ringing should be a list so alarms can ring simutaneously"""
+        """Called when message 'external/alarmclock/stopringing' is received via MQTT."""
 
-        if self.ringing:
-            self.stop_ringing()
+        data = json.loads(msg.payload.decode("utf-8"))
+        if self.ringing_dict[data['siteId']]:
+            self.stop_ringing(data['siteId'])
 
     def on_message_sessionstarted(self, client, userdata, msg):
 
