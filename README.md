@@ -3,6 +3,39 @@ A skill for Snips.ai with a fully controllable alarm clock.
 
 ## Installation
 
+**Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
+already configured and running on your device. [SAM](https://snips.gitbook.io/getting-started/installation) should
+also already be set up and connected to your device and your account.
+
+1. In the German [skill store](https://console.snips.ai/) add the
+skill `Wecker` (by domi; [this] to
+your *German* assistant.
+
+2. If you already have the same assistant on your platform, update it
+(with [Sam](https://snips.gitbook.io/getting-started/installation)) with:
+      ```bash
+      sam update-assistant
+      ```
+      
+   Otherwise install the assistant on the platform with [Sam](https://snips.gitbook.io/getting-started/installation)
+   with the following command to choose it (if you have multiple assistants in your Snips console):
+      ```bash
+      sam install assistant
+      ```
+      
+4. You will be asked to fill some parameters with values.
+The following should explain these parameters:
+    - With the parameter `bbbb` you can set the maximum length of all the fortunes,
+so that no very long fortune cookies are read out. The default is 100 characters.
+    - The value in `bbbb` controls the number of repetitions of the Question
+    "Noch ein Spruch?" if the answer was not understood. The default is one repetition.
+    
+5. If you want to change the values again, you can run:
+      ```bash
+      sam install skills
+      ```
+   The command will only update the skills, not the whole assistant.
+
 ## Usage
 
 ### Example sentences
@@ -58,7 +91,7 @@ def on_message(client, userdata, msg):
     # parsing of string to datetime object
     dt_newalarm = dt.strptime(data['new']['datetime'], "%Y-%m-%d %H:%M")
     # dictionary with all alarms
-    alarms_dict = {dt.strptime(dtstr, "%Y-%m-%d %H:%M"): data['all'][dtstr] for dtstr in data['all'].keys()}
+    alarms_dict = {dt.strptime(dtstr, "%Y-%m-%d %H:%M"): data['all'][dtstr] for dtstr in data['all']}
     # [...]
 
 mqttc = mqtt.Client()
@@ -77,10 +110,17 @@ JSON Payload:
 |-----|-------|
 |siteId|*String* - Site where the alarmclock is ringing|
 
-## TODO
+## Todo
 - README
 - Store alarms after creating new one
 - Ringing in threads (multiple alarms at the same time)
 - subscribe intents only to single confirm, not listen to all
 - Send alarm data over MQTT
 - Publish app in the snips console app store
+
+
+## Contribution
+
+Please report errors (you can see them with `sam service log`) and bugs by
+opening a [new issue](https://github.com/MrJohnZoidberg/Snips-Wecker/issues/new).
+You can also write other ideas for this skill. Thank you for your contribution.

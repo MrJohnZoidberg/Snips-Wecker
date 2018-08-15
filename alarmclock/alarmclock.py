@@ -46,36 +46,35 @@ class AlarmClock:
         alarm_time_str = ftime.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         print("Seconds: ", (alarm_time - ftime.get_now_time()))
-        if ftime.get_delta_days(alarm_time) >= 0:
-            if (alarm_time - ftime.get_now_time()).seconds >= 120:
-                if alarm_time not in self.alarms.keys():
-                    if self.alarms[alarm_time]: # check if list with siteIds already exists
-                        self.alarms[alarm_time].append(alarm_site_id)  # add alarm to dict
-                    else:
-                        self.alarms[alarm_time] = [alarm_site_id]  # add alarm to dict
-                    # TODO: Correct full code so that siteIds are saved in a list
-                dt = datetime.datetime
-                # dictionary with datetime objects as strings
-                dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms.keys()}
-                self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
-                                                                                             'siteId': alarm_site_id},
-                                                                                    'all': dic_al_str}))
-                return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(ftime.get_future_part(alarm_time),
-                                                                             ftime.get_alarm_hour(alarm_time),
-                                                                             ftime.get_alarm_minute(alarm_time))
-            else:
-                return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
-        else:  # if date is in the past
+
+        if ftime.get_delta_days(alarm_time) < 0:  # if date is in the past
             return "Diese Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
+        if (alarm_time - ftime.get_now_time()).seconds < 120:
+            return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
+        if (alarm_time - ftime.get_now_time()).seconds >= 120:
+            if alarm_time not in self.alarms.keys():
+                self.alarms[alarm_time] = alarm_site_id  # add alarm to dict
+                # TODO: Correct full code so that siteIds are saved in a list
+            dt = datetime.datetime
+            # dictionary with datetime objects as strings
+            dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
+            self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
+                                                                                         'siteId': alarm_site_id},
+                                                                                'all': dic_al_str}))
+            return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(ftime.get_future_part(alarm_time),
+                                                                         ftime.get_alarm_hour(alarm_time),
+                                                                         ftime.get_alarm_minute(alarm_time))
+        else:
+            return "Der Alarm konnte nicht gestellt werden."
 
     def get_on_date(self, slots):
-        alarm_date_str = slots['date'][:-16]  # remove the timezone and time from time string
-        alarm_date = datetime.datetime.strptime(alarm_date_str, "%Y-%m-%d")
-        if ftime.get_delta_days(alarm_date, day_format=1) < 0:
+        wanted_date_str = slots['date'][:-16]  # remove the timezone and time from time string
+        wanted_date = datetime.datetime.strptime(wanted_date_str, "%Y-%m-%d")
+        if ftime.get_delta_days(wanted_date, day_format=1) < 0:
             return "Dieser Tag liegt in der Vergangenheit."
         alarms_on_date = []
-        for alarm, details in self.alarms:
-            if alarm_date.date() == alarm.date():
+        for alarm in self.alarms:
+            if wanted_date.date() == alarm.date():
                 alarms_on_date.append(alarm)
         if len(alarms_on_date) > 1:
             response = "{0} gibt es {1} Alarme. ".format(ftime.get_future_part(alarms_on_date[0], 1),
@@ -91,37 +90,34 @@ class AlarmClock:
                 ftime.get_alarm_hour(alarms_on_date[0]),
                 ftime.get_alarm_minute(alarms_on_date[0]))
         else:
-            response = "{0} gibt es keinen Alarm.".format(ftime.get_future_part(alarm_date, day_format=1))
+            response = "{0} gibt es keinen Alarm.".format(ftime.get_future_part(wanted_date, day_format=1))
         return response
 
     def is_alarm(self, slots):
-        alarm_time_str = ftime.alarm_time_str(slots['time'])
-        alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        if alarm_time in self.alarms.keys():
-            is_alarm = 1
-            response = "Ja, {0} wird ein Alarm um {1} Uhr {2} " \
-                       "klingeln.".format(ftime.get_future_part(alarm_time, 1),
-                                          ftime.get_alarm_hour(alarm_time),
-                                          ftime.get_alarm_minute(alarm_time))
+        asked_alarm_str = ftime.alarm_time_str(slots['time'])
+        asked_alarm = datetime.datetime.strptime(asked_alarm_str, "%Y-%m-%d %H:%M")
+        if asked_alarm in self.alarms.keys():
+            return True, "Ja, {0} wird ein Alarm um {1} Uhr {2} " \
+                         "klingeln.".format(ftime.get_future_part(asked_alarm, 1),
+                                            ftime.get_alarm_hour(asked_alarm),
+                                            ftime.get_alarm_minute(asked_alarm))
         else:
-            is_alarm = 0
-            response = "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du " \
-                       "{0} um {1} Uhr {2} einen Wecker stellen?".format(ftime.get_future_part(alarm_time, 1),
-                                                                         ftime.get_alarm_hour(alarm_time),
-                                                                         ftime.get_alarm_minute(alarm_time))
             self.remembered_slots = slots  # save slots for setting new alarm on confirmation
-        return is_alarm, response
+            return False, "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du " \
+                          "{0} um {1} Uhr {2} einen Wecker stellen?".format(ftime.get_future_part(asked_alarm, 1),
+                                                                            ftime.get_alarm_hour(asked_alarm),
+                                                                            ftime.get_alarm_minute(asked_alarm))
 
     def delete_alarm(self, slots):
-        alarm_time_str = ftime.alarm_time_str(slots['time'])
-        alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        if ftime.get_delta_days(alarm_time) < 0:
+        alarm_str = ftime.alarm_time_str(slots['time'])
+        alarm = datetime.datetime.strptime(alarm_str, "%Y-%m-%d %H:%M")
+        if ftime.get_delta_days(alarm) < 0:
             return "Diese Zeit liegt in der Vergangenheit."
-        if alarm_time in self.alarms.keys():
-            del self.alarms[alarm_time]
-            return "Der Alarm {0} um {1} Uhr {2} wurde entfernt.".format(ftime.get_future_part(alarm_time, 1),
-                                                                         ftime.get_alarm_hour(alarm_time),
-                                                                         ftime.get_alarm_minute(alarm_time))
+        if alarm in self.alarms.keys():
+            del self.alarms[alarm]
+            return "Der Alarm {0} um {1} Uhr {2} wurde entfernt.".format(ftime.get_future_part(alarm, 1),
+                                                                         ftime.get_alarm_hour(alarm),
+                                                                         ftime.get_alarm_minute(alarm))
         else:
             return "Dieser Alarm ist nicht vorhanden."
 
@@ -129,27 +125,23 @@ class AlarmClock:
         alarm_date_str = slots['date'][:-16]  # remove the timezone and time from time string
         alarm_date = datetime.datetime.strptime(alarm_date_str, "%Y-%m-%d")
         if ftime.get_delta_days(alarm_date, day_format=1) < 0:
-            return "Dieser Tag liegt in der Vergangenheit."
+            return False, "Dieser Tag liegt in der Vergangenheit."
         alarms_on_date = []
-        for alarm, details in self.alarms:
+        for alarm in self.alarms:
             if alarm_date.date() == alarm.date():
                 alarms_on_date.append(alarm)
         if len(alarms_on_date) > 1:
-            alarms = True
-            response = "{0} gibt es {1} Alarme. Bist du dir sicher?".format(ftime.get_future_part(alarm_date, 1),
-                                                                            len(alarms_on_date))
+            self.remembered_slots = slots
+            return True, "{0} gibt es {1} Alarme. Bist du dir sicher?".format(ftime.get_future_part(alarm_date, 1),
+                                                                              len(alarms_on_date))
         elif len(alarms_on_date) == 1:
-            alarms = True
-            response = "{0} gibt es einen Alarm um {1} Uhr {2} . Bist du dir sicher?".format(
+            self.remembered_slots = slots
+            return True, "{0} gibt es einen Alarm um {1} Uhr {2} . Bist du dir sicher?".format(
                 ftime.get_future_part(alarm_date, 1),
                 ftime.get_alarm_hour(alarms_on_date[0]),
                 ftime.get_alarm_minute(alarms_on_date[0]))
         else:
-            alarms = False
-            response = "{0} gibt es keinen Alarm.".format(ftime.get_future_part(alarm_date, day_format=1))
-        if alarms:
-            self.remembered_slots = slots
-        return alarms, response
+            return False, "{0} gibt es keinen Alarm.".format(ftime.get_future_part(alarm_date, day_format=1))
 
     def delete_date(self, slots):
         if slots['answer'] == "yes":
@@ -164,7 +156,12 @@ class AlarmClock:
             return "Vorgang wurde abgebrochen."
 
     def delete_all_try(self):
-        return len(self.alarms)
+        if len(self.alarms) == 1:
+            return True, "Es ist ein Alarm aktiv. Bist du dir sicher?"
+        elif len(self.alarms) > 1:
+            return True, "In der nächsten Zeit gibt es {num} Alarme. Bist du dir sicher?".format(num=len(self.alarms))
+        else:
+            return False, "Es sind keine Alarme gestellt."
 
     def delete_all(self, slots):
         if slots['answer'] == "yes":
