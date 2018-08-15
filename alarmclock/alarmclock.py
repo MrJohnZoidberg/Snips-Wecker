@@ -217,7 +217,7 @@ class AlarmClock:
         while True:
             now_time = ftime.get_now_time()
             if now_time in self.alarms.keys():
-                self.current_siteid = self.alarms[now_time]['siteId']
+                self.current_siteid = self.alarms[now_time]
                 del self.alarms[now_time]
                 self.ring()
                 self.ringing = True
