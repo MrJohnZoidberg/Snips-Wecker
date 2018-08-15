@@ -43,8 +43,8 @@ class AlarmClock:
 
     def new_alarm(self, slots):
         if 'room' in slots.keys():
-            if slots['room'] not in self.dict_siteid.keys():
-                return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser" \
+            if slots['room'].encode('utf8') not in self.dict_siteid.keys():
+                return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
                        "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=slots['room'].encode('utf8'))
             alarm_site_id = self.dict_siteid[slots['room'].encode('utf8')]
         else:
