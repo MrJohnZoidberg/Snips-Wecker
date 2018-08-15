@@ -45,7 +45,7 @@ class AlarmClock:
         # remove the timezone and else numbers from time string
         alarm_time_str = ftime.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
-        print("Seconds: ", (alarm_time - ftime.get_now_time()))
+        print("Days: ", (alarm_time - ftime.get_now_time()).days)
 
         if ftime.get_delta_days(alarm_time) < 0:  # if date is in the past
             return "Diese Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
