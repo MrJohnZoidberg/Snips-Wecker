@@ -49,12 +49,17 @@ class AlarmClock:
         if ftime.get_delta_days(alarm_time) >= 0:
             if (alarm_time - ftime.get_now_time()).seconds >= 120:
                 if alarm_time not in self.alarms.keys():
-                    self.alarms[alarm_time] = {'siteId': alarm_site_id}  # add alarm to dict
+                    if self.alarms[alarm_time]: # check if list with siteIds already exists
+                        self.alarms[alarm_time].append(alarm_site_id)  # add alarm to dict
+                    else:
+                        self.alarms[alarm_time] = [alarm_site_id]  # add alarm to dict
+                    # TODO: Correct full code so that siteIds are saved in a list
                 dt = datetime.datetime
-                alarms_str_dict = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
+                # dictionary with datetime objects as strings
+                dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms.keys()}
                 self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
                                                                                              'siteId': alarm_site_id},
-                                                                                    'all': alarms_str_dict}))
+                                                                                    'all': dic_al_str}))
                 return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(ftime.get_future_part(alarm_time),
                                                                              ftime.get_alarm_hour(alarm_time),
                                                                              ftime.get_alarm_minute(alarm_time))
