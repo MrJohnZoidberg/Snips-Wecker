@@ -43,6 +43,7 @@ class AlarmClock:
 
     def new_alarm(self, slots):
         room_part = ""
+        # TODO: room "hier"
         if 'room' in slots.keys():
             # TODO: slots['room'].encode('utf8') only one time
             if slots['room'].encode('utf8') not in self.dict_siteid.keys():
@@ -254,7 +255,7 @@ class AlarmClock:
         UUID for it."""
 
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
-            site_id=siteid, ring_id=uuid.uuid4(), payload=self.ringtone_wav))
+            site_id=siteid, ring_id=uuid.uuid4()), payload=self.ringtone_wav)
 
     def stop_ringing(self, siteid):
 
