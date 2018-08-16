@@ -245,7 +245,7 @@ class AlarmClock:
                     self.ringing_dict[siteid] = True
                     # get room name from self.dict_siteid
                     room = [room for room, sid in self.dict_siteid.iteritems() if sid == siteid][0]
-                    self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': siteid, 'room': room}))
+                    self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({'siteId': siteid, 'room': room}))
                     timeout_thread = threading.Timer(self.ringing_timeout, functools.partial(self.stop_ringing, siteid))
                     self.timeout_thr_dict[siteid] = timeout_thread
                     timeout_thread.start()
