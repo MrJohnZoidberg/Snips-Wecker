@@ -41,17 +41,32 @@ class AlarmClock:
                                     ('hermes/hotword/#', 0), ('hermes/audioServer/#', 0)])
         self.mqtt_client.loop_start()
 
-    def new_alarm(self, slots):
+    def new_alarm(self, slots, siteid):
         room_words = ""
         # TODO: room "hier"
         if 'room' in slots.keys():
-            room = slots['room'].encode('utf8')
-            if room not in self.dict_siteid.keys():
+            #####################
+            room_slot = slots['room'].encode('utf8')
+            room_context = None
+            if room_slot == "hier":
+                try:
+                    room_context = [room for room, sid in self.dict_siteid.iteritems() if sid == siteid][0]
+                except IndexError:
+                    return "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
+                           "Wecker-Äpp nach, wie man Räume hinzufügen kann."
+            elif room_slot not in self.dict_siteid.keys():
                 return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
-                       "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=room)
-            alarm_site_id = self.dict_siteid[room]
+                       "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=room_slot)
+            room_words = ""
             if len(self.dict_siteid) > 1:
-                room_words = self.dict_prepositions[room] + " " + room
+                if room_context:
+                    alarm_site_id = self.dict_siteid[room_context]
+                    room_words = "hier"
+                else:
+                    alarm_site_id = self.dict_siteid[room_slot]
+                    room_words = self.dict_prepositions[room_slot] + " " + room_slot
+
+            #####################
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
             if len(self.dict_siteid) > 1:
@@ -72,8 +87,7 @@ class AlarmClock:
             dt = datetime.datetime
             # alarm dictionary with datetime objects as strings { key=datetime_str: value=siteId_list }
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
-            self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
-                                                                                         'siteId': alarm_site_id},
+            self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {alarm_time_str, alarm_site_id},
                                                                                  'all': dic_al_str}))
             # TODO: names instead of numbers as placeholder
             return "Der Wecker wird {0} um {1} Uhr {2} {3} klingeln.".format(ftime.get_future_part(alarm_time),

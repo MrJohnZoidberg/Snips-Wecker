@@ -40,6 +40,14 @@ so that no very long fortune cookies are read out. The default is 100 characters
 
 ### Example sentences
 
+
+
+### While ringing
+
+While an alarm is ringing you can say a hotword, which is by default "Hey Snips!".
+
+![img](resources/Snips-Alarmclock-ringing.png)
+
 ### MQTT messages
 
 #### In messages

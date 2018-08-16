@@ -30,7 +30,7 @@ def on_message_intent(client, userdata, msg):
 
     if intent_id == user_intent('newAlarm'):
             slots = get_slots(data)
-            say(session_id, alarmclock.new_alarm(slots))
+            say(session_id, alarmclock.new_alarm(slots, data['siteId']))
 
     elif intent_id == user_intent('getAlarmsDate'):
         slots = get_slots(data)
