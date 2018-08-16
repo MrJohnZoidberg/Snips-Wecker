@@ -89,7 +89,5 @@ def edit_volume(sound_file, volume):
 
 
 def save_alarms(alarms, path):
-    json_alarms = json.dumps(alarms).encode('utf8')
     with io.open(path, "w") as f:
-        # TODO: TypeError: write() argument 1 must be unicode, not str
-        f.write(json_alarms)
+        f.write(unicode(json.dumps(alarms)))
