@@ -98,6 +98,21 @@ class AlarmClock:
         else:
             return "Der Alarm konnte nicht gestellt werden."
 
+    def is_alarm(self, slots):
+        asked_alarm_str = ftime.alarm_time_str(slots['time'])
+        asked_alarm = datetime.datetime.strptime(asked_alarm_str, "%Y-%m-%d %H:%M")
+        if asked_alarm in self.alarms.keys():
+            return True, "Ja, {0} wird ein Alarm um {1} Uhr {2} " \
+                         "klingeln.".format(ftime.get_future_part(asked_alarm, 1),
+                                            ftime.get_alarm_hour(asked_alarm),
+                                            ftime.get_alarm_minute(asked_alarm))
+        else:
+            self.remembered_slots = slots  # save slots for setting new alarm on confirmation
+            return False, "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du " \
+                          "{0} um {1} Uhr {2} einen Wecker stellen?".format(ftime.get_future_part(asked_alarm, 1),
+                                                                            ftime.get_alarm_hour(asked_alarm),
+                                                                            ftime.get_alarm_minute(asked_alarm))
+
     def get_on_date(self, slots):
         wanted_date_str = slots['date'][:-16]  # remove the timezone and time from time string
         wanted_date = datetime.datetime.strptime(wanted_date_str, "%Y-%m-%d")
@@ -124,20 +139,43 @@ class AlarmClock:
             response = "{0} gibt es keinen Alarm.".format(ftime.get_future_part(wanted_date, only_date=True))
         return response
 
-    def is_alarm(self, slots):
-        asked_alarm_str = ftime.alarm_time_str(slots['time'])
-        asked_alarm = datetime.datetime.strptime(asked_alarm_str, "%Y-%m-%d %H:%M")
-        if asked_alarm in self.alarms.keys():
-            return True, "Ja, {0} wird ein Alarm um {1} Uhr {2} " \
-                         "klingeln.".format(ftime.get_future_part(asked_alarm, 1),
-                                            ftime.get_alarm_hour(asked_alarm),
-                                            ftime.get_alarm_minute(asked_alarm))
+    def get_all(self):
+        if len(self.alarms) == 0:
+            response = "Es gibt keine gestellten Alarme."
+        elif len(self.alarms) == 1:
+            single_alarm = ""
+            for alarm, details in self.alarms:
+                single_alarm = alarm
+            response = "Es gibt {0} einen Alarm um {1} Uhr {2} .".format(
+                ftime.get_future_part(single_alarm, 1),
+                ftime.get_alarm_hour(single_alarm),
+                ftime.get_alarm_minute(single_alarm))
+        elif 2 <= len(self.alarms) <= 5:
+            response = "Es gibt {0} Alarme in der nächsten Zeit. ".format(len(self.alarms))
+            alarms_list = []
+            for alarm, details in self.alarms:
+                alarms_list.append(alarm)
+            for alarm in alarms_list[:-1]:
+                response = response + "einen {0} um {1} Uhr {2}, ".format(ftime.get_future_part(alarm, 1),
+                                                                          ftime.get_alarm_hour(alarm),
+                                                                          ftime.get_alarm_minute(alarm))
+            response = response + "und einen {0} um {1} Uhr {2} .".format(
+                ftime.get_future_part(alarms_list[-1], 1),
+                ftime.get_alarm_hour(alarms_list[-1]),
+                ftime.get_alarm_minute(alarms_list[-1]))
         else:
-            self.remembered_slots = slots  # save slots for setting new alarm on confirmation
-            return False, "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du " \
-                          "{0} um {1} Uhr {2} einen Wecker stellen?".format(ftime.get_future_part(asked_alarm, 1),
-                                                                            ftime.get_alarm_hour(asked_alarm),
-                                                                            ftime.get_alarm_minute(asked_alarm))
+            response = "Die nächsten sechs Alarme sind "
+            alarms_list = []
+            for alarm, details in self.alarms:
+                alarms_list.append(alarm)
+            for alarm in alarms_list[:6]:
+                response = response + "einmal {0} um {1} Uhr {2}, ".format(ftime.get_future_part(alarm, 1),
+                                                                           ftime.get_alarm_hour(alarm),
+                                                                           ftime.get_alarm_minute(alarm))
+            response = response + "und {0} um {1} Uhr {2} .".format(ftime.get_future_part(alarms_list[-1], 1),
+                                                                    ftime.get_alarm_hour(alarms_list[-1]),
+                                                                    ftime.get_alarm_minute(alarms_list[-1]))
+        return response
 
     def delete_alarm(self, slots):
         alarm_str = ftime.alarm_time_str(slots['time'])
@@ -201,44 +239,6 @@ class AlarmClock:
             return "Es wurden alle Alarme entfernt."
         else:
             return "Vorgang wurde abgebrochen."
-
-    def get_all(self):
-        if len(self.alarms) == 0:
-            response = "Es gibt keine gestellten Alarme."
-        elif len(self.alarms) == 1:
-            single_alarm = ""
-            for alarm, details in self.alarms:
-                single_alarm = alarm
-            response = "Es gibt {0} einen Alarm um {1} Uhr {2} .".format(
-                ftime.get_future_part(single_alarm, 1),
-                ftime.get_alarm_hour(single_alarm),
-                ftime.get_alarm_minute(single_alarm))
-        elif 2 <= len(self.alarms) <= 5:
-            response = "Es gibt {0} Alarme in der nächsten Zeit. ".format(len(self.alarms))
-            alarms_list = []
-            for alarm, details in self.alarms:
-                alarms_list.append(alarm)
-            for alarm in alarms_list[:-1]:
-                response = response + "einen {0} um {1} Uhr {2}, ".format(ftime.get_future_part(alarm, 1),
-                                                                          ftime.get_alarm_hour(alarm),
-                                                                          ftime.get_alarm_minute(alarm))
-            response = response + "und einen {0} um {1} Uhr {2} .".format(
-                ftime.get_future_part(alarms_list[-1], 1),
-                ftime.get_alarm_hour(alarms_list[-1]),
-                ftime.get_alarm_minute(alarms_list[-1]))
-        else:
-            response = "Die nächsten sechs Alarme sind "
-            alarms_list = []
-            for alarm, details in self.alarms:
-                alarms_list.append(alarm)
-            for alarm in alarms_list[:6]:
-                response = response + "einmal {0} um {1} Uhr {2}, ".format(ftime.get_future_part(alarm, 1),
-                                                                           ftime.get_alarm_hour(alarm),
-                                                                           ftime.get_alarm_minute(alarm))
-            response = response + "und {0} um {1} Uhr {2} .".format(ftime.get_future_part(alarms_list[-1], 1),
-                                                                    ftime.get_alarm_hour(alarms_list[-1]),
-                                                                    ftime.get_alarm_minute(alarms_list[-1]))
-        return response
 
     def clock(self):
 
