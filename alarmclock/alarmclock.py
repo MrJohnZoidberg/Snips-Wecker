@@ -42,27 +42,27 @@ class AlarmClock:
         self.mqtt_client.loop_start()
 
     def new_alarm(self, slots):
-        room_part = ""
+        room_words = ""
         # TODO: room "hier"
         if 'room' in slots.keys():
-            # TODO: slots['room'].encode('utf8') only one time
-            if slots['room'].encode('utf8') not in self.dict_siteid.keys():
+            room = slots['room'].encode('utf8')
+            if room not in self.dict_siteid.keys():
                 return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
-                       "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=slots['room'].encode('utf8'))
-            alarm_site_id = self.dict_siteid[slots['room'].encode('utf8')]
+                       "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=room)
+            alarm_site_id = self.dict_siteid[room]
             if len(self.dict_siteid) > 1:
-                room_part = self.dict_prepositions[slots['room'].encode('utf8')] + " " + slots['room'].encode('utf8')
+                room_words = self.dict_prepositions[room] + " " + room
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
             if len(self.dict_siteid) > 1:
-                room_part = self.dict_prepositions[self.default_room] + " " + self.default_room
+                room_words = self.dict_prepositions[self.default_room] + " " + self.default_room
         # remove the timezone and some numbers from time string
         alarm_time_str = ftime.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if ftime.get_delta_obj(alarm_time).days < 0:  # if date is in the past
-            return "Diese Zeit liegt in der Vergangenheit. Wecker wurde nicht gestellt."
+            return "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm."
         elif ftime.get_delta_obj(alarm_time).seconds < 120:
-            return "Dieser Alarm würde jetzt klingeln. Bitte wähle einen anderen Alarm."
+            return "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm."
         elif ftime.get_delta_obj(alarm_time).seconds >= 120:
             if alarm_time in self.alarms.keys():  # if list of siteIds already exists
                 if alarm_site_id not in self.alarms[alarm_time]:
@@ -79,7 +79,7 @@ class AlarmClock:
             return "Der Wecker wird {0} um {1} Uhr {2} {3} klingeln.".format(ftime.get_future_part(alarm_time),
                                                                              ftime.get_alarm_hour(alarm_time),
                                                                              ftime.get_alarm_minute(alarm_time),
-                                                                             room_part)
+                                                                             room_words)
         else:
             return "Der Alarm konnte nicht gestellt werden."
 
@@ -243,7 +243,9 @@ class AlarmClock:
                         site_id=siteid), self.on_message_playfinished)
                     self.ring(siteid)
                     self.ringing_dict[siteid] = True
-                    self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': siteid}))
+                    # get room name from self.dict_siteid
+                    room = [room for room, sid in self.dict_siteid.iteritems() if sid == siteid][0]
+                    self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': siteid, 'room': room}))
                     timeout_thread = threading.Timer(self.ringing_timeout, functools.partial(self.stop_ringing, siteid))
                     self.timeout_thr_dict[siteid] = timeout_thread
                     timeout_thread.start()
@@ -271,19 +273,19 @@ class AlarmClock:
         """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
         True, the ringtone is played again."""
 
-        data = json.loads(msg.payload.decode("utf-8"))
-        if self.ringing_dict[data['siteId']]:
-            self.ring(data['siteId'])
+        siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
+        if self.ringing_dict[siteid]:
+            self.ring(siteid)
 
     def on_message_hotword(self, client, userdata, msg):
 
         """Called when hotword is recognized while alarm is ringing. If siteId
         matches the one of the current ringing alarm, it is stopped."""
 
-        data = json.loads(msg.payload.decode("utf-8"))
-        if self.ringing_dict[data['siteId']]:
-            self.stop_ringing(data['siteId'])
-            self.siteids_session_not_ended.append(data['siteId'])
+        siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
+        if self.ringing_dict[siteid]:
+            self.stop_ringing(siteid)
+            self.siteids_session_not_ended.append(siteid)
             self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
                                                   self.on_message_sessionstarted)
 
@@ -291,9 +293,9 @@ class AlarmClock:
 
         """Called when message 'external/alarmclock/stopringing' is received via MQTT."""
 
-        data = json.loads(msg.payload.decode("utf-8"))
-        if self.ringing_dict[data['siteId']]:
-            self.stop_ringing(data['siteId'])
+        siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
+        if self.ringing_dict[siteid]:
+            self.stop_ringing(siteid)
 
     def on_message_sessionstarted(self, client, userdata, msg):
 
