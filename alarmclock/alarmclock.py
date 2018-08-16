@@ -39,7 +39,7 @@ class AlarmClock:
         self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.on_message_stopring)
         self.mqtt_client.connect(host="localhost", port=1883)
         self.mqtt_client.subscribe([('external/alarmclock/#', 0), ('hermes/dialogueManager/#', 0),
-                                    ('hermes/hotword/#', 0), ('hermes/audioserver/#', 0)])
+                                    ('hermes/hotword/#', 0), ('hermes/audioServer/#', 0)])
         self.mqtt_client.loop_start()
 
     def new_alarm(self, slots):
@@ -239,7 +239,7 @@ class AlarmClock:
                         del self.alarms[now_time]
                     else:
                         self.alarms[now_time].remove(siteid)
-                    self.mqtt_client.message_callback_add('hermes/audioServer/{site_id}/#'.format(
+                    self.mqtt_client.message_callback_add('hermes/audioServer/{site_id}/playFinished'.format(
                         site_id=siteid), self.on_message_playfinished)
                     self.ring(siteid)
                     self.ringing_dict[siteid] = True
@@ -265,19 +265,18 @@ class AlarmClock:
         self.ringing_dict[siteid] = False
         self.timeout_thr_dict[siteid].cancel()  # cancel timeout thread from siteId
         self.timeout_thr_dict[siteid] = None
-        self.mqtt_client.message_callback_remove('hermes/audioServer/{site_id}/#'.format(site_id=siteid))
+        self.mqtt_client.message_callback_remove('hermes/audioServer/{site_id}/playFinished'.format(site_id=siteid))
 
     def on_message_playfinished(self, client, userdata, msg):
 
         """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
         True and the ID matches the one sent out, the ringtone is played again."""
-        if "playFinished" in msg.topic:
-            data = json.loads(msg.payload.decode("utf-8"))
-            print("Play finished................................", data['siteId'], self.ringing_dict)
-            if self.ringing_dict[data['siteId']]:
-                # TODO: Find out whether this identification is necessary (check function description when finished):
-                if uuid.UUID(data['id']) == self.current_ring_ids[data['siteId']]:
-                    self.ring(data['siteId'])
+        data = json.loads(msg.payload.decode("utf-8"))
+        print("Play finished................................", data['siteId'], self.ringing_dict)
+        if self.ringing_dict[data['siteId']]:
+            # TODO: Find out whether this identification is necessary (check function description when finished):
+            if uuid.UUID(data['id']) == self.current_ring_ids[data['siteId']]:
+                self.ring(data['siteId'])
 
     def on_message_hotword(self, client, userdata, msg):
 
