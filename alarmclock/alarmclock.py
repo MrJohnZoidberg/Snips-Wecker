@@ -273,6 +273,7 @@ class AlarmClock:
         True and the ID matches the one sent out, the ringtone is played again."""
 
         data = json.loads(msg.payload.decode("utf-8"))
+        print("Play finished................................", data['siteId'], self.ringing_dict)
         if self.ringing_dict[data['siteId']]:
             # TODO: Find out whether this identification is necessary (check function description when finished):
             if uuid.UUID(data['id']) == self.current_ring_ids[data['siteId']]:
