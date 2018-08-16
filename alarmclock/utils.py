@@ -51,6 +51,7 @@ def get_ringtmo(config):
 
 
 def get_dsiteid(config):
+    # TODO: dict len should not be below 1
     dsiteid = config['global']['dict_site-id']
     if not dsiteid:
         dsiteid = {'Schlafzimmer': 'default'}

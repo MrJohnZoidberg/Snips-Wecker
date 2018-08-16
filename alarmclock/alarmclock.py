@@ -42,34 +42,36 @@ class AlarmClock:
         self.mqtt_client.loop_start()
 
     def new_alarm(self, slots, siteid):
-        room_words = ""
-        # TODO: room "hier"
-        if 'room' in slots.keys():
-            #####################
-            room_slot = slots['room'].encode('utf8')
-            if room_slot == "hier":
-                try:
-                    room_context = [room for room, sid in self.dict_siteid.iteritems() if sid == siteid][0]
-                except IndexError:
-                    return "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
-                           "Wecker-Äpp nach, wie man Räume hinzufügen kann."
-            elif room_slot not in self.dict_siteid.keys():
-                return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
-                       "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=room_slot)
+        if len(self.dict_siteid) > 1:
+            if 'room' in slots.keys():
+                room_slot = slots['room'].encode('utf8')
+                if room_slot == "hier":
+                    if siteid in self.dict_siteid.values():
+                        alarm_site_id = siteid
+                        room_words = "hier"
+                    else:
+                        return "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
+                               "Wecker-Äpp nach, wie man Räume hinzufügen kann."
+                else:
+                    if room_slot in self.dict_siteid.keys():
+                        alarm_site_id = self.dict_siteid[room_slot]
+                        if siteid == self.dict_siteid[room_slot]:
+                            room_words = "hier"
+                        else:
+                            room_words = self.dict_prepositions[room_slot] + " " + room_slot
+                    else:
+                        return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von " \
+                               "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=room_slot)
             else:
-                room_context = room_slot
-            alarm_site_id = self.dict_siteid[room_context]
-            room_words = ""
-            if len(self.dict_siteid) > 1:
-                if room_context:
+                alarm_site_id = self.dict_siteid[self.default_room]
+                if siteid == self.dict_siteid[self.default_room]:
                     room_words = "hier"
                 else:
-                    room_words = self.dict_prepositions[room_slot] + " " + room_slot
-            #####################
+                    room_words = self.dict_prepositions[self.default_room] + " " + self.default_room
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
-            if len(self.dict_siteid) > 1:
-                room_words = self.dict_prepositions[self.default_room] + " " + self.default_room
+            room_words = ""
+
         # remove the timezone and some numbers from time string
         alarm_time_str = ftime.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
