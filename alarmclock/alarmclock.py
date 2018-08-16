@@ -43,14 +43,19 @@ class AlarmClock:
         self.mqtt_client.loop_start()
 
     def new_alarm(self, slots):
+        room_part = ""
         if 'room' in slots.keys():
             # TODO: slots['room'].encode('utf8') only one time
             if slots['room'].encode('utf8') not in self.dict_siteid.keys():
                 return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
                        "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=slots['room'].encode('utf8'))
             alarm_site_id = self.dict_siteid[slots['room'].encode('utf8')]
+            if len(self.dict_siteid) > 1:
+                room_part = self.dict_prepositions[slots['room'].encode('utf8')] + " " + slots['room'].encode('utf8')
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
+            if len(self.dict_siteid) > 1:
+                room_part = self.dict_prepositions[self.default_room] + " " + self.default_room
         # remove the timezone and some numbers from time string
         alarm_time_str = ftime.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
@@ -70,11 +75,6 @@ class AlarmClock:
             self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
                                                                                          'siteId': alarm_site_id},
                                                                                  'all': dic_al_str}))
-            # TODO: Say room only if more than one room is configured
-            if len(self.dict_siteid) > 1:
-                room_part = self.dict_prepositions[slots['room'].encode('utf8')] + " " + slots['room'].encode('utf8')
-            else:
-                room_part = ""
             # TODO: names instead of numbers as placeholder
             return "Der Wecker wird {0} um {1} Uhr {2} {3} klingeln.".format(ftime.get_future_part(alarm_time),
                                                                              ftime.get_alarm_hour(alarm_time),
