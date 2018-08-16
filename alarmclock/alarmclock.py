@@ -47,7 +47,6 @@ class AlarmClock:
         if 'room' in slots.keys():
             #####################
             room_slot = slots['room'].encode('utf8')
-            room_context = None
             if room_slot == "hier":
                 try:
                     room_context = [room for room, sid in self.dict_siteid.iteritems() if sid == siteid][0]
@@ -57,15 +56,15 @@ class AlarmClock:
             elif room_slot not in self.dict_siteid.keys():
                 return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
                        "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=room_slot)
+            else:
+                room_context = room_slot
+            alarm_site_id = self.dict_siteid[room_context]
             room_words = ""
             if len(self.dict_siteid) > 1:
                 if room_context:
-                    alarm_site_id = self.dict_siteid[room_context]
                     room_words = "hier"
                 else:
-                    alarm_site_id = self.dict_siteid[room_slot]
                     room_words = self.dict_prepositions[room_slot] + " " + room_slot
-
             #####################
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
@@ -259,7 +258,8 @@ class AlarmClock:
                     self.ringing_dict[siteid] = True
                     # get room name from self.dict_siteid
                     room = [room for room, sid in self.dict_siteid.iteritems() if sid == siteid][0]
-                    self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({'siteId': siteid, 'room': room}))
+                    self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({'siteId': siteid,
+                                                                                        'room': room}))
                     timeout_thread = threading.Timer(self.ringing_timeout, functools.partial(self.stop_ringing, siteid))
                     self.timeout_thr_dict[siteid] = timeout_thread
                     timeout_thread.start()
