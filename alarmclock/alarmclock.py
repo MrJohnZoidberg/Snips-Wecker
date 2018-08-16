@@ -26,7 +26,6 @@ class AlarmClock:
         self.wanted_intents = []
         # self.ringing_dict -> { key=siteId: value=True/False }
         self.ringing_dict = {self.dict_siteid[room]: False for room in self.dict_siteid}
-        self.current_ring_ids = {self.dict_siteid[room]: None for room in self.dict_siteid}
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
@@ -252,11 +251,10 @@ class AlarmClock:
     def ring(self, siteid):
 
         """Publishes the ringtone wav over MQTT to the soundserver and generates a random
-        UUID so that self.on_message_playfinished can identify it to start a new ring."""
+        UUID for it."""
 
-        self.current_ring_ids[siteid] = uuid.uuid4()
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
-            site_id=siteid, ring_id=self.current_ring_ids[siteid]), payload=self.ringtone_wav)
+            site_id=siteid, ring_id=uuid.uuid4(), payload=self.ringtone_wav))
 
     def stop_ringing(self, siteid):
 
@@ -270,11 +268,10 @@ class AlarmClock:
     def on_message_playfinished(self, client, userdata, msg):
 
         """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
-        True and the ID matches the one sent out, the ringtone is played again."""
+        True, the ringtone is played again."""
+
         data = json.loads(msg.payload.decode("utf-8"))
         if self.ringing_dict[data['siteId']]:
-            # TODO: Find out whether this identification is necessary (check function description when finished):
-            # if uuid.UUID(data['id']) == self.current_ring_ids[data['siteId']]:
             self.ring(data['siteId'])
 
     def on_message_hotword(self, client, userdata, msg):
