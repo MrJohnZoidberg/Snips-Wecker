@@ -86,7 +86,7 @@ class AlarmClock:
             dt = datetime.datetime
             # alarm dictionary with datetime objects as strings { key=datetime_str: value=siteId_list }
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
-            self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {alarm_time_str: alarm_site_id},
+            self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': (alarm_time_str, alarm_site_id),
                                                                                  'all': dic_al_str}))
             # TODO: names instead of numbers as placeholder
             return "Der Wecker wird {0} um {1} Uhr {2} {3} klingeln.".format(ftime.get_future_part(alarm_time),
