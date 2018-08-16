@@ -272,11 +272,10 @@ class AlarmClock:
         """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
         True and the ID matches the one sent out, the ringtone is played again."""
         data = json.loads(msg.payload.decode("utf-8"))
-        print("Play finished................................", data['siteId'], self.ringing_dict)
         if self.ringing_dict[data['siteId']]:
             # TODO: Find out whether this identification is necessary (check function description when finished):
-            if uuid.UUID(data['id']) == self.current_ring_ids[data['siteId']]:
-                self.ring(data['siteId'])
+            # if uuid.UUID(data['id']) == self.current_ring_ids[data['siteId']]:
+            self.ring(data['siteId'])
 
     def on_message_hotword(self, client, userdata, msg):
 
