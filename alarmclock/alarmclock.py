@@ -16,6 +16,7 @@ class AlarmClock:
         # Read config and correct values (in utils) if necessary
         self.ringing_timeout = utils.get_ringtmo(config)
         self.dict_siteid = utils.get_dsiteid(config)
+        self.dict_prepositions = utils.get_dprepos(config)  # german prepositions for rooms
         self.default_room = utils.get_dfroom(config)
         self.ringtone_wav = utils.edit_volume("alarm-sound.wav", utils.get_ringvol(config))
 
@@ -25,7 +26,7 @@ class AlarmClock:
         self.wanted_intents = []
         # self.ringing_dict -> { key=siteId: value=True/False }
         self.ringing_dict = {self.dict_siteid[room]: False for room in self.dict_siteid}
-        self.current_ring_id = None
+        self.current_ring_ids = {self.dict_siteid[room]: None for room in self.dict_siteid}
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
@@ -43,6 +44,7 @@ class AlarmClock:
 
     def new_alarm(self, slots):
         if 'room' in slots.keys():
+            # TODO: slots['room'].encode('utf8') only one time
             if slots['room'].encode('utf8') not in self.dict_siteid.keys():
                 return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
                        "Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=slots['room'].encode('utf8'))
@@ -68,9 +70,16 @@ class AlarmClock:
             self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': {'datetime': alarm_time_str,
                                                                                          'siteId': alarm_site_id},
                                                                                  'all': dic_al_str}))
-            return "Der Wecker wird {0} um {1} Uhr {2} klingeln.".format(ftime.get_future_part(alarm_time),
-                                                                         ftime.get_alarm_hour(alarm_time),
-                                                                         ftime.get_alarm_minute(alarm_time))
+            # TODO: Say room only if more than one room is configured
+            if len(self.dict_siteid) > 1:
+                room_part = self.dict_prepositions[slots['room'].encode('utf8')] + " " + slots['room'].encode('utf8')
+            else:
+                room_part = ""
+            # TODO: names instead of numbers as placeholder
+            return "Der Wecker wird {0} um {1} Uhr {2} {3} klingeln.".format(ftime.get_future_part(alarm_time),
+                                                                             ftime.get_alarm_hour(alarm_time),
+                                                                             ftime.get_alarm_minute(alarm_time),
+                                                                             room_part)
         else:
             return "Der Alarm konnte nicht gestellt werden."
 
@@ -230,8 +239,8 @@ class AlarmClock:
                         del self.alarms[now_time]
                     else:
                         self.alarms[now_time].remove(siteid)
-                    self.mqtt_client.message_callback_add('hermes/audioServer/{}/playFinished'.format(siteid),
-                                                          self.on_message_playfinished)
+                    self.mqtt_client.message_callback_add('hermes/audioServer/{site_id}/playFinished'.format(
+                        site_id=siteid), self.on_message_playfinished)
                     self.ring(siteid)
                     self.ringing_dict[siteid] = True
                     self.mqtt_client.publish('external/alarmlock/ringing', json.dumps({'siteId': siteid}))
@@ -245,9 +254,9 @@ class AlarmClock:
         """Publishes the ringtone wav over MQTT to the soundserver and generates a random
         UUID so that self.on_message_playfinished can identify it to start a new ring."""
 
-        self.current_ring_id = uuid.uuid4()
+        self.current_ring_ids[siteid] = uuid.uuid4()
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
-            site_id=siteid, ring_id=self.current_ring_id), payload=self.ringtone_wav)
+            site_id=siteid, ring_id=self.current_ring_ids[siteid]), payload=self.ringtone_wav)
 
     def stop_ringing(self, siteid):
 
@@ -266,8 +275,8 @@ class AlarmClock:
         data = json.loads(msg.payload.decode("utf-8"))
         if self.ringing_dict[data['siteId']]:
             # TODO: Find out whether this identification is necessary (check function description when finished):
-            # if uuid.UUID(data['id']) == self.current_ring_id:
-            self.ring(data['siteId'])
+            if uuid.UUID(data['id']) == self.current_ring_ids[data['siteId']]:
+                self.ring(data['siteId'])
 
     def on_message_hotword(self, client, userdata, msg):
 

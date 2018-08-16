@@ -59,6 +59,15 @@ def get_dsiteid(config):
     return dsiteid
 
 
+def get_dprepos(config):
+    dprepos = config['global']['german_prepositions']
+    if not dprepos:
+        dprepos = {'Schlafzimmer': 'im'}
+    else:
+        dprepos = ast.literal_eval(dprepos)
+    return dprepos
+
+
 def get_dfroom(config):
     dfroom = config['global']['default_room']
     if not dfroom:
