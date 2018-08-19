@@ -1,27 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ConfigParser
 from pydub import AudioSegment       # change volume of ringtone
-import ast                           # convert string to dictionary
-import io                            # opening alarm list or config file
-import json                          # dictionary to file
-
-
-class SnipsConfigParser(ConfigParser.SafeConfigParser):
-    def to_dict(self):
-        return {section: {
-            option_name: option for option_name, option in self.items(section)
-        } for section in self.sections()}
-
-
-def read_configuration_file(configuration_file):
-    try:
-        with io.open(configuration_file, encoding="utf-8") as f:
-            conf_parser = SnipsConfigParser()
-            conf_parser.readfp(f)
-            return conf_parser.to_dict()
-    except (IOError, ConfigParser.Error):
-        return dict()
 
 
 def get_ringvol(config):
@@ -51,22 +30,38 @@ def get_ringtmo(config):
 
 
 def get_dsiteid(config):
-    # TODO: dict len should not be below 1
-    dsiteid = config['global']['dict_site-id']
-    if not dsiteid:
-        dsiteid = {'Schlafzimmer': 'default'}
+    # TODO: Try with string ""
+    dsiteid_str = config['global']['dict_site-id']
+    if dsiteid_str:
+        dsiteid_str.strip()
+        pairs = dsiteid_str.split(",")
+        dsiteid = {}
+        for pair in pairs:
+            stripped_pair = pair.strip()
+            room, siteid = stripped_pair.split(":")
+            dsiteid[room.strip()] = siteid.strip()
     else:
-        dsiteid = ast.literal_eval(dsiteid)
+        dsiteid = {'Schlafzimmer': 'default'}
     return dsiteid
 
 
-def get_dprepos(config):
-    dprepos = config['global']['german_prepositions']
-    if not dprepos:
-        dprepos = {'Schlafzimmer': 'im'}
+def get_prepos(room):
+    room = room.lowercase()
+    if "kammer" in room or room[-1] in ["e", "a"]:
+        if "terasse" in room:
+            prepos = "auf der"
+        else:
+            prepos = "in der"
+    elif room[-1] in ["m", "r", "o", "g", "l", "d", "t", "n", "s", "h", "f", "c"]:
+        if "unten" in room or "außen" in room:
+            prepos = ""
+        elif "boden" in room or room == "balkon":
+            prepos = "auf dem"
+        else:
+            prepos = "im"
     else:
-        dprepos = ast.literal_eval(dprepos)
-    return dprepos
+        prepos = "im Raum"
+    return prepos
 
 
 def get_dfroom(config):
@@ -76,8 +71,9 @@ def get_dfroom(config):
     return dfroom
 
 
-def edit_volume(sound_file, volume):
-    ringtone = AudioSegment.from_wav(sound_file)
+def edit_volume(wav_path, volume):
+    # TODO: Change method so no error message (ffmpeg not found) in Snips anymore
+    ringtone = AudioSegment.from_wav(wav_path)
     ringtone -= ringtone.max_dBFS
     calc_volume = (100 - (volume * 0.8 + 20)) * 0.6
     ringtone -= calc_volume
@@ -87,8 +83,3 @@ def edit_volume(sound_file, volume):
     ringtone_wav = wav_file.read()
     wav_file.close()
     return ringtone_wav
-
-
-def save_alarms(alarms, path):
-    with io.open(path, "w") as f:
-        f.write(unicode(json.dumps(alarms)))

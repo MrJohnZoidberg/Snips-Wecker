@@ -1,6 +1,14 @@
 # Snips-Wecker ⏰
 A skill for Snips.ai with a fully controllable alarm clock.
 
+## Features
+
+- Full multi-room support
+- context-awareness: it detects what room you're in
+- default room (if you don't say a room in your command)
+- customizable (ringtone sound, volume, ringing timeout, rooms)
+- no system command for the ringtone used, all realized with the Snips platform
+
 ## Installation
 
 **Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
@@ -8,7 +16,7 @@ already configured and running on your device. [SAM](https://snips.gitbook.io/ge
 also already be set up and connected to your device and your account.
 
 1. In the German [skill store](https://console.snips.ai/) add the
-skill `Wecker` (by domi; [this] to
+skill `Wecker & Alarme` (by domi; [this] to
 your *German* assistant.
 
 2. If you already have the same assistant on your platform, update it

@@ -9,16 +9,19 @@ import uuid                          # indentifier for wav-data send to audioser
 import utils                         # utils.py
 import formattime as ftime           # ftime.py
 import functools                     # functools.partial for threading.Timeout callback with parameter
+import io                            # open the file for saving the alarms
 
 
 class AlarmClock:
-    def __init__(self, config):
-        # Read config and correct values (in utils) if necessary
-        self.ringing_timeout = utils.get_ringtmo(config)
-        self.dict_siteid = utils.get_dsiteid(config)
-        self.dict_prepositions = utils.get_dprepos(config)  # german prepositions for rooms
-        self.default_room = utils.get_dfroom(config)
-        self.ringtone_wav = utils.edit_volume("alarm-sound.wav", utils.get_ringvol(config))
+    def __init__(self, ringtone_wav=None, ringing_timeout=None, dict_siteid=None, default_room=None):
+        self.ringtone_wav = ringtone_wav
+        self.ringing_timeout = ringing_timeout
+        self.dict_siteid = dict_siteid
+        self.dict_rooms = {siteid: room for room, siteid in self.dict_siteid.iteritems()}
+        self.default_room = default_room
+        # TODO: New setting: snooze en/disabled (then don't end session)
+        # TODO: New setting: language
+        # TODO: If ringtone_wav == None -> Disable alarm sound, only MQTT
 
         self.alarms = {}  # { key=datetime_obj: value=siteId_list }
         self.saved_alarms_path = ".saved_alarms.json"
@@ -35,6 +38,7 @@ class AlarmClock:
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.message_callback_add('hermes/hotword/#', self.on_message_hotword)
+        # TODO: Publish other messages over mqtt
         self.mqtt_client.message_callback_add('external/alarmclock/stopringing', self.on_message_stopring)
         self.mqtt_client.connect(host="localhost", port=1883)
         self.mqtt_client.subscribe([('external/alarmclock/#', 0), ('hermes/dialogueManager/#', 0),
@@ -42,44 +46,44 @@ class AlarmClock:
         self.mqtt_client.loop_start()
 
     def new_alarm(self, slots, siteid):
+
+        """Callend when creating a new alarm."""
+
         if len(self.dict_siteid) > 1:
             if 'room' in slots.keys():
                 room_slot = slots['room'].encode('utf8')
                 if room_slot == "hier":
                     if siteid in self.dict_siteid.values():
                         alarm_site_id = siteid
-                        room_words = "hier"
+                        room_part = "hier"
                     else:
-                        return "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser " \
-                               "Wecker-Äpp nach, wie man Räume hinzufügen kann."
+                        return {'rc': 1}  # TODO: Add error explanations
                 else:
                     if room_slot in self.dict_siteid.keys():
                         alarm_site_id = self.dict_siteid[room_slot]
                         if siteid == self.dict_siteid[room_slot]:
-                            room_words = "hier"
+                            room_part = "hier"
                         else:
-                            room_words = self.dict_prepositions[room_slot] + " " + room_slot
+                            room_part = utils.get_prepos(room_slot) + " " + room_slot
                     else:
-                        return "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von " \
-                               "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=room_slot)
+                        return {'rc': 2, 'room': room_slot}
             else:
                 alarm_site_id = self.dict_siteid[self.default_room]
                 if siteid == self.dict_siteid[self.default_room]:
-                    room_words = "hier"
+                    room_part = "hier"
                 else:
-                    room_words = self.dict_prepositions[self.default_room] + " " + self.default_room
+                    room_part = utils.get_prepos(self.default_room) + " " + self.default_room
         else:
             alarm_site_id = self.dict_siteid[self.default_room]
-            room_words = ""
-
+            room_part = ""
         # remove the timezone and some numbers from time string
         alarm_time_str = ftime.alarm_time_str(slots['time'])
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if ftime.get_delta_obj(alarm_time).days < 0:  # if date is in the past
-            return "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm."
+            return {'rc': 3}
         elif ftime.get_delta_obj(alarm_time).seconds < 120:
-            return "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm."
-        elif ftime.get_delta_obj(alarm_time).seconds >= 120:
+            return {'rc': 4}
+        else:
             if alarm_time in self.alarms.keys():  # if list of siteIds already exists
                 if alarm_site_id not in self.alarms[alarm_time]:
                     self.alarms[alarm_time].append(alarm_site_id)
@@ -90,54 +94,30 @@ class AlarmClock:
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
             self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': (alarm_time_str, alarm_site_id),
                                                                                  'all': dic_al_str}))
-            # TODO: names instead of numbers as placeholder
-            return "Der Wecker wird {0} um {1} Uhr {2} {3} klingeln.".format(ftime.get_future_part(alarm_time),
-                                                                             ftime.get_alarm_hour(alarm_time),
-                                                                             ftime.get_alarm_minute(alarm_time),
-                                                                             room_words)
-        else:
-            return "Der Alarm konnte nicht gestellt werden."
+            return {'rc': 0, 'fpart': ftime.get_future_part(alarm_time), 'hours': ftime.get_alarm_hour(alarm_time),
+                    'minutes': ftime.get_alarm_minute(alarm_time), 'rpart': room_part}
 
-    def is_alarm(self, slots):
-        asked_alarm_str = ftime.alarm_time_str(slots['time'])
-        asked_alarm = datetime.datetime.strptime(asked_alarm_str, "%Y-%m-%d %H:%M")
-        if asked_alarm in self.alarms.keys():
-            return True, "Ja, {0} wird ein Alarm um {1} Uhr {2} " \
-                         "klingeln.".format(ftime.get_future_part(asked_alarm, 1),
-                                            ftime.get_alarm_hour(asked_alarm),
-                                            ftime.get_alarm_minute(asked_alarm))
-        else:
-            self.remembered_slots = slots  # save slots for setting new alarm on confirmation
-            return False, "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du " \
-                          "{0} um {1} Uhr {2} einen Wecker stellen?".format(ftime.get_future_part(asked_alarm, 1),
-                                                                            ftime.get_alarm_hour(asked_alarm),
-                                                                            ftime.get_alarm_minute(asked_alarm))
-
-    def get_on_date(self, slots):
+    def get_on_date(self, slots, siteid):
         wanted_date_str = slots['date'][:-16]  # remove the timezone and time from time string
         wanted_date = datetime.datetime.strptime(wanted_date_str, "%Y-%m-%d")
         if ftime.get_delta_obj(wanted_date, only_date=True).days < 0:
-            return "Dieser Tag liegt in der Vergangenheit."
+            return {'rc': 1}
         alarms_on_date = []
         for alarm in self.alarms:
             if wanted_date.date() == alarm.date():
-                alarms_on_date.append(alarm)
-        if len(alarms_on_date) > 1:
-            response = "{0} gibt es {1} Alarme. ".format(ftime.get_future_part(alarms_on_date[0], 1),
-                                                         len(alarms_on_date))
-            for alarm in alarms_on_date[:-1]:
-                response = response + "einen um {0} Uhr {1}, ".format(ftime.get_alarm_hour(alarm),
-                                                                      ftime.get_alarm_minute(alarm))
-            response = response + "und einen um {0} Uhr {1} .".format(ftime.get_alarm_hour(alarms_on_date[-1]),
-                                                                      ftime.get_alarm_minute(alarms_on_date[-1]))
-        elif len(alarms_on_date) == 1:
-            response = "{0} gibt es einen Alarm um {1} Uhr {2} .".format(
-                ftime.get_future_part(alarms_on_date[0], 1),
-                ftime.get_alarm_hour(alarms_on_date[0]),
-                ftime.get_alarm_minute(alarms_on_date[0]))
-        else:
-            response = "{0} gibt es keinen Alarm.".format(ftime.get_future_part(wanted_date, only_date=True))
-        return response
+                room_part = ""
+                for iter_siteid in self.alarms[alarm]:
+                    if iter_siteid == siteid:
+                        room_part += "hier"
+                    else:
+                        room_part += utils.get_prepos(self.dict_rooms[iter_siteid]) + " " + self.dict_rooms[iter_siteid]
+                    if iter_siteid != self.alarms[alarm][-1]:
+                        room_part += ", "
+                    if iter_siteid == self.alarms[alarm][-2]:
+                        room_part += "und "
+                alarms_on_date.append({'hours': ftime.get_alarm_hour(alarm), 'minutes': ftime.get_alarm_minute(alarm),
+                                       'room_part': room_part})
+        return {'rc': 0, 'future_part': ftime.get_future_part(wanted_date, only_date=True), 'alarms': alarms_on_date}
 
     def get_all(self):
         if len(self.alarms) == 0:
@@ -176,6 +156,46 @@ class AlarmClock:
                                                                     ftime.get_alarm_hour(alarms_list[-1]),
                                                                     ftime.get_alarm_minute(alarms_list[-1]))
         return response
+
+    def is_alarm(self, slots, siteid):
+        # TODO: Add more sentences with slot 'room' to isAlarm intent in console
+        asked_alarm_str = ftime.alarm_time_str(slots['time'])
+        asked_alarm = datetime.datetime.strptime(asked_alarm_str, "%Y-%m-%d %H:%M")
+        room_slot = slots['room'].encode('utf8')
+        room_part = ""
+        if asked_alarm in self.alarms.keys():
+            isalarm = True
+            if room_slot == "hier":
+                if siteid in self.dict_siteid.values():
+                    # alarm_site_id = siteid
+                    room_part = "hier"
+                else:
+                    return {'rc': 1}  # TODO: Add error explanations
+            else:
+                if room_slot in self.dict_siteid.keys():
+                    # alarm_site_id = self.dict_siteid[room_slot]
+                    if siteid == self.dict_siteid[room_slot]:
+                        room_part = "hier"
+                    else:
+                        room_part = utils.get_prepos(room_slot) + " " + room_slot
+                else:
+                    return {'rc': 2, 'room': room_slot}
+        else:
+            isalarm = False
+        return {'is_alarm': isalarm, 'future_part': ftime.get_future_part(asked_alarm, only_date=True),
+                'hours': ftime.get_alarm_hour(asked_alarm), 'minutes': ftime.get_alarm_minute(asked_alarm),
+                'room_part': room_part}
+
+        """
+        else:
+            # TODO: Connect remembered slots with siteid
+            self.remembered_slots = slots  # save slots for setting new alarm on confirmation
+
+            return False, "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du " \
+                          "{0} um {1} Uhr {2} einen Wecker {room_part} stellen?".format(ftime.get_future_part(asked_alarm, 1),
+                                                                            ftime.get_alarm_hour(asked_alarm),
+                                                                            ftime.get_alarm_minute(asked_alarm))
+        """
 
     def delete_alarm(self, slots):
         alarm_str = ftime.alarm_time_str(slots['time'])
@@ -235,10 +255,14 @@ class AlarmClock:
     def delete_all(self, slots):
         if slots['answer'] == "yes":
             self.alarms = {}
-            utils.save_alarms(self.alarms, self.saved_alarms_path)
+            self.save_alarms(self.saved_alarms_path)
             return "Es wurden alle Alarme entfernt."
         else:
             return "Vorgang wurde abgebrochen."
+
+    def save_alarms(self, path):
+        with io.open(path, "w") as f:
+            f.write(unicode(json.dumps(self.alarms)))
 
     def clock(self):
 
