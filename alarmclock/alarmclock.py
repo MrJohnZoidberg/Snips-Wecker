@@ -29,6 +29,7 @@ class AlarmClock:
         self.wanted_intents = []
         # self.ringing_dict -> { key=siteId: value=True/False }
         self.ringing_dict = {self.dict_siteid[room]: False for room in self.dict_siteid}
+        print("self.ringing_dict: ", self.ringing_dict)
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
@@ -314,7 +315,7 @@ class AlarmClock:
         True, the ringtone is played again."""
 
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
-        if self.ringing_dict[siteid]:
+        if siteid in self.ringing_dict.keys():
             self.ring(siteid)
 
     def on_message_hotword(self, client, userdata, msg):

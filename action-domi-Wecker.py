@@ -173,6 +173,7 @@ if __name__ == "__main__":
     ringtone_wav = alarmclock.utils.edit_volume("alarm-sound.wav", alarmclock.utils.get_ringvol(conf))
     ringing_timeout = alarmclock.utils.get_ringtmo(conf)
     dict_siteid = alarmclock.utils.get_dsiteid(conf)
+    print("dict_siteid: ", dict_siteid)
     default_room = alarmclock.utils.get_dfroom(conf)
     alarmclock = AlarmClock(ringtone_wav, ringing_timeout, dict_siteid, default_room)
     mqtt_client = mqtt.Client()
