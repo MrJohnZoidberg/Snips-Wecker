@@ -29,9 +29,9 @@ if [ ! -e ./.temporary_ringtone ]; then
     sudo chown _snips-skills .temporary_ringtone
 fi
 
-if [ -f /usr/share/snips/assistant/snippets/domi.Wecker/config.ini ]
+if [ -f /usr/share/snips/assistant/snippets/domi.Alarme_\&_Wecker/config.ini ]
 then
-    cp /usr/share/snips/assistant/snippets/domi.Wecker/config.ini config.ini
+    cp /usr/share/snips/assistant/snippets/domi.Alarme_\&_Wecker/config.ini config.ini
 else
     cp config.ini.default config.ini
 fi
