@@ -32,7 +32,7 @@ def get_ringtmo(config):
 def get_dsiteid(config):
     # TODO: Try with string ""
     dsiteid_str = config['global']['dict_site-id']
-    if dsiteid_str:
+    if dsiteid_str != "":
         dsiteid_str.strip()
         pairs = dsiteid_str.split(",")
         dsiteid = {}
