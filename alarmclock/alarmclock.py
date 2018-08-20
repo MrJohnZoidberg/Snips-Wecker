@@ -166,23 +166,23 @@ class AlarmClock:
         room_part = ""
         if asked_alarm in self.alarms.keys():
             isalarm = True
-            if room_slot == "hier":
-                if siteid in self.dict_siteid.values():
-                    # alarm_site_id = siteid
-                    room_part = "hier"
-                else:
-                    return {'rc': 1}  # TODO: Add error explanations
-            else:
-                if room_slot in self.dict_siteid.keys():
-                    # alarm_site_id = self.dict_siteid[room_slot]
-                    if siteid == self.dict_siteid[room_slot]:
-                        room_part = "hier"
-                    else:
-                        room_part = utils.get_prepos(room_slot) + " " + room_slot
-                else:
-                    return {'rc': 2, 'room': room_slot}
         else:
             isalarm = False
+        if room_slot == "hier":
+            if siteid in self.dict_siteid.values():
+                # alarm_site_id = siteid
+                room_part = "hier"
+            else:
+                return {'rc': 1}  # TODO: Add error explanations
+        else:
+            if room_slot in self.dict_siteid.keys():
+                # alarm_site_id = self.dict_siteid[room_slot]
+                if siteid == self.dict_siteid[room_slot]:
+                    room_part = "hier"
+                else:
+                    room_part = utils.get_prepos(room_slot) + " " + room_slot
+            else:
+                return {'rc': 2, 'room': room_slot}
         if ftime.get_delta_obj(asked_alarm).days < 0:  # if date is in the past
             return {'rc': 3}
         elif ftime.get_delta_obj(asked_alarm).seconds < 120:
