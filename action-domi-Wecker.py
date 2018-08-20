@@ -105,9 +105,9 @@ def on_message_intent(client, userdata, msg):
                 say(session_id, "Ja, {f_part} wird ein Alarm um {h} Uhr {min} {r_part} klingeln.".format(
                     f_part=result['future_part'], h=result['hours'], min=result['minutes'], r_part=result['room_part']))
             else:
-                response = "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du {f_part} um {h} Uhr {min} einen " \
-                           "Wecker {r_part} stellen?".format(f_part=result['future_part'], h=result['hours'],
-                                                             min=result['minutes'], r_part=result['room_part'])
+                response = "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du {f_part} um {h} Uhr {min} " \
+                           "einen Wecker {r_part} stellen?".format(f_part=result['future_part'], h=result['hours'],
+                                                                   min=result['minutes'], r_part=result['room_part'])
                 alarmclock.wanted_intents[data['siteId']] = user_intent('isAlarmConfirmNew')
                 dialogue(session_id, response, [user_intent('isAlarmConfirmNew')])
         elif result['rc'] == 1:
@@ -117,9 +117,7 @@ def on_message_intent(client, userdata, msg):
             say(session_id, "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
                             "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
         elif result['rc'] == 3:
-            say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
-        elif result['rc'] == 4:
-            say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
+            say(session_id, "Diese Zeit liegt in der Vergangenheit.")
 
     elif intent_id == user_intent('isAlarmConfirmNew'):
         if alarmclock.wanted_intents[data['siteId']] == intent_id:
@@ -131,6 +129,8 @@ def on_message_intent(client, userdata, msg):
                     say(session_id, "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.".format(
                         future_part=result['fpart'], h=result['hours'], min=result['minutes'],
                         room_part=result['rpart']))
+                elif result['rc'] == 4:
+                    say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
 
     elif intent_id == user_intent('deleteAlarm'):
         slots = get_slots(data)

@@ -111,7 +111,7 @@ class AlarmClock:
                         room_part += "hier"
                     else:
                         room_part += utils.get_prepos(self.dict_rooms[iter_siteid]) + " " + self.dict_rooms[iter_siteid]
-                    if len(self.alarms[iter_siteid]) > 1:
+                    if len(self.alarms[alarm]) > 1:
                         if iter_siteid != self.alarms[alarm][-1]:
                             room_part += ", "
                         if iter_siteid == self.alarms[alarm][-2]:
@@ -185,8 +185,6 @@ class AlarmClock:
                 return {'rc': 2, 'room': room_slot}
         if ftime.get_delta_obj(asked_alarm).days < 0:  # if date is in the past
             return {'rc': 3}
-        elif ftime.get_delta_obj(asked_alarm).seconds < 120:
-            return {'rc': 4}
         else:
             self.remembered_slots[siteid] = slots
             return {'rc': 0, 'is_alarm': isalarm, 'future_part': ftime.get_future_part(asked_alarm, only_date=True),
