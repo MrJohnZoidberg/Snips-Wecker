@@ -26,7 +26,7 @@ class AlarmClock:
         self.alarms = {}  # { key=datetime_obj: value=siteId_list }
         self.saved_alarms_path = ".saved_alarms.json"
         self.remembered_slots = {}
-        self.wanted_intents = []
+        self.wanted_intents = {self.dict_siteid[room]: None for room in self.dict_siteid}
         # self.ringing_dict -> { key=siteId: value=True/False }
         self.ringing_dict = {self.dict_siteid[room]: False for room in self.dict_siteid}
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
@@ -182,20 +182,15 @@ class AlarmClock:
                     return {'rc': 2, 'room': room_slot}
         else:
             isalarm = False
-        return {'is_alarm': isalarm, 'future_part': ftime.get_future_part(asked_alarm, only_date=True),
-                'hours': ftime.get_alarm_hour(asked_alarm), 'minutes': ftime.get_alarm_minute(asked_alarm),
-                'room_part': room_part}
-
-        """
+        if ftime.get_delta_obj(asked_alarm).days < 0:  # if date is in the past
+            return {'rc': 3}
+        elif ftime.get_delta_obj(asked_alarm).seconds < 120:
+            return {'rc': 4}
         else:
-            # TODO: Connect remembered slots with siteid
-            self.remembered_slots = slots  # save slots for setting new alarm on confirmation
-
-            return False, "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du " \
-                          "{0} um {1} Uhr {2} einen Wecker {room_part} stellen?".format(ftime.get_future_part(asked_alarm, 1),
-                                                                            ftime.get_alarm_hour(asked_alarm),
-                                                                            ftime.get_alarm_minute(asked_alarm))
-        """
+            self.remembered_slots[siteid] = slots
+            return {'is_alarm': isalarm, 'future_part': ftime.get_future_part(asked_alarm, only_date=True),
+                    'hours': ftime.get_alarm_hour(asked_alarm), 'minutes': ftime.get_alarm_minute(asked_alarm),
+                    'room_part': room_part}
 
     def delete_alarm(self, slots):
         alarm_str = ftime.alarm_time_str(slots['time'])
