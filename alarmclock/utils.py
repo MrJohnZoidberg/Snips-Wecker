@@ -4,7 +4,7 @@ from pydub import AudioSegment       # change volume of ringtone
 
 
 def get_ringvol(config):
-    ringvol = config['global']['ringing_volume']
+    ringvol = config['global']['ringing_volume'].encode('utf8')
     if not ringvol:  # if dictionaray not filled with values
         ringvol = 50
     else:
@@ -17,7 +17,7 @@ def get_ringvol(config):
 
 
 def get_ringtmo(config):
-    ringtmo = config['global']['ringing_timeout']
+    ringtmo = config['global']['ringing_timeout'].encode('utf8')
     if not ringtmo:
         ringtmo = 30
     else:
@@ -31,8 +31,8 @@ def get_ringtmo(config):
 
 def get_dsiteid(config):
     # TODO: Try with string ""
-    dsiteid_str = config['global']['dict_site-id']
-    if dsiteid_str != "":
+    dsiteid_str = config['global']['dict_site-id'].encode('utf8')
+    if dsiteid_str:
         dsiteid_str.strip()
         pairs = dsiteid_str.split(",")
         dsiteid = {}
@@ -46,7 +46,7 @@ def get_dsiteid(config):
 
 
 def get_prepos(room):
-    room = room.lowercase()
+    room = room.lower()
     if "kammer" in room or room[-1] in ["e", "a"]:
         if "terasse" in room:
             prepos = "auf der"
@@ -65,7 +65,7 @@ def get_prepos(room):
 
 
 def get_dfroom(config):
-    dfroom = config['global']['default_room']
+    dfroom = config['global']['default_room'].encode('utf8')
     if not dfroom:
         dfroom = "Schlafzimmer"
     return dfroom

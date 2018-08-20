@@ -18,7 +18,7 @@ class AlarmClock:
         self.ringing_timeout = ringing_timeout
         self.dict_siteid = dict_siteid
         self.dict_rooms = {siteid: room for room, siteid in self.dict_siteid.iteritems()}
-        self.default_room = default_room.encode('utf8')
+        self.default_room = default_room
         # TODO: New setting: snooze en/disabled (then don't end session)
         # TODO: New setting: language
         # TODO: If ringtone_wav == None -> Disable alarm sound, only MQTT
