@@ -189,7 +189,7 @@ class AlarmClock:
             return {'rc': 4}
         else:
             self.remembered_slots[siteid] = slots
-            return {'is_alarm': isalarm, 'future_part': ftime.get_future_part(asked_alarm, only_date=True),
+            return {'rc': 0, 'is_alarm': isalarm, 'future_part': ftime.get_future_part(asked_alarm, only_date=True),
                     'hours': ftime.get_alarm_hour(asked_alarm), 'minutes': ftime.get_alarm_minute(asked_alarm),
                     'room_part': room_part}
 
