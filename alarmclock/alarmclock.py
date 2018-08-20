@@ -18,7 +18,7 @@ class AlarmClock:
         self.ringing_timeout = ringing_timeout
         self.dict_siteid = dict_siteid
         self.dict_rooms = {siteid: room for room, siteid in self.dict_siteid.iteritems()}
-        self.default_room = default_room
+        self.default_room = default_room.encode('utf8')
         # TODO: New setting: snooze en/disabled (then don't end session)
         # TODO: New setting: language
         # TODO: If ringtone_wav == None -> Disable alarm sound, only MQTT
@@ -29,7 +29,6 @@ class AlarmClock:
         self.wanted_intents = []
         # self.ringing_dict -> { key=siteId: value=True/False }
         self.ringing_dict = {self.dict_siteid[room]: False for room in self.dict_siteid}
-        print("self.ringing_dict: ", self.ringing_dict)
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
