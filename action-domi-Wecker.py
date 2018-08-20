@@ -81,7 +81,6 @@ def on_message_intent(client, userdata, msg):
                         response += "."
                     if details_dict == result['alarms'][-2]:
                         response += "und "
-                response += "."
             elif len(result['alarms']) == 1:
                 response = "{f_part} gibt es einen Alarm {room_part} um {h} Uhr {min}.".format(
                     f_part=result['future_part'], room_part=result['alarms'][0]['room_part'],

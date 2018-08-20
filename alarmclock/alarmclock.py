@@ -112,7 +112,7 @@ class AlarmClock:
                     else:
                         room_part += utils.get_prepos(self.dict_rooms[iter_siteid]) + " " + self.dict_rooms[iter_siteid]
                     if len(self.alarms[alarm]) > 1:
-                        if iter_siteid != self.alarms[alarm][-1]:
+                        if iter_siteid != self.alarms[alarm][-1] and iter_siteid != self.alarms[alarm][-2]:
                             room_part += ", "
                         if iter_siteid == self.alarms[alarm][-2]:
                             room_part += "und "
