@@ -106,16 +106,17 @@ class AlarmClock:
         for alarm in self.alarms:
             if wanted_date.date() == alarm.date():
                 room_part = ""
-                for iter_siteid in self.alarms[alarm]:
-                    if iter_siteid == siteid:
-                        room_part += "hier"
-                    else:
-                        room_part += utils.get_prepos(self.dict_rooms[iter_siteid]) + " " + self.dict_rooms[iter_siteid]
-                    if len(self.alarms[alarm]) > 1:
-                        if iter_siteid != self.alarms[alarm][-1] and iter_siteid != self.alarms[alarm][-2]:
-                            room_part += ", "
-                        if iter_siteid == self.alarms[alarm][-2]:
-                            room_part += "und "
+                if len(self.dict_siteid) > 1:
+                    for iter_siteid in self.alarms[alarm]:
+                        if iter_siteid == siteid:
+                            room_part += "hier"
+                        else:
+                            room_part += utils.get_prepos(self.dict_rooms[iter_siteid]) + " " + self.dict_rooms[iter_siteid]
+                        if len(self.alarms[alarm]) > 1:
+                            if iter_siteid != self.alarms[alarm][-1] and iter_siteid != self.alarms[alarm][-2]:
+                                room_part += ", "
+                            if iter_siteid == self.alarms[alarm][-2]:
+                                room_part += "und "
                 alarms_on_date.append({'hours': ftime.get_alarm_hour(alarm), 'minutes': ftime.get_alarm_minute(alarm),
                                        'room_part': room_part})
         return {'rc': 0, 'future_part': ftime.get_future_part(wanted_date, only_date=True), 'alarms': alarms_on_date}
@@ -168,21 +169,22 @@ class AlarmClock:
             isalarm = True
         else:
             isalarm = False
-        if room_slot == "hier":
-            if siteid in self.dict_siteid.values():
-                # alarm_site_id = siteid
-                room_part = "hier"
-            else:
-                return {'rc': 1}  # TODO: Add error explanations
-        else:
-            if room_slot in self.dict_siteid.keys():
-                # alarm_site_id = self.dict_siteid[room_slot]
-                if siteid == self.dict_siteid[room_slot]:
+        if len(self.dict_siteid) > 1:
+            if room_slot == "hier":
+                if siteid in self.dict_siteid.values():
+                    # alarm_site_id = siteid
                     room_part = "hier"
                 else:
-                    room_part = utils.get_prepos(room_slot) + " " + room_slot
+                    return {'rc': 1}  # TODO: Add error explanations
             else:
-                return {'rc': 2, 'room': room_slot}
+                if room_slot in self.dict_siteid.keys():
+                    # alarm_site_id = self.dict_siteid[room_slot]
+                    if siteid == self.dict_siteid[room_slot]:
+                        room_part = "hier"
+                    else:
+                        room_part = utils.get_prepos(room_slot) + " " + room_slot
+                else:
+                    return {'rc': 2, 'room': room_slot}
         if ftime.get_delta_obj(asked_alarm).days < 0:  # if date is in the past
             return {'rc': 3}
         else:
