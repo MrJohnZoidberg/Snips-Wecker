@@ -83,3 +83,19 @@ def edit_volume(wav_path, volume):
     ringtone_wav = wav_file.read()
     wav_file.close()
     return ringtone_wav
+
+
+def get_roomstr(alarm_siteids, dict_rooms, siteid):
+    room_str = ""
+    if len(dict_rooms) > 1:
+        for iter_siteid in alarm_siteids:
+            if iter_siteid == siteid:
+                room_str += "hier"
+            else:
+                room_str += get_prepos(dict_rooms[iter_siteid]) + " " + dict_rooms[iter_siteid]
+            if len(alarm_siteids) > 1:
+                if iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
+                    room_str += ", "
+                if iter_siteid == alarm_siteids[-2]:
+                    room_str += "und "
+    return room_str

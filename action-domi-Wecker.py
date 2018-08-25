@@ -69,12 +69,14 @@ def on_message_intent(client, userdata, msg):
         result = alarmclock.get_on_date(slots, data['siteId'])
         if result['rc'] == 0:
             if len(result['alarms']) > 1:
-                response = "{f_part} gibt es {num} Alarme. ".format(f_part=result['future_part'],
-                                                                    num=len(result['alarms']))
+                response = "{f_part} gibt es {num} Alarme. ".format(
+                    f_part=result['future_part'],
+                    num=len(result['alarms']))
                 for details_dict in result['alarms']:
-                    response += "einen {room_part} um {h} Uhr {min}".format(room_part=details_dict['room_part'],
-                                                                            h=details_dict['hours'],
-                                                                            min=details_dict['minutes'])
+                    response += "einen {room_part} um {h} Uhr {min}".format(
+                        room_part=details_dict['room_part'],
+                        h=details_dict['hours'],
+                        min=details_dict['minutes'])
                     if details_dict != result['alarms'][-1]:
                         response += ", "
                     else:
@@ -87,14 +89,64 @@ def on_message_intent(client, userdata, msg):
                     h=result['alarms'][0]['hours'], min=result['alarms'][0]['minutes'])
             else:
                 response = "{f_part} gibt es keinen Alarm.".format(f_part=result['future_part'])
+            say(session_id, response)
         elif result['rc'] == 1:
-            response = "Dieser Tag liegt in der Vergangenheit."
+            say(session_id, "Dieser Tag liegt in der Vergangenheit.")
         else:
-            response = "Es ist ein Fehler aufgetreten."
-        say(session_id, response)
+            say(session_id, "Es ist ein Fehler aufgetreten.")
 
-    elif intent_id == user_intent('getAlarmsAll'):
-        say(session_id, alarmclock.get_all())
+    elif intent_id == user_intent('getAlarms'):
+        slots = get_slots(data)
+        result = alarmclock.get_alarms(slots, data['siteId'])
+        if result['rc'] == 0:
+            if len(result['alarms_sorted']) >= 6:
+                response = "Es gibt {num} Alarme. Die nächsten sechs sind: ".format(num=len(result['alarms_sorted']))
+                for alarm in result['alarms_sorted'][:6]:
+                    response += "{future_part} um {h} Uhr {min} {room_part}".format(
+                        room_part=result['alarms_dict'][alarm]['room_part'],
+                        future_part=result['alarms_dict'][alarm]['future_part'],
+                        h=result['alarms_dict'][alarm]['hours'],
+                        min=result['alarms_dict'][alarm]['minutes'])
+                    if alarm != result['alarms_sorted'][:6][-1]:
+                        response += ", "
+                    else:
+                        response += "."
+                    if alarm == result['alarms_sorted'][:6][-2]:
+                        response += "und "
+                say(session_id, response)
+            elif 2 <= len(result['alarms_sorted']) <= 5:
+                response = "Es gibt {num} Alarme. ".format(num=len(result['alarms']))
+                for alarm in result['alarms_sorted']:
+                    response += "einen {future_part} um {h} Uhr {min} {room_part}".format(
+                        room_part=result['alarms_dict'][alarm]['room_part'],
+                        future_part=result['alarms_dict'][alarm]['future_part'],
+                        h=result['alarms_dict'][alarm]['hours'],
+                        min=result['alarms_dict'][alarm]['minutes'])
+                    if alarm != result['alarms_sorted'][-1]:
+                        response += ", "
+                    else:
+                        response += "."
+                    if alarm == result['alarms_sorted'][-2]:
+                        response += "und "
+                say(session_id, response)
+            elif len(result['alarms_sorted']) == 1:
+                say(session_id, "Es gibt {future_part} einen Alarm {room_part} um {h} Uhr {min}.".format(
+                    room_part=result['alarms_dict'][result['alarms_sorted'][0]]['room_part'],
+                    h=result['alarms_dict'][result['alarms_sorted'][0]]['hours'],
+                    min=result['alarms_dict'][result['alarms_sorted'][0]]['minutes'],
+                    future_part=result['alarms_dict'][result['alarms_sorted'][0]]['future_part']))
+            else:
+                say(session_id, "Es sind keine Alarme gestellt.")
+        elif result['rc'] == 1:
+            say(session_id, "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
+                            "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
+        elif result['rc'] == 2:
+            say(session_id, "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
+                            "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
+        elif result['rc'] == 3:
+            say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
+        elif result['rc'] == 4:
+            say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
 
     elif intent_id == user_intent('isAlarm'):
         slots = get_slots(data)
@@ -107,8 +159,8 @@ def on_message_intent(client, userdata, msg):
                 response = "Nein, zu dieser Zeit ist kein Alarm gestellt. Möchtest du {f_part} um {h} Uhr {min} " \
                            "einen Wecker {r_part} stellen?".format(f_part=result['future_part'], h=result['hours'],
                                                                    min=result['minutes'], r_part=result['room_part'])
-                alarmclock.wanted_intents[data['siteId']] = user_intent('isAlarmConfirmNew')
-                dialogue(session_id, response, [user_intent('isAlarmConfirmNew')])
+                alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id, 'slots': slots}
+                dialogue(session_id, response, [user_intent('confirmAlarm')])
         elif result['rc'] == 1:
             say(session_id, "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
                             "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
@@ -118,53 +170,59 @@ def on_message_intent(client, userdata, msg):
         elif result['rc'] == 3:
             say(session_id, "Diese Zeit liegt in der Vergangenheit.")
 
-    elif intent_id == user_intent('isAlarmConfirmNew'):
-        if alarmclock.wanted_intents[data['siteId']] == intent_id:
-            alarmclock.wanted_intents[data['siteId']] = None
+    elif intent_id == user_intent('deleteAlarmSingle'):
+        slots = get_slots(data)
+        say(session_id, alarmclock.delete_single(slots))
+
+    elif intent_id == user_intent('deleteAlarmsMulti'):
+        slots = get_slots(data)
+        result = alarmclock.delete_multi_try(slots, data['siteId'])
+        if result['rc'] == 0:
+            if len(result['matching_alarms']) == 1:
+                alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
+                                                              'alarms': result['matching_alarms'],
+                                                              'siteid': result['siteid']}
+                dialogue(session_id, "Es gibt {future_part} {room_part} einen Alarm. Bist du dir sicher?".format(
+                    future_part=result['future_part'], room_part=result['room_part']),
+                         [user_intent('confirmAlarm')])
+            elif len(result['matching_alarms']) > 1:
+                dialogue(session_id, "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
+                    future_part=result['future_part'], room_part=result['room_part'],
+                    num=len(result['matching_alarms'])), [user_intent('confirmAlarm')])
+            else:
+                say(session_id, "Es gibt {room_part} {future_part} keinen Alarm.".format(
+                    room_part=result['room_part'], future_part=result['future_part']))
+        elif result['rc'] == 1:
+            say(session_id, "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
+                            "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
+        elif result['rc'] == 2:
+            say(session_id, "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
+                            "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
+        elif result['rc'] == 3:
+            say(session_id, "Diese Zeit liegt in der Vergangenheit.")
+
+    elif intent_id == user_intent('confirmAlarm'):
+        if 'past_intent' in alarmclock.confirm_intents[data['siteId']]:
+            past_data = alarmclock.confirm_intents[data['siteId']]
             slots = get_slots(data)
             if slots['answer'] == "yes":
-                result = alarmclock.new_alarm(alarmclock.remembered_slots[data['siteId']], data['siteId'])
-                if result['rc'] == 0:
-                    say(session_id, "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.".format(
-                        future_part=result['fpart'], h=result['hours'], min=result['minutes'],
-                        room_part=result['rpart']))
-                elif result['rc'] == 4:
-                    say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
-
-    elif intent_id == user_intent('deleteAlarm'):
-        slots = get_slots(data)
-        say(session_id, alarmclock.delete_alarm(slots))
-
-    elif intent_id == user_intent('deleteAlarmsDateTry'):
-        slots = get_slots(data)
-        alarms, response = alarmclock.delete_date_try(slots)
-        if alarms:
-            alarmclock.wanted_intents[data['siteId']] = user_intent('deleteAlarmsDateConfirm')
-            dialogue(session_id, response, [user_intent('deleteAlarmsDateConfirm')])
-        else:
-            say(session_id, response)
-
-    elif intent_id == user_intent('deleteAlarmsDateConfirm'):
-        if alarmclock.wanted_intents[data['siteId']] == intent_id:
-            alarmclock.wanted_intents[data['siteId']] = None
-            slots = get_slots(data)
-            say(session_id, alarmclock.delete_date(slots))
-        else:
-            end(session_id)
-
-    elif intent_id == user_intent('deleteAlarmsAllTry'):
-        alarms, response = alarmclock.delete_all_try()
-        if alarms:
-            alarmclock.wanted_intents[data['siteId']] = user_intent('deleteAlarmsAllConfirm')
-            dialogue(session_id, response, [user_intent('deleteAlarmsAllConfirm')])
-        else:
-            say(session_id, response)
-
-    elif intent_id == user_intent('deleteAlarmsAllConfirm'):
-        if alarmclock.wanted_intents[data['siteId']] == intent_id:
-            alarmclock.wanted_intents[data['siteId']] = None
-            slots = get_slots(data)
-            say(session_id, alarmclock.delete_all(slots))
+                if past_data['past_intent'] == user_intent('deleteAlarmsMulti'):
+                        result = alarmclock.delete_multi(past_data['alarms'], past_data['siteid'])
+                        if result['rc'] == 0:
+                            say(session_id, "Erledigt.")
+                        else:
+                            say(session_id, "Es ist ein fehler aufgetreten.")
+                if past_data['past_intent'] == user_intent('isAlarm'):
+                    result = alarmclock.new_alarm(past_data['slots'], data['siteId'])
+                    if result['rc'] == 0:
+                        say(session_id, "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.".format(
+                            future_part=result['fpart'], h=result['hours'], min=result['minutes'],
+                            room_part=result['rpart']))
+                    elif result['rc'] == 4:
+                        say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
+            else:
+                say(session_id, "Abgebrochen.")
+            alarmclock.confirm_intents[data['siteId']] = None
 
 
 def end(session_id):

@@ -125,12 +125,13 @@ JSON Payload:
 | Key | Value |
 |-----|-------|
 |siteId|*String* - Site where the alarmclock is ringing|
+|room|*String* - Room name where the alarmclock is ringing|
 
-## Todo
-- README
+## Coming soon...
+- New setting: snooze en/disabled (then don't end session)
+- Different languages
+- Nice README
 - Store alarms after creating new one
-- Ringing in threads (multiple alarms at the same time)
-- subscribe intents only to single confirm, not listen to all
 - Send alarm data over MQTT
 - Publish app in the snips console app store
 
