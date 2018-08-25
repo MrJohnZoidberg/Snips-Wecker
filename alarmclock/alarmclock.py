@@ -143,7 +143,7 @@ class AlarmClock:
                                                                       self.dict_rooms,
                                                                       siteid)} for alarm in matched_alarms_sorted}
         return {'rc': 0, 'alarms_sorted': matched_alarms_sorted, 'alarms_dict': matched_alarms_dict,
-                'room_part': utils.get_roomstr([context_siteid], self.dict_siteids, siteid),
+                'room_part': utils.get_roomstr([context_siteid], self.dict_rooms, siteid),
                 'future_part': future_part, 'siteid': context_siteid, 'filtered_date': alarm_date}
 
     def get_on_date(self, slots, siteid):
@@ -261,7 +261,7 @@ class AlarmClock:
                 else:
                     return {'rc': 2, 'room': room_slot}
             filtered_alarms = filter(lambda x: self.alarms[x] != context_siteid, filtered_alarms)
-            room_part = utils.get_roomstr([context_siteid], self.dict_siteids, siteid)
+            room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
         return {'rc': 0, 'matching_alarms': filtered_alarms, 'filtered_date': alarm_date,
                 'room_part': room_part, 'future_part': future_part, 'siteid': context_siteid}
 
