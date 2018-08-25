@@ -245,7 +245,9 @@ class AlarmClock:
             # TODO: Until (Alle alarme vor neunzehn uhr)
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
             if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
+                print("filtered_alarms1: ", filtered_alarms)
                 filtered_alarms = filter(lambda x: x.date() == alarm_date.date(), filtered_alarms)
+                print("filtered_alarms2: ", filtered_alarms)
                 future_part = ftime.get_future_part(alarm_date, only_date=True)
             else:
                 return {'rc': 3}
@@ -261,7 +263,9 @@ class AlarmClock:
                     context_siteid = self.dict_siteids[room_slot]
                 else:
                     return {'rc': 2, 'room': room_slot}
+            print("filtered_alarms3: ", filtered_alarms)
             filtered_alarms = filter(lambda x: self.alarms[x] == context_siteid, filtered_alarms)
+            print("filtered_alarms4: ", filtered_alarms)
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
         return {'rc': 0, 'matching_alarms': filtered_alarms, 'filtered_date': alarm_date,
                 'room_part': room_part, 'future_part': future_part, 'siteid': context_siteid}
