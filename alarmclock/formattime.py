@@ -35,6 +35,8 @@ def get_alarm_hour(alarm_time):
 def get_alarm_minute(alarm_time):
     if alarm_time.minute == 0:  # gap correction in sentence
         alarm_minute = ""
+    elif alarm_time.minute == 1:
+        alarm_minute = "eins"
     else:
         alarm_minute = alarm_time.minute
     return alarm_minute
