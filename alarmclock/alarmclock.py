@@ -120,7 +120,7 @@ class AlarmClock:
         if 'date' in slots.keys():
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
             if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
-                matched_alarms_sorted = filter(lambda x: x.date() != alarm_date.date(), matched_alarms_sorted)
+                matched_alarms_sorted = filter(lambda x: x.date() == alarm_date.date(), matched_alarms_sorted)
                 future_part = ftime.get_future_part(alarm_date, only_date=True)
             else:
                 return {'rc': 3}
@@ -136,7 +136,7 @@ class AlarmClock:
                     context_siteid = self.dict_siteids[room_slot]
                 else:
                     return {'rc': 2, 'room': room_slot}
-            matched_alarms_sorted = filter(lambda x: self.alarms[x] != context_siteid, matched_alarms_sorted)
+            matched_alarms_sorted = filter(lambda x: self.alarms[x] == context_siteid, matched_alarms_sorted)
         matched_alarms_sorted.sort()
         matched_alarms_dict = {alarm: {'hours': ftime.get_alarm_hour(alarm), 'minutes': ftime.get_alarm_minute(alarm),
                                        'room_part': utils.get_roomstr([context_siteid],
@@ -242,9 +242,10 @@ class AlarmClock:
         room_part = ""
         filtered_alarms = [dtobj for dtobj in self.alarms]  # fill the list with all alarms and then filter it
         if 'date' in slots.keys():
+            # TODO: Until (Alle alarme vor neunzehn uhr)
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
             if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
-                filtered_alarms = filter(lambda x: x.date() != alarm_date.date(), filtered_alarms)
+                filtered_alarms = filter(lambda x: x.date() == alarm_date.date(), filtered_alarms)
                 future_part = ftime.get_future_part(alarm_date, only_date=True)
             else:
                 return {'rc': 3}
@@ -260,7 +261,7 @@ class AlarmClock:
                     context_siteid = self.dict_siteids[room_slot]
                 else:
                     return {'rc': 2, 'room': room_slot}
-            filtered_alarms = filter(lambda x: self.alarms[x] != context_siteid, filtered_alarms)
+            filtered_alarms = filter(lambda x: self.alarms[x] == context_siteid, filtered_alarms)
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
         return {'rc': 0, 'matching_alarms': filtered_alarms, 'filtered_date': alarm_date,
                 'room_part': room_part, 'future_part': future_part, 'siteid': context_siteid}

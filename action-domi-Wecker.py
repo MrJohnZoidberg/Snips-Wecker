@@ -33,6 +33,7 @@ def read_configuration_file(configuration_file):
 
 
 def get_slots(data):
+    # TODO: Until kind
     slot_dict = {}
     for slot in data['slots']:
         if slot['value']['kind'] in ["InstantTime", "Custom"]:
