@@ -264,6 +264,9 @@ class AlarmClock:
                 else:
                     return {'rc': 2, 'room': room_slot}
             print("filtered_alarms3: ", filtered_alarms)
+            for i in filtered_alarms:
+                print(self.alarms[i])
+                print(context_siteid)
             filtered_alarms = filter(lambda x: self.alarms[x] == context_siteid, filtered_alarms)
             print("filtered_alarms4: ", filtered_alarms)
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
