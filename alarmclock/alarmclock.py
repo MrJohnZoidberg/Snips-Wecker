@@ -237,7 +237,7 @@ class AlarmClock:
         """
         alarm_date = None
         context_siteid = None
-        future_part = None
+        future_part = ""
         filtered_alarms = [dtobj for dtobj in self.alarms]  # fill the list with all alarms and then filter it
         if 'date' in slots.keys():
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
