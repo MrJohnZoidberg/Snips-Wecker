@@ -186,6 +186,9 @@ def on_message_intent(client, userdata, msg):
                     future_part=result['future_part'], room_part=result['room_part']),
                          [user_intent('confirmAlarm')])
             elif len(result['matching_alarms']) > 1:
+                alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
+                                                              'alarms': result['matching_alarms'],
+                                                              'siteid': result['siteid']}
                 dialogue(session_id, "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
                     future_part=result['future_part'], room_part=result['room_part'],
                     num=len(result['matching_alarms'])), [user_intent('confirmAlarm')])
