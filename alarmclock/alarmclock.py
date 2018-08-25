@@ -125,16 +125,17 @@ class AlarmClock:
             else:
                 return {'rc': 3}
         if 'room' in slots.keys():
-            if slots['room'] == "hier":
+            room_slot = slots['room'].encode('utf8')
+            if room_slot == "hier":
                 if siteid in self.dict_siteids.values():
                     context_siteid = siteid
                 else:
                     return {'rc': 1}
             else:
-                if slots['room'] in self.dict_siteids.keys():
-                    context_siteid = self.dict_siteids[slots['room']]
+                if room_slot in self.dict_siteids.keys():
+                    context_siteid = self.dict_siteids[room_slot]
                 else:
-                    return {'rc': 2, 'room': slots['room']}
+                    return {'rc': 2, 'room': room_slot}
             matched_alarms_sorted = filter(lambda x: self.alarms[x] != context_siteid, matched_alarms_sorted)
         matched_alarms_sorted.sort()
         matched_alarms_dict = {alarm: {'hours': ftime.get_alarm_hour(alarm), 'minutes': ftime.get_alarm_minute(alarm),
@@ -248,16 +249,17 @@ class AlarmClock:
             else:
                 return {'rc': 3}
         if 'room' in slots.keys():
-            if slots['room'] == "hier":
+            room_slot = slots['room'].encode('utf8')
+            if room_slot == "hier":
                 if siteid in self.dict_siteids.values():
                     context_siteid = siteid
                 else:
                     return {'rc': 1}
             else:
-                if slots['room'] in self.dict_siteids.keys():
-                    context_siteid = self.dict_siteids[slots['room']]
+                if room_slot in self.dict_siteids.keys():
+                    context_siteid = self.dict_siteids[room_slot]
                 else:
-                    return {'rc': 2, 'room': slots['room']}
+                    return {'rc': 2, 'room': room_slot}
             filtered_alarms = filter(lambda x: self.alarms[x] != context_siteid, filtered_alarms)
             room_part = utils.get_roomstr([context_siteid], self.dict_siteids, siteid)
         return {'rc': 0, 'matching_alarms': filtered_alarms, 'filtered_date': alarm_date,
