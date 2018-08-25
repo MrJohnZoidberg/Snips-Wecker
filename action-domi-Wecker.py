@@ -202,7 +202,7 @@ def on_message_intent(client, userdata, msg):
             say(session_id, "Diese Zeit liegt in der Vergangenheit.")
 
     elif intent_id == user_intent('confirmAlarm'):
-        if 'past_intent' in alarmclock.confirm_intents[data['siteId']]:
+        if 'past_intent' in alarmclock.confirm_intents[data['siteId']].keys():
             past_data = alarmclock.confirm_intents[data['siteId']]
             slots = get_slots(data)
             if slots['answer'] == "yes":
