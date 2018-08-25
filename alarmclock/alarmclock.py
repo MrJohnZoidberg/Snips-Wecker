@@ -238,6 +238,7 @@ class AlarmClock:
         alarm_date = None
         context_siteid = None
         future_part = ""
+        room_part = ""
         filtered_alarms = [dtobj for dtobj in self.alarms]  # fill the list with all alarms and then filter it
         if 'date' in slots.keys():
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
@@ -258,9 +259,9 @@ class AlarmClock:
                 else:
                     return {'rc': 2, 'room': slots['room']}
             filtered_alarms = filter(lambda x: self.alarms[x] != context_siteid, filtered_alarms)
+            room_part = utils.get_roomstr([context_siteid], self.dict_siteids, siteid)
         return {'rc': 0, 'matching_alarms': filtered_alarms, 'filtered_date': alarm_date,
-                'room_part': utils.get_roomstr([context_siteid], self.dict_siteids, siteid),
-                'future_part': future_part, 'siteid': context_siteid}
+                'room_part': room_part, 'future_part': future_part, 'siteid': context_siteid}
 
     def delete_multi(self, filtered_alarms, filtered_siteid):
         for dtobj in filtered_alarms:
