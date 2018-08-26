@@ -65,69 +65,36 @@ def on_message_intent(client, userdata, msg):
             elif result['rc'] == 4:
                 say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
 
-    elif intent_id == user_intent('getAlarmsDate'):
-        slots = get_slots(data)
-        result = alarmclock.get_on_date(slots, data['siteId'])
-        if result['rc'] == 0:
-            if len(result['alarms']) > 1:
-                response = "{f_part} gibt es {num} Alarme. ".format(
-                    f_part=result['future_part'],
-                    num=len(result['alarms']))
-                for details_dict in result['alarms']:
-                    response += "einen {room_part} um {h} Uhr {min}".format(
-                        room_part=details_dict['room_part'],
-                        h=details_dict['hours'],
-                        min=details_dict['minutes'])
-                    if details_dict != result['alarms'][-1]:
-                        response += ", "
-                    else:
-                        response += "."
-                    if details_dict == result['alarms'][-2]:
-                        response += "und "
-            elif len(result['alarms']) == 1:
-                response = "{f_part} gibt es einen Alarm {room_part} um {h} Uhr {min}.".format(
-                    f_part=result['future_part'], room_part=result['alarms'][0]['room_part'],
-                    h=result['alarms'][0]['hours'], min=result['alarms'][0]['minutes'])
-            else:
-                response = "{f_part} gibt es keinen Alarm.".format(f_part=result['future_part'])
-            say(session_id, response)
-        elif result['rc'] == 1:
-            say(session_id, "Dieser Tag liegt in der Vergangenheit.")
-        else:
-            say(session_id, "Es ist ein Fehler aufgetreten.")
-
     elif intent_id == user_intent('getAlarms'):
         slots = get_slots(data)
         result = alarmclock.get_alarms(slots, data['siteId'])
         if result['rc'] == 0:
-            if result['alarm_count'] > 1:
-                response = "Es gibt {num} Alarme. ".format(num=result['alarm_count'])
-                alarms = result['alarms_sorted']
-                if result['alarm_count'] < 6:
-                    response += "Die nächsten sechs sind: "
-                    alarms = alarms[:6]
-                for alarm in alarms:
-                    response += "{future_part} um {h} Uhr {min} {room_part}".format(
-                        room_part=result['alarms_dict'][alarm]['room_part'],
-                        future_part=result['alarms_dict'][alarm]['future_part'],
-                        h=result['alarms_dict'][alarm]['hours'],
-                        min=result['alarms_dict'][alarm]['minutes'])
-                    if alarm != alarms[-1]:
-                        response += ", "
-                    else:
-                        response += "."
-                    if alarm == alarms[-2]:
-                        response += "und "
-                say(session_id, response)
-
-            elif result['alarm_count'] == 1:
-                say(session_id, "Es gibt {future_part} einen Alarm {room_part} um {h} Uhr {min}.".format(
-                    room_part=result['alarms_dict'][result['alarms_sorted'][0]]['room_part'],
-                    h=result['alarms_dict'][result['alarms_sorted'][0]]['hours'],
-                    min=result['alarms_dict'][result['alarms_sorted'][0]]['minutes'],
-                    future_part=result['alarms_dict'][result['alarms_sorted'][0]]['future_part']))
+            if result['alarm_count'] == 0:
+                count_part = "keinen Alarm"
+            if result['alarm_count'] == 1:
+                count_part = "einen Alarm"
             else:
-                say(session_id, "Es sind keine Alarme gestellt.")
+                count_part = "{num} Alarme".format(num=result['alarm_count'])
+            response = "Es gibt {room_part} {future_part} {num_part}. ".format(room_part=result['room_part'],
+                                                                               future_part=['future_part'],
+                                                                               num_part=count_part)
+            alarms = result['alarms_sorted']
+            if result['alarm_count'] > 5:
+                response += "Die nächsten fünf sind: "
+                alarms = alarms[:5]
+            for alarm in alarms:
+                response += "{future_part} um {h} Uhr {min} {room_part}".format(
+                    room_part=result['alarms_dict'][alarm]['room_part'],
+                    future_part=result['alarms_dict'][alarm]['future_part'],
+                    h=result['alarms_dict'][alarm]['hours'],
+                    min=result['alarms_dict'][alarm]['minutes'])
+                if alarm != alarms[-1]:
+                    response += ", "
+                else:
+                    response += "."
+                if alarm == alarms[-2]:
+                    response += "und "
+            say(session_id, response)
         elif result['rc'] == 1:
             say(session_id, "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
                             "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
@@ -136,8 +103,6 @@ def on_message_intent(client, userdata, msg):
                             "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
         elif result['rc'] == 3:
             say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
-        elif result['rc'] == 4:
-            say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
 
     elif intent_id == user_intent('isAlarm'):
         slots = get_slots(data)

@@ -142,11 +142,16 @@ class AlarmClock:
                                for dtobj in filtered_alarms}
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
         filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms]
+        filtered_alarms_dict = {dtobj: {'hours': ftime.get_alarm_hour(dtobj),
+                                        'minutes': ftime.get_alarm_minute(dtobj),
+                                        'future_part': ftime.get_future_part(dtobj, only_date=False),
+                                        'room_part': utils.get_roomstr(filtered_alarms[dtobj], self.dict_rooms, siteid)}
+                                for dtobj in filtered_alarms}
         alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
-        return {'rc': 0, 'matching_alarms': filtered_alarms, 'room_part': room_part, 'future_part': future_part,
-                'alarm_count': alarm_count}
+        return {'rc': 0, 'alarms_sorted': filtered_alarms_sorted, 'room_part': room_part, 'future_part': future_part,
+                'alarm_count': alarm_count, 'alarms_dict': filtered_alarms_dict}
 
-
+    """
         alarm_date = None
         context_siteid = None
         future_part = None
@@ -180,7 +185,6 @@ class AlarmClock:
                 'room_part': utils.get_roomstr([context_siteid], self.dict_rooms, siteid),
                 'future_part': future_part, 'siteid': context_siteid, 'filtered_date': alarm_date}
 
-    """
     def get_on_date(self, slots, siteid):
         wanted_date_str = slots['date'][:-16]  # remove the timezone and time from time string
         wanted_date = datetime.datetime.strptime(wanted_date_str, "%Y-%m-%d")

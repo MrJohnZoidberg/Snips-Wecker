@@ -52,7 +52,8 @@ so that no very long fortune cookies are read out. The default is 100 characters
 
 ### While ringing
 
-While an alarm is ringing you can say a hotword, which is by default "Hey Snips!".
+While an alarm is ringing in a room you can say a hotword in this room, which is by default "Hey Snips!".
+The ringtone
 
 ![img](resources/Snips-Alarmclock-ringing.png)
 
