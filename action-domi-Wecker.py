@@ -100,37 +100,27 @@ def on_message_intent(client, userdata, msg):
         slots = get_slots(data)
         result = alarmclock.get_alarms(slots, data['siteId'])
         if result['rc'] == 0:
-            if len(result['alarms_sorted']) >= 6:
-                response = "Es gibt {num} Alarme. Die nächsten sechs sind: ".format(num=len(result['alarms_sorted']))
-                for alarm in result['alarms_sorted'][:6]:
+            if result['alarm_count'] > 1:
+                response = "Es gibt {num} Alarme. ".format(num=result['alarm_count'])
+                alarms = result['alarms_sorted']
+                if result['alarm_count'] < 6:
+                    response += "Die nächsten sechs sind: "
+                    alarms = alarms[:6]
+                for alarm in alarms:
                     response += "{future_part} um {h} Uhr {min} {room_part}".format(
                         room_part=result['alarms_dict'][alarm]['room_part'],
                         future_part=result['alarms_dict'][alarm]['future_part'],
                         h=result['alarms_dict'][alarm]['hours'],
                         min=result['alarms_dict'][alarm]['minutes'])
-                    if alarm != result['alarms_sorted'][:6][-1]:
+                    if alarm != alarms[-1]:
                         response += ", "
                     else:
                         response += "."
-                    if alarm == result['alarms_sorted'][:6][-2]:
+                    if alarm == alarms[-2]:
                         response += "und "
                 say(session_id, response)
-            elif 2 <= len(result['alarms_sorted']) <= 5:
-                response = "Es gibt {num} Alarme. ".format(num=len(result['alarms']))
-                for alarm in result['alarms_sorted']:
-                    response += "einen {future_part} um {h} Uhr {min} {room_part}".format(
-                        room_part=result['alarms_dict'][alarm]['room_part'],
-                        future_part=result['alarms_dict'][alarm]['future_part'],
-                        h=result['alarms_dict'][alarm]['hours'],
-                        min=result['alarms_dict'][alarm]['minutes'])
-                    if alarm != result['alarms_sorted'][-1]:
-                        response += ", "
-                    else:
-                        response += "."
-                    if alarm == result['alarms_sorted'][-2]:
-                        response += "und "
-                say(session_id, response)
-            elif len(result['alarms_sorted']) == 1:
+
+            elif result['alarm_count'] == 1:
                 say(session_id, "Es gibt {future_part} einen Alarm {room_part} um {h} Uhr {min}.".format(
                     room_part=result['alarms_dict'][result['alarms_sorted'][0]]['room_part'],
                     h=result['alarms_dict'][result['alarms_sorted'][0]]['hours'],
@@ -181,8 +171,7 @@ def on_message_intent(client, userdata, msg):
         if result['rc'] == 0:
             if result['alarm_count'] == 1:
                 alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
-                                                              'alarms': result['matching_alarms'],
-                                                              'siteid': result['siteid']}
+                                                              'alarms': result['matching_alarms']}
                 dialogue(session_id, "Es gibt {future_part} {room_part} einen Alarm. Bist du dir sicher?".format(
                     future_part=result['future_part'], room_part=result['room_part']),
                          [user_intent('confirmAlarm')])

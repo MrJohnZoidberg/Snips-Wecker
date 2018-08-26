@@ -113,6 +113,40 @@ class AlarmClock:
                     'minutes': ftime.get_alarm_minute(alarm_time), 'rpart': room_part}
 
     def get_alarms(self, slots, siteid):
+        future_part = ""
+        room_part = ""
+        # fill the list with all alarms and then filter it
+        filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
+        if 'date' in slots.keys():
+            # TODO: Until (Alle alarme vor neunzehn uhr)
+            alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
+            if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
+                filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                   if dtobj.date() == alarm_date.date()}
+                future_part = ftime.get_future_part(alarm_date, only_date=True)
+            else:
+                return {'rc': 3}
+        if 'room' in slots.keys():
+            room_slot = slots['room'].encode('utf8')
+            if room_slot == "hier":
+                if siteid in self.dict_siteids.values():
+                    context_siteid = siteid
+                else:
+                    return {'rc': 1}
+            else:
+                if room_slot in self.dict_siteids.keys():
+                    context_siteid = self.dict_siteids[room_slot]
+                else:
+                    return {'rc': 2, 'room': room_slot}
+            filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
+                               for dtobj in filtered_alarms}
+            room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
+        filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms]
+        alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
+        return {'rc': 0, 'matching_alarms': filtered_alarms, 'room_part': room_part, 'future_part': future_part,
+                'alarm_count': alarm_count}
+
+
         alarm_date = None
         context_siteid = None
         future_part = None
@@ -146,6 +180,7 @@ class AlarmClock:
                 'room_part': utils.get_roomstr([context_siteid], self.dict_rooms, siteid),
                 'future_part': future_part, 'siteid': context_siteid, 'filtered_date': alarm_date}
 
+    """
     def get_on_date(self, slots, siteid):
         wanted_date_str = slots['date'][:-16]  # remove the timezone and time from time string
         wanted_date = datetime.datetime.strptime(wanted_date_str, "%Y-%m-%d")
@@ -169,6 +204,7 @@ class AlarmClock:
                                       'future_part': ftime.get_future_part(alarm), 'room_part': room_part}
         all_alarms_sorted.sort()
         return {'rc': 0, 'alarms_sorted': all_alarms_sorted, 'alarms_dict': all_alarms_dict}
+    """
 
     def is_alarm(self, slots, siteid):
         asked_alarm_str = ftime.alarm_time_str(slots['time'])
@@ -205,8 +241,10 @@ class AlarmClock:
                     'room_part': room_part}
 
     def delete_single(self, slots):
+        # TODO
         alarm_str = ftime.alarm_time_str(slots['time'])
         alarm = datetime.datetime.strptime(alarm_str, "%Y-%m-%d %H:%M")
+        room_slot = slots['room'].encode('utf8')
         if ftime.get_delta_obj(alarm).days < 0:
             return "Diese Zeit liegt in der Vergangenheit."
         if alarm in self.alarms.keys():
@@ -225,19 +263,18 @@ class AlarmClock:
         :param slots: The slots of the intent from Snips
         :param siteid: The siteId where the user triggered the intent
         :return: Dictionary with some keys:
-                    'rc' - Return code: Numbers representing normal or error message.
-                                0 - Everything good (other keys below are available)
-                                1 - This room is not configured (if slot 'room' is "hier")
-                                2 - Room 'room' is not configured (if slot 'room' is not "hier")
-                                3 - Date is in the past
-                    'matching_alarms' - List with datetime objects which will be deleted on confirmation
-                    'future_part' - Part of the sentence which describes the future
-                    'room_part' - Room name of the alarms (context-dependent)
-                    # TODO
-
+            'rc' - Return code: Numbers representing normal or error message.
+                        0 - Everything good (other keys below are available)
+                        1 - This room is not configured (if slot 'room' is "hier")
+                        2 - Room 'room' is not configured (if slot 'room' is not "hier")
+                        3 - Date is in the past
+            'matching_alarms' - List with datetime objects which will be deleted on confirmation
+            'future_part' - Part of the sentence which describes the future
+            'room_part' - Room name of the alarms (context-dependent)
+            'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
+                            one time, this means two alarms)
         """
-        alarm_date = None
-        context_siteid = None
+
         future_part = ""
         room_part = ""
         # fill the list with all alarms and then filter it
@@ -246,10 +283,8 @@ class AlarmClock:
             # TODO: Until (Alle alarme vor neunzehn uhr)
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
             if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
-                print("filtered_alarms1: ", filtered_alarms)
                 filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                    if dtobj.date() == alarm_date.date()}
-                print("filtered_alarms2: ", filtered_alarms)
                 future_part = ftime.get_future_part(alarm_date, only_date=True)
             else:
                 return {'rc': 3}
@@ -265,32 +300,27 @@ class AlarmClock:
                     context_siteid = self.dict_siteids[room_slot]
                 else:
                     return {'rc': 2, 'room': room_slot}
-            print("filtered_alarms3: ", filtered_alarms)
             filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
                                for dtobj in filtered_alarms}
-            # remove datetime (dt) objects with empty siteid list
-            filtered_alarms = {dtobj: filtered_alarms[dtobj] for dtobj in filtered_alarms if filtered_alarms[dtobj]}
-            print("filtered_alarms4: ", filtered_alarms)
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
-        total_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
-        return {'rc': 0, 'matching_alarms': filtered_alarms, 'filtered_date': alarm_date,
-                'room_part': room_part, 'future_part': future_part, 'siteid': context_siteid,
-                'alarm_count': total_count}
+        alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
+        return {'rc': 0, 'matching_alarms': filtered_alarms, 'room_part': room_part, 'future_part': future_part,
+                'alarm_count': alarm_count}
 
     def delete_multi(self, alarms_delete):
 
         """
-        Removes all alarms which were asked to delete
+        Removes all alarms in the dictionary "alarms_delete". First it deletes siteids from self.alarms if they
+        are in filtered_alarms and second it removes datetime (dt) objects with empty siteid list.
         :param alarms_delete: Dictionary with the same structure as the self.alarms dict, but it only includes
-        datetime objects together with a siteId list which should be deleted. { key=dtobject: value=listWithSiteIds }
-        :return: Dictionary with one key: 'rc' - Return code (0 = no error)
+                              datetime objects together with a siteId list which should be deleted.
+                              { key=dtobject: value=listWithSiteIds }
+        :return: Dictionary: 'rc' - Return code (0 = no error)
         """
 
-        # delete siteids from self.alarms if they are in filtered_alarms
         self.alarms = {dtobj: [sid for sid in self.alarms[dtobj]
                                if sid not in [x for lst in alarms_delete.itervalues() for x in lst]
                                or dtobj not in alarms_delete.keys()] for dtobj in self.alarms}
-        # remove datetime (dt) objects with empty siteid list
         self.alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms if self.alarms[dtobj]}
         return {'rc': 0}
 
@@ -300,7 +330,10 @@ class AlarmClock:
 
     def clock(self):
 
-        """Checks in a loop if the current time and date matches with one of the alarm dictionary"""
+        """
+        Checks in a loop if the current time and date matches with one of the alarm dictionary.
+        :return: Nothing
+        """
 
         while True:
             now_time = ftime.get_now_time()
@@ -328,15 +361,22 @@ class AlarmClock:
 
     def ring(self, siteid):
 
-        """Publishes the ringtone wav over MQTT to the soundserver and generates a random
-        UUID for it."""
+        """
+        Publishes the ringtone wav over MQTT to the soundserver and generates a random UUID for it.
+        :param siteid: The siteId of the user
+        :return: Nothing
+        """
 
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
             site_id=siteid, ring_id=uuid.uuid4()), payload=self.ringtone_wav)
 
     def stop_ringing(self, siteid):
 
-        """Sets self.ringing_dict[siteId] to False so on_message_playfinished won't start a new ring."""
+        """
+        Sets self.ringing_dict[siteId] to False so on_message_playfinished won't start a new ring.
+        :param siteid: The siteId of the user
+        :return: Nothing
+        """
 
         self.ringing_dict[siteid] = False
         self.timeout_thr_dict[siteid].cancel()  # cancel timeout thread from siteId
@@ -345,8 +385,14 @@ class AlarmClock:
 
     def on_message_playfinished(self, client, userdata, msg):
 
-        """Called when ringtone was played on specific site. If self.ringing_dict[siteId] is
-        True, the ringtone is played again."""
+        """
+        Called when ringtone was played on specific site. If self.ringing_dict[siteId] is True, the
+        ringtone is played again.
+        :param client: MQTT client object (from paho)
+        :param userdata: MQTT userdata (from paho)
+        :param msg: MQTT message object (from paho)
+        :return: Nothing
+        """
 
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
         if siteid in self.ringing_dict.keys():
@@ -354,8 +400,14 @@ class AlarmClock:
 
     def on_message_hotword(self, client, userdata, msg):
 
-        """Called when hotword is recognized while alarm is ringing. If siteId
-        matches the one of the current ringing alarm, it is stopped."""
+        """
+        Called when hotword is recognized while alarm is ringing. If siteId matches the one of the
+        current ringing alarm, it is stopped.
+        :param client: MQTT client object (from paho)
+        :param userdata: MQTT userdata (from paho)
+        :param msg: MQTT message object (from paho)
+        :return: Nothing
+        """
 
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
         if self.ringing_dict[siteid]:
@@ -366,7 +418,13 @@ class AlarmClock:
 
     def on_message_stopringing(self, client, userdata, msg):
 
-        """Called when message 'external/alarmclock/stopRinging' is received via MQTT."""
+        """
+        Called when message 'external/alarmclock/stopRinging' was received via MQTT.
+        :param client: MQTT client object (from paho)
+        :param userdata: MQTT userdata (from paho)
+        :param msg: MQTT message object (from paho)
+        :return: Nothing
+        """
 
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
         if self.ringing_dict[siteid]:
@@ -374,8 +432,14 @@ class AlarmClock:
 
     def on_message_sessionstarted(self, client, userdata, msg):
 
-        """Called when Snips started a new session. Publishes a message to end this
-        immediately and Snips will notify the user that the alarm has ended."""
+        """
+        Called when Snips started a new session. Publishes a message to end this immediately and Snips
+        will notify the user that the alarm has ended.
+        :param client: MQTT client object (from paho)
+        :param userdata: MQTT userdata (from paho)
+        :param msg: MQTT message object (from paho)
+        :return: Nothing
+        """
 
         data = json.loads(msg.payload.decode("utf-8"))
         if data['siteId'] in self.siteids_session_not_ended:
@@ -385,6 +449,17 @@ class AlarmClock:
             self.siteids_session_not_ended.remove(data['siteId'])
 
     def on_message_setringtone(self, client, userdata, msg):
+
+        """
+        Called when 'external/alarmclock/setringtone' was received via MQTT. The message can include the
+        binary data of the ringtone wav and whether the ringtone should be activated or deactivated.
+        If it's deactivated only a MQTT message will be sent.
+        :param client: MQTT client object (from paho)
+        :param userdata: MQTT userdata (from paho)
+        :param msg: MQTT message object (from paho)
+        :return: Nothing
+        """
+
         data = json.loads(msg.payload.decode("utf-8"))
         if 'status' in data.keys():
             if data['status'].lower() == "on":
