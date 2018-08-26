@@ -240,13 +240,15 @@ class AlarmClock:
         context_siteid = None
         future_part = ""
         room_part = ""
-        filtered_alarms = [dtobj for dtobj in self.alarms]  # fill the list with all alarms and then filter it
+        # fill the list with all alarms and then filter it
+        filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
         if 'date' in slots.keys():
             # TODO: Until (Alle alarme vor neunzehn uhr)
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
             if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
                 print("filtered_alarms1: ", filtered_alarms)
-                filtered_alarms = filter(lambda x: x.date() == alarm_date.date(), filtered_alarms)
+                filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                   if dtobj.date() == alarm_date.date()}
                 print("filtered_alarms2: ", filtered_alarms)
                 future_part = ftime.get_future_part(alarm_date, only_date=True)
             else:
@@ -264,26 +266,33 @@ class AlarmClock:
                 else:
                     return {'rc': 2, 'room': room_slot}
             print("filtered_alarms3: ", filtered_alarms)
-            for i in filtered_alarms:
-                print(self.alarms[i])
-                print(context_siteid)
-            filtered_alarms = filter(lambda x: self.alarms[x] == context_siteid, filtered_alarms)
+            filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
+                               for dtobj in filtered_alarms}
+            # remove datetime (dt) objects with empty siteid list
+            filtered_alarms = {dtobj: filtered_alarms[dtobj] for dtobj in filtered_alarms if filtered_alarms[dtobj]}
             print("filtered_alarms4: ", filtered_alarms)
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
+        total_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
         return {'rc': 0, 'matching_alarms': filtered_alarms, 'filtered_date': alarm_date,
-                'room_part': room_part, 'future_part': future_part, 'siteid': context_siteid}
+                'room_part': room_part, 'future_part': future_part, 'siteid': context_siteid,
+                'alarm_count': total_count}
 
-    def delete_multi(self, filtered_alarms, filtered_siteid):
-        for dtobj in filtered_alarms:
-            if len(self.alarms[dtobj]) == 1:  # no siteId remains
-                del self.alarms[dtobj]
-            elif len(self.alarms[dtobj]) > 1 and filtered_siteid:
-                self.alarms[dtobj].remove(filtered_siteid)
-            elif len(self.alarms[dtobj]) > 1 and not filtered_siteid:
-                del self.alarms[dtobj]
-            else:
-                return {'rc': 1}
-            return {'rc': 0}
+    def delete_multi(self, alarms_delete):
+
+        """
+        Removes all alarms which were asked to delete
+        :param alarms_delete: Dictionary with the same structure as the self.alarms dict, but it only includes
+        datetime objects together with a siteId list which should be deleted. { key=dtobject: value=listWithSiteIds }
+        :return: Dictionary with one key: 'rc' - Return code (0 = no error)
+        """
+
+        # delete siteids from self.alarms if they are in filtered_alarms
+        self.alarms = {dtobj: [sid for sid in self.alarms[dtobj]
+                               if sid not in [x for lst in alarms_delete.itervalues() for x in lst]
+                               or dtobj not in alarms_delete.keys()] for dtobj in self.alarms}
+        # remove datetime (dt) objects with empty siteid list
+        self.alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms if self.alarms[dtobj]}
+        return {'rc': 0}
 
     def save_alarms(self, path):
         with io.open(path, "w") as f:

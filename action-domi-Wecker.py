@@ -179,20 +179,20 @@ def on_message_intent(client, userdata, msg):
         slots = get_slots(data)
         result = alarmclock.delete_multi_try(slots, data['siteId'])
         if result['rc'] == 0:
-            if len(result['matching_alarms']) == 1:
+            if result['alarm_count'] == 1:
                 alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
                                                               'alarms': result['matching_alarms'],
                                                               'siteid': result['siteid']}
                 dialogue(session_id, "Es gibt {future_part} {room_part} einen Alarm. Bist du dir sicher?".format(
                     future_part=result['future_part'], room_part=result['room_part']),
                          [user_intent('confirmAlarm')])
-            elif len(result['matching_alarms']) > 1:
+            elif result['alarm_count'] > 1:
                 alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
                                                               'alarms': result['matching_alarms'],
                                                               'siteid': result['siteid']}
                 dialogue(session_id, "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
                     future_part=result['future_part'], room_part=result['room_part'],
-                    num=len(result['matching_alarms'])), [user_intent('confirmAlarm')])
+                    num=result['alarm_count']), [user_intent('confirmAlarm')])
             else:
                 say(session_id, "Es gibt {room_part} {future_part} keinen Alarm.".format(
                     room_part=result['room_part'], future_part=result['future_part']))
@@ -211,11 +211,11 @@ def on_message_intent(client, userdata, msg):
             slots = get_slots(data)
             if slots['answer'] == "yes":
                 if past_data['past_intent'] == user_intent('deleteAlarmsMulti'):
-                        result = alarmclock.delete_multi(past_data['alarms'], past_data['siteid'])
+                        result = alarmclock.delete_multi(past_data['alarms'])
                         if result['rc'] == 0:
                             say(session_id, "Erledigt.")
                         else:
-                            say(session_id, "Es ist ein fehler aufgetreten.")
+                            say(session_id, "Es ist ein Fehler aufgetreten.")
                 if past_data['past_intent'] == user_intent('isAlarm'):
                     result = alarmclock.new_alarm(past_data['slots'], data['siteId'])
                     if result['rc'] == 0:
@@ -227,10 +227,6 @@ def on_message_intent(client, userdata, msg):
             else:
                 say(session_id, "Abgebrochen.")
             alarmclock.confirm_intents[data['siteId']] = None
-
-
-def end(session_id):
-    mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({"sessionId": session_id}))
 
 
 def say(session_id, text):
