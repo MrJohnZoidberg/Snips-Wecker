@@ -29,11 +29,7 @@ class AlarmClock:
         self.ringing_dict = {self.dict_siteids[room]: False for room in self.dict_siteids}
         self.ringtone_status = ringtone_status
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
-        if restore_alarms:
-            with io.open(self.saved_alarms_path, "r") as f:
-                self.alarms = json.load(f)
-        else:
-            self.alarms = {}  # { key=datetime_obj: value=siteId_list }
+        self.alarms = self.read_alarms(restore_alarms)
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
@@ -291,8 +287,21 @@ class AlarmClock:
     def save_alarms(self, path=None):
         if not path:
             path = self.saved_alarms_path
+        dic_al_str = {datetime.datetime.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
         with io.open(path, "w") as f:
-            f.write(unicode(json.dumps(self.alarms)))
+            f.write(unicode(json.dumps(dic_al_str)))
+
+    def read_alarms(self, restore_alarms):
+        if restore_alarms:
+            with io.open(self.saved_alarms_path, "r") as f:
+                try:
+                    dic_al_str = json.load(f)
+                except ValueError:
+                    dic_al_str = {}
+        else:
+            dic_al_str = {}  # { key=datetime_obj: value=siteId_list }
+        alarms = {datetime.datetime.strptime(dtstr, "%Y-%m-%d %H:%M"): dic_al_str[dtstr] for dtstr in dic_al_str}
+        return alarms
 
     def clock(self):
 

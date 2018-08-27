@@ -79,6 +79,7 @@ def get_restorestat(config):
         restore_status = True
     return restore_status
 
+
 def get_ringtonestat(config):
     ringtone_str = config['global']['ringtone_status'].encode('utf8')
     if ringtone_str == "no":
