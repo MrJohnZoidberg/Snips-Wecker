@@ -72,7 +72,7 @@ def on_message_intent(client, userdata, msg):
             if result['alarm_count'] == 0:
                 count_part = "keinen Alarm."
                 end_part = "."
-            if result['alarm_count'] == 1:
+            elif result['alarm_count'] == 1:
                 count_part = "einen Alarm"
                 end_part = " "
             else:
