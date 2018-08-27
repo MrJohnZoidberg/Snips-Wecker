@@ -141,74 +141,25 @@ class AlarmClock:
             filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
                                for dtobj in filtered_alarms}
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
+        filtered_alarms = {dtobj: filtered_alarms[dtobj] for dtobj in filtered_alarms}
         filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms]
-        filtered_alarms_dict = {dtobj: {'hours': ftime.get_alarm_hour(dtobj),
-                                        'minutes': ftime.get_alarm_minute(dtobj),
-                                        'future_part': ftime.get_future_part(dtobj, only_date=False),
-                                        'room_part': utils.get_roomstr(filtered_alarms[dtobj], self.dict_rooms, siteid)}
-                                for dtobj in filtered_alarms}
+        filtered_alarms_dict = {}
+        for dtobj in filtered_alarms:
+            filtered_alarms_dict[dtobj] = {}
+            filtered_alarms_dict[dtobj]['hours'] = ftime.get_alarm_hour(dtobj)
+            filtered_alarms_dict[dtobj]['minutes'] = ftime.get_alarm_minute(dtobj)
+            if not future_part:
+                filtered_alarms_dict[dtobj]['future_part'] = ftime.get_future_part(dtobj, only_date=True)
+            else:
+                filtered_alarms_dict[dtobj]['future_part'] = ""
+            if not room_part:
+                filtered_alarms_dict[dtobj]['room_part'] = utils.get_roomstr(filtered_alarms[dtobj], self.dict_rooms,
+                                                                             siteid)
+            else:
+                filtered_alarms_dict[dtobj]['room_part'] = ""
         alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
         return {'rc': 0, 'alarms_sorted': filtered_alarms_sorted, 'room_part': room_part, 'future_part': future_part,
                 'alarm_count': alarm_count, 'alarms_dict': filtered_alarms_dict}
-
-    """
-        alarm_date = None
-        context_siteid = None
-        future_part = None
-        matched_alarms_sorted = [dtobj for dtobj in self.alarms]  # fill the list with all alarms and then filter it
-        if 'date' in slots.keys():
-            alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
-            if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
-                matched_alarms_sorted = filter(lambda x: x.date() == alarm_date.date(), matched_alarms_sorted)
-                future_part = ftime.get_future_part(alarm_date, only_date=True)
-            else:
-                return {'rc': 3}
-        if 'room' in slots.keys():
-            room_slot = slots['room'].encode('utf8')
-            if room_slot == "hier":
-                if siteid in self.dict_siteids.values():
-                    context_siteid = siteid
-                else:
-                    return {'rc': 1}
-            else:
-                if room_slot in self.dict_siteids.keys():
-                    context_siteid = self.dict_siteids[room_slot]
-                else:
-                    return {'rc': 2, 'room': room_slot}
-            matched_alarms_sorted = filter(lambda x: self.alarms[x] == context_siteid, matched_alarms_sorted)
-        matched_alarms_sorted.sort()
-        matched_alarms_dict = {alarm: {'hours': ftime.get_alarm_hour(alarm), 'minutes': ftime.get_alarm_minute(alarm),
-                                       'room_part': utils.get_roomstr([context_siteid],
-                                                                      self.dict_rooms,
-                                                                      siteid)} for alarm in matched_alarms_sorted}
-        return {'rc': 0, 'alarms_sorted': matched_alarms_sorted, 'alarms_dict': matched_alarms_dict,
-                'room_part': utils.get_roomstr([context_siteid], self.dict_rooms, siteid),
-                'future_part': future_part, 'siteid': context_siteid, 'filtered_date': alarm_date}
-
-    def get_on_date(self, slots, siteid):
-        wanted_date_str = slots['date'][:-16]  # remove the timezone and time from time string
-        wanted_date = datetime.datetime.strptime(wanted_date_str, "%Y-%m-%d")
-        if ftime.get_delta_obj(wanted_date, only_date=True).days < 0:
-            return {'rc': 1}
-        alarms_on_date = []
-        for alarm in self.alarms:
-            if wanted_date.date() == alarm.date():
-                room_part = utils.get_roomstr(self.alarms[alarm], self.dict_rooms, siteid)
-                alarms_on_date.append({'hours': ftime.get_alarm_hour(alarm), 'minutes': ftime.get_alarm_minute(alarm),
-                                       'room_part': room_part})
-        return {'rc': 0, 'future_part': ftime.get_future_part(wanted_date, only_date=True), 'alarms': alarms_on_date}
-
-    def get_all(self, siteid):
-        all_alarms_sorted = []
-        all_alarms_dict = {}
-        for alarm in self.alarms:
-            room_part = utils.get_roomstr(self.alarms[alarm], self.dict_rooms, siteid)
-            all_alarms_sorted.append(alarm)
-            all_alarms_dict[alarm] = {'hours': ftime.get_alarm_hour(alarm), 'minutes': ftime.get_alarm_minute(alarm),
-                                      'future_part': ftime.get_future_part(alarm), 'room_part': room_part}
-        all_alarms_sorted.sort()
-        return {'rc': 0, 'alarms_sorted': all_alarms_sorted, 'alarms_dict': all_alarms_dict}
-    """
 
     def is_alarm(self, slots, siteid):
         asked_alarm_str = ftime.alarm_time_str(slots['time'])

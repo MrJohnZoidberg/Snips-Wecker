@@ -70,14 +70,18 @@ def on_message_intent(client, userdata, msg):
         result = alarmclock.get_alarms(slots, data['siteId'])
         if result['rc'] == 0:
             if result['alarm_count'] == 0:
-                count_part = "keinen Alarm"
+                count_part = "keinen Alarm."
+                end_part = "."
             if result['alarm_count'] == 1:
                 count_part = "einen Alarm"
+                end_part = " "
             else:
                 count_part = "{num} Alarme".format(num=result['alarm_count'])
-            response = "Es gibt {room_part} {future_part} {num_part}. ".format(room_part=result['room_part'],
-                                                                               future_part=['future_part'],
-                                                                               num_part=count_part)
+                end_part = ". "
+            response = "Es gibt {room_part} {future_part} {num_part}{end}".format(room_part=result['room_part'],
+                                                                                  future_part=result['future_part'],
+                                                                                  num_part=count_part,
+                                                                                  end=end_part)
             alarms = result['alarms_sorted']
             if result['alarm_count'] > 5:
                 response += "Die nächsten fünf sind: "
@@ -92,8 +96,8 @@ def on_message_intent(client, userdata, msg):
                     response += ", "
                 else:
                     response += "."
-                if alarm == alarms[-2]:
-                    response += "und "
+                if len(alarms) > 1 and alarm == alarms[-2]:
+                        response += "und "
             say(session_id, response)
         elif result['rc'] == 1:
             say(session_id, "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
@@ -143,7 +147,7 @@ def on_message_intent(client, userdata, msg):
             elif result['alarm_count'] > 1:
                 alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
                                                               'alarms': result['matching_alarms'],
-                                                              'siteid': result['siteid']}
+                                                              'siteid': data['siteid']}
                 dialogue(session_id, "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
                     future_part=result['future_part'], room_part=result['room_part'],
                     num=result['alarm_count']), [user_intent('confirmAlarm')])
@@ -160,7 +164,8 @@ def on_message_intent(client, userdata, msg):
             say(session_id, "Diese Zeit liegt in der Vergangenheit.")
 
     elif intent_id == user_intent('confirmAlarm'):
-        if 'past_intent' in alarmclock.confirm_intents[data['siteId']].keys():
+        confirm_data = alarmclock.confirm_intents[data['siteId']]
+        if confirm_data and 'past_intent' in confirm_data.keys():
             past_data = alarmclock.confirm_intents[data['siteId']]
             slots = get_slots(data)
             if slots['answer'] == "yes":
