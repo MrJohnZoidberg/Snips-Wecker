@@ -138,19 +138,16 @@ def on_message_intent(client, userdata, msg):
         slots = get_slots(data)
         result = alarmclock.delete_multi_try(slots, data['siteId'])
         if result['rc'] == 0:
-            if result['alarm_count'] == 1:
+            if result['alarm_count'] >= 1:
+                if result['alarm_count'] == 1:
+                    count_part = "einen Alarm"
+                else:
+                    count_part = "{num} Alarme".format(num=result['alarm_count'])
                 alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
                                                               'alarms': result['matching_alarms']}
-                dialogue(session_id, "Es gibt {future_part} {room_part} einen Alarm. Bist du dir sicher?".format(
-                    future_part=result['future_part'], room_part=result['room_part']),
+                dialogue(session_id, "Es gibt {future_part} {room_part} {num_part}. Bist du dir sicher?".format(
+                    future_part=result['future_part'], room_part=result['room_part'], num_part=count_part),
                          [user_intent('confirmAlarm')])
-            elif result['alarm_count'] > 1:
-                alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
-                                                              'alarms': result['matching_alarms'],
-                                                              'siteid': data['siteid']}
-                dialogue(session_id, "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
-                    future_part=result['future_part'], room_part=result['room_part'],
-                    num=result['alarm_count']), [user_intent('confirmAlarm')])
             else:
                 say(session_id, "Es gibt {room_part} {future_part} keinen Alarm.".format(
                     room_part=result['room_part'], future_part=result['future_part']))
