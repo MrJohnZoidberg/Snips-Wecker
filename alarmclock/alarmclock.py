@@ -29,16 +29,15 @@ class AlarmClock:
         self.ringing_dict = {self.dict_siteids[room]: False for room in self.dict_siteids}
         self.ringtone_status = ringtone_status
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
-        self.clock_thread = threading.Thread(target=self.clock)
-        self.clock_thread.start()
-        # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
-        self.timeout_thr_dict = {self.dict_siteids[room]: None for room in self.dict_siteids}
-
         if restore_alarms:
             with io.open(self.saved_alarms_path, "r") as f:
                 self.alarms = f.read()
         else:
             self.alarms = {}  # { key=datetime_obj: value=siteId_list }
+        self.clock_thread = threading.Thread(target=self.clock)
+        self.clock_thread.start()
+        # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
+        self.timeout_thr_dict = {self.dict_siteids[room]: None for room in self.dict_siteids}
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
