@@ -143,6 +143,7 @@ class AlarmClock:
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
         filtered_alarms = {dtobj: filtered_alarms[dtobj] for dtobj in filtered_alarms}
         filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms]
+        filtered_alarms_sorted.sort()
         filtered_alarms_dict = {}
         for dtobj in filtered_alarms:
             filtered_alarms_dict[dtobj] = {}
