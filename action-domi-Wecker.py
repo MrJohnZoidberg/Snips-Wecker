@@ -63,7 +63,8 @@ def on_message_intent(client, userdata, msg):
             elif result['rc'] == 3:
                 say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
             elif result['rc'] == 4:
-                say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
+                say(session_id, "Dieser Alarm <pitch level='400'> würde jetzt klingeln."
+                                "Bitte stelle einen </pitch> anderen Alarm.")
 
     elif intent_id == user_intent('getAlarms'):
         slots = get_slots(data)
@@ -200,7 +201,9 @@ if __name__ == "__main__":
     ringing_timeout = alarmclock.utils.get_ringtmo(conf)
     dict_siteid = alarmclock.utils.get_dsiteid(conf)
     default_room = alarmclock.utils.get_dfroom(conf)
-    alarmclock = AlarmClock(ringtone_wav, ringing_timeout, dict_siteid, default_room)
+    restore_alarms = alarmclock.utils.get_restorestat(conf)
+    ringtone_status = alarmclock.utils.get_ringtonestat(conf)
+    alarmclock = AlarmClock(ringtone_wav, ringing_timeout, dict_siteid, default_room, restore_alarms, ringtone_status)
     mqtt_client = mqtt.Client()
     mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
     mqtt_client.connect("localhost", "1883")

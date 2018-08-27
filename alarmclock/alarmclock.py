@@ -13,7 +13,8 @@ import io                            # open the file for saving the alarms
 
 
 class AlarmClock:
-    def __init__(self, ringtone_wav=None, ringing_timeout=None, dict_siteid=None, default_room=None):
+    def __init__(self, ringtone_wav=None, ringing_timeout=None, dict_siteid=None, default_room=None,
+                 restore_alarms=True, ringtone_status=True):
         self.ringtone_wav = ringtone_wav
         self.ringing_timeout = ringing_timeout
         # self.dict_siteids -> { key=RoomName: value=siteId }
@@ -21,18 +22,23 @@ class AlarmClock:
         # self.dict_rooms -> { key=siteId: value=RoomName }
         self.dict_rooms = {siteid: room for room, siteid in self.dict_siteids.iteritems()}
         self.default_room = default_room
-        self.alarms = {}  # { key=datetime_obj: value=siteId_list }
         self.saved_alarms_path = ".saved_alarms.json"
         self.remembered_slots = {}
         self.confirm_intents = {self.dict_siteids[room]: None for room in self.dict_siteids}
         # self.ringing_dict -> { key=siteId: value=True/False }
         self.ringing_dict = {self.dict_siteids[room]: False for room in self.dict_siteids}
-        self.ringtone_status = True
+        self.ringtone_status = ringtone_status
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
         self.timeout_thr_dict = {self.dict_siteids[room]: None for room in self.dict_siteids}
+
+        if restore_alarms:
+            with io.open(self.saved_alarms_path, "r") as f:
+                self.alarms = f.read()
+        else:
+            self.alarms = {}  # { key=datetime_obj: value=siteId_list }
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
@@ -72,7 +78,7 @@ class AlarmClock:
                         alarm_site_id = siteid
                         room_part = "hier"
                     else:
-                        return {'rc': 1}  # TODO: Add error explanations
+                        return {'rc': 1}
                 else:
                     if room_slot in self.dict_siteids.keys():
                         alarm_site_id = self.dict_siteids[room_slot]
@@ -104,6 +110,7 @@ class AlarmClock:
                     self.alarms[alarm_time].append(alarm_site_id)
             else:
                 self.alarms[alarm_time] = [alarm_site_id]
+            self.save_alarms()
             dt = datetime.datetime
             # alarm dictionary with datetime objects as strings { key=datetime_str: value=siteId_list }
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
@@ -205,6 +212,7 @@ class AlarmClock:
             return "Diese Zeit liegt in der Vergangenheit."
         if alarm in self.alarms.keys():
             del self.alarms[alarm]
+            self.save_alarms()
             return "Der Alarm {0} um {1} Uhr {2} wurde entfernt.".format(ftime.get_future_part(alarm, 1),
                                                                          ftime.get_alarm_hour(alarm),
                                                                          ftime.get_alarm_minute(alarm))
@@ -278,9 +286,12 @@ class AlarmClock:
                                if sid not in [x for lst in alarms_delete.itervalues() for x in lst]
                                or dtobj not in alarms_delete.keys()] for dtobj in self.alarms}
         self.alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms if self.alarms[dtobj]}
+        self.save_alarms()
         return {'rc': 0}
 
-    def save_alarms(self, path):
+    def save_alarms(self, path=None):
+        if not path:
+            path = self.saved_alarms_path
         with io.open(path, "w") as f:
             f.write(unicode(json.dumps(self.alarms)))
 
@@ -301,6 +312,7 @@ class AlarmClock:
                         del self.alarms[now_time]
                     else:
                         self.alarms[now_time].remove(siteid)
+                    self.save_alarms()
                     room = self.dict_rooms[siteid]
                     self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({'siteId': siteid,
                                                                                         'room': room}))

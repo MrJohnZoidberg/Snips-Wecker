@@ -71,6 +71,23 @@ def get_dfroom(config):
     return dfroom
 
 
+def get_restorestat(config):
+    restore_str = config['global']['restore_alarms'].encode('utf8')
+    if restore_str == "no":
+        restore_status = False
+    else:
+        restore_status = True
+    return restore_status
+
+def get_ringtonestat(config):
+    ringtone_str = config['global']['ringtone_status'].encode('utf8')
+    if ringtone_str == "no":
+        ringtone_status = False
+    else:
+        ringtone_status = True
+    return ringtone_status
+
+
 def edit_volume(wav_path, volume):
     # TODO: Change method so no error message (ffmpeg not found) in Snips anymore
     ringtone = AudioSegment.from_wav(wav_path)

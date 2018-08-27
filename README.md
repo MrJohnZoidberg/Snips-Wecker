@@ -11,6 +11,8 @@ A skill for Snips.ai with a fully controllable alarm clock.
 
 ## Installation
 
+### Using SAM (recommended)
+
 **Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
 already configured and running on your device. [SAM](https://snips.gitbook.io/getting-started/installation) should
 also already be set up and connected to your device and your account.
@@ -43,6 +45,14 @@ so that no very long fortune cookies are read out. The default is 100 characters
       sam install skills
       ```
    The command will only update the skills, not the whole assistant.
+
+### Manually (not recommended)
+
+**Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
+already configured and running on your device.
+
+You can also install this app without using SAM, but [...]
+
 
 ## Usage
 
