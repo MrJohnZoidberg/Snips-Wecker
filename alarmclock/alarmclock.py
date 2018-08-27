@@ -49,7 +49,7 @@ class AlarmClock:
     def new_alarm(self, slots, siteid):
 
         """
-        Callend when creating a new alarm.
+        Callend when creating a new alarm. Logic: see ../resources/Snips-Alarmclock-newAlarm.png
         :param slots: The slots of the intent from the NLU
         :param siteid: The siteId of the device where the user has spoken
         :return: Dictionary with some keys:

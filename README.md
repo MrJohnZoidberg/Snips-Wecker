@@ -1,5 +1,5 @@
 # Snips-Wecker ⏰
-A skill for Snips.ai with a fully controllable alarm clock.
+An app for Snips.ai with a fully controllable alarm clock.
 
 ## Features
 
@@ -17,18 +17,17 @@ A skill for Snips.ai with a fully controllable alarm clock.
 already configured and running on your device. [SAM](https://snips.gitbook.io/getting-started/installation) should
 also already be set up and connected to your device and your account.
 
-1. In the German [skill store](https://console.snips.ai/) add the
-skill `Wecker & Alarme` (by domi; [this] to
+1. In the German [app store](https://console.snips.ai/) add the
+app `Wecker & Alarme` (by domi; [this] to
 your *German* assistant.
 
-2. If you already have the same assistant on your platform, update it
-(with [Sam](https://snips.gitbook.io/getting-started/installation)) with:
+2. If you already have the same assistant on your platform, update it with:
       ```bash
       sam update-assistant
       ```
       
-   Otherwise install the assistant on the platform with [Sam](https://snips.gitbook.io/getting-started/installation)
-   with the following command to choose it (if you have multiple assistants in your Snips console):
+   Otherwise install the assistant on the platform with the following command to
+   choose it (if you have multiple assistants in your Snips console):
       ```bash
       sam install assistant
       ```
@@ -142,7 +141,6 @@ JSON Payload:
 - New setting: snooze en/disabled (then don't end session)
 - Different languages
 - Nice README
-- Store alarms after creating new one
 - Send alarm data over MQTT
 - Publish app in the snips console app store
 
@@ -151,4 +149,4 @@ JSON Payload:
 
 Please report errors (you can see them with `sam service log`) and bugs by
 opening a [new issue](https://github.com/MrJohnZoidberg/Snips-Wecker/issues/new).
-You can also write other ideas for this skill. Thank you for your contribution.
+You can also write other ideas for this app. Thank you for your contribution.
