@@ -1,5 +1,5 @@
 # Snips-Wecker ⏰
-An app for Snips.ai with a fully controllable alarm clock.
+An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 
 ## Features
 
@@ -173,6 +173,7 @@ JSON Payload:
 - Internationalisation
 - Nice README
 - Send alarm data over MQTT
+- Ability to change the ringtone sound
 - Maybe: periodical alarms (daily, weekly)
 - Publish app in the snips console app store
 
