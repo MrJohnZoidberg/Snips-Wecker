@@ -419,8 +419,10 @@ class AlarmClock:
 
         data = json.loads(msg.payload.decode("utf-8"))
         if data['siteId'] in self.siteids_session_not_ended:
+            now_time = datetime.datetime.now()
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
-                                     json.dumps({"text": "Alarm beendet", "sessionId": data['sessionId']}))
+                                     json.dumps({"text": "Alarm beendet. Es ist jetzt {h} Uhr {min}".format(
+                                         h=now_time.hour, min=now_time.minute), "sessionId": data['sessionId']}))
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.siteids_session_not_ended.remove(data['siteId'])
 
