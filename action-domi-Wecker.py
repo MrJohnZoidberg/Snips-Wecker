@@ -63,7 +63,7 @@ def on_message_intent(client, userdata, msg):
             elif result['rc'] == 3:
                 say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
             elif result['rc'] == 4:
-                say(session_id, "Dieser Alarm <pitch level='400'> würde jetzt klingeln."
+                say(session_id, "Dieser Alarm <pitch level='400'> würde jetzt klingeln. "
                                 "Bitte stelle einen </pitch> anderen Alarm.")
 
     elif intent_id == user_intent('getAlarms'):
