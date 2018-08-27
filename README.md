@@ -9,6 +9,22 @@ An app for Snips.ai with a fully controllable alarm clock.
 - customizable (ringtone sound, volume, ringing timeout, rooms)
 - no system command for the ringtone used, all realized with the Snips platform
 
+## Quickstart
+
+With a Raspberry Pi: (If you already have Snips on your Platform and an assistant installed, continue reading below)
+
+1. Set up [Raspbian](https://www.raspberrypi.org/downloads/raspbian/) Stretch Lite on
+your Raspberry Pi 3 from the [Snips Maker Kit](https://makers.snips.ai/kit/)
+
+2. Install the [Snips platform](https://snips.gitbook.io/documentation/snips-basics) on it
+using [SAM](https://snips.gitbook.io/getting-started/installation)
+
+3. In the [Snips console](https://console.snips.ai/) (create an account if necessary) create a new German assistant,
+add the app `Alarme & Wecker` to it and install this assistant using SAM: `sam install assistant`
+
+4. Enjoy it!
+
+
 ## Installation
 
 ### Using SAM (recommended)
@@ -31,27 +47,42 @@ your *German* assistant.
       ```bash
       sam install assistant
       ```
-      
-4. You will be asked to fill some parameters with values.
-The following should explain these parameters:
-    - With the parameter `bbbb` you can set the maximum length of all the fortunes,
-so that no very long fortune cookies are read out. The default is 100 characters.
-    - The value in `bbbb` controls the number of repetitions of the Question
-    "Noch ein Spruch?" if the answer was not understood. The default is one repetition.
     
-5. If you want to change the values again, you can run:
-      ```bash
-      sam install skills
-      ```
-   The command will only update the skills, not the whole assistant.
 
 ### Manually (not recommended)
 
 **Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
 already configured and running on your device.
 
-You can also install this app without using SAM, but [...]
+**Note:** Not tested yet!
 
+1. In the German [app store](https://console.snips.ai/) add the
+app `Wecker & Alarme` (by domi; [this] to
+your *German* assistant.
+
+2. Download the assistant package by clicking on "Deploy Assistant" and then on "[...] manually".
+
+## Configuration
+
+In the Snips console or manually in the file `/var/lib/snips/skills/Snips-Wecker/config.ini` you can change
+some parameters that influence the behaviour of the alarm clock app:
+
+| Parameter name | Default | Range | Description |
+|----------------|---------|-------|-------------|
+| ringing_volume | 50      | 0 - 100 | Volume of the ringtone |
+| ringing_timeout| 30s     | 3s - infinit | Time in seconds for the ringing timeout |
+| dict_site-id   | Schlafzimmer:default | no range | Important if you have a multi-room setup of Snips!<br/>These are pairs of room names and siteIds of these rooms. |
+| default_room   | Schlafzimmer | no range | Important if you have a multi-room setup of Snips!<br/>Here must be the name of the room in which the alarm is to be set, if no room was said in the command. |
+
+### Multi-room specific
+
+#### Parameter dict_site-id
+
+#### Parameter default_room
+
+#### Examples of multi-room configurations
+
+##### Example 1
 
 ## Usage
 
@@ -139,14 +170,18 @@ JSON Payload:
 
 ## Coming soon...
 - New setting: snooze en/disabled (then don't end session)
-- Different languages
+- Internationalisation
 - Nice README
 - Send alarm data over MQTT
+- Maybe: periodical alarms (daily, weekly)
 - Publish app in the snips console app store
 
 
 ## Contribution
 
-Please report errors (you can see them with `sam service log`) and bugs by
-opening a [new issue](https://github.com/MrJohnZoidberg/Snips-Wecker/issues/new).
+Please report errors (you can see them with `sam service log snips-skill-server` or on the Pi
+with `sudo tail -f /var/log/syslog`) and bugs by opening
+a [new issue](https://github.com/MrJohnZoidberg/Snips-Wecker/issues/new).
 You can also write other ideas for this app. Thank you for your contribution.
+
+Made with 💙
