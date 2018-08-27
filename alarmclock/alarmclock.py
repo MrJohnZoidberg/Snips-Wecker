@@ -31,7 +31,7 @@ class AlarmClock:
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         if restore_alarms:
             with io.open(self.saved_alarms_path, "r") as f:
-                self.alarms = f.read()
+                self.alarms = json.load(f)
         else:
             self.alarms = {}  # { key=datetime_obj: value=siteId_list }
         self.clock_thread = threading.Thread(target=self.clock)
