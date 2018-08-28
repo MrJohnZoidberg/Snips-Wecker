@@ -9,7 +9,10 @@ An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 - customizable (ringtone sound, volume, ringing timeout, rooms)
 - no system command for the ringtone used, all realized with the Snips platform
 
-## Quickstart
+
+## Installation
+
+### Prerequisites
 
 With a Raspberry Pi: (If you already have Snips on your Platform and an assistant installed, continue reading below)
 
@@ -19,20 +22,15 @@ your Raspberry Pi 3 from the [Snips Maker Kit](https://makers.snips.ai/kit/)
 2. Install the [Snips platform](https://snips.gitbook.io/documentation/snips-basics) on it
 using [SAM](https://snips.gitbook.io/getting-started/installation)
 
-3. In the [Snips console](https://console.snips.ai/) (create an account if necessary) create a new German assistant,
-add the app `Alarme & Wecker` to it and install this assistant using SAM: `sam install assistant`
 
-4. Enjoy it!
-
-
-## Installation with SAM
+### Installation with SAM
 
 **Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
 already configured and running on your device. [SAM](https://snips.gitbook.io/getting-started/installation) should
 also already be set up and connected to your device and your account.
 
 1. In the German [app store](https://console.snips.ai/) add the
-app `Wecker & Alarme` (by domi; [this] to
+app `Wecker & Alarme` (by domi; [this]) to
 your *German* assistant.
 
 2. If you already have the same assistant on your platform, update it with:
