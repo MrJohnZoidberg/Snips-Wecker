@@ -25,9 +25,7 @@ add the app `Alarme & Wecker` to it and install this assistant using SAM: `sam i
 4. Enjoy it!
 
 
-## Installation
-
-### Using SAM (recommended)
+## Installation with SAM
 
 **Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
 already configured and running on your device. [SAM](https://snips.gitbook.io/getting-started/installation) should
@@ -48,20 +46,6 @@ your *German* assistant.
       sam install assistant
       ```
     
-
-### Manually (not recommended)
-
-**Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
-already configured and running on your device.
-
-**Note:** Not tested yet!
-
-1. In the German [app store](https://console.snips.ai/) add the
-app `Wecker & Alarme` (by domi; [this] to
-your *German* assistant.
-
-2. Download the assistant package by clicking on "Deploy Assistant" and then on "[...] manually".
-
 ## Configuration
 
 In the Snips console or manually in the file `/var/lib/snips/skills/Snips-Wecker/config.ini` you can change
@@ -71,18 +55,35 @@ some parameters that influence the behaviour of the alarm clock app:
 |----------------|---------|-------|-------------|
 | ringing_volume | 50      | 0 - 100 | Volume of the ringtone |
 | ringing_timeout| 30s     | 3s - infinit | Time in seconds for the ringing timeout |
-| dict_site-id   | Schlafzimmer:default | no range | Important if you have a multi-room setup of Snips!<br/>These are pairs of room names and siteIds of these rooms. |
-| default_room   | Schlafzimmer | no range | Important if you have a multi-room setup of Snips!<br/>Here must be the name of the room in which the alarm is to be set, if no room was said in the command. |
+| restore_alarms | yes     | yes/no | Whether the alarms should be restored after reboot |
+| ringtone_status | on | on/off | Describes the state of the ringtone. If it's off, only a MQTT message will be sent when the alarm is ringing |
 
 ### Multi-room specific
 
-#### Parameter dict_site-id
+#### Parameter `dict_site-id`
 
-#### Parameter default_room
+Important if you have a multi-room setup of Snips!
+These are pairs of room names and siteIds of these rooms.
+
+Default: `Schlafzimmer:default`
+
+#### Parameter `default_room`
+
+Important if you have a multi-room setup of Snips!
+Here must be the name of the room in which the alarm is to be set, if no room was said in the command.
+
+Default: `Schlafzimmer`
 
 #### Examples of multi-room configurations
 
 ##### Example 1
+
+![Example 1](resources/MultiroomExample1.png)
+
+Parameters values in the [Snips console](https://console.snips.ai/) in this app:
+
+- dict_site-id: `Wohnzimmer:main, Küche:kitchen, Büro:office, Schlafzimmer:bedroom`
+- default_room: `Schlafzimmer`
 
 ## Usage
 
