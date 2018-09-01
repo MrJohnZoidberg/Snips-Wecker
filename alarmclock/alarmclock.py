@@ -123,9 +123,10 @@ class AlarmClock:
         room_part = ""
         # fill the list with all alarms and then filter it
         filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
+        dt_format = "%Y-%m-%d %H:%M"
         if 'date' in slots.keys():
             if slots['date']['kind'] == "InstantTime":
-                alarm_time = datetime.datetime.strptime(slots['date']['value'], "%Y-%m-%d %H:%M")
+                alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['value']), dt_format)
                 if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
                     return {'rc': 3}
                 if slots['date']['grain'] == "Hour":
@@ -140,16 +141,16 @@ class AlarmClock:
                 future_part = ftime.get_future_part(alarm_time, only_date=False)
             elif slots['date']['kind'] == "TimeInterval":
                 if not slots['date']['from']:
-                    time_to = datetime.datetime.strptime(slots['date']['to'], "%Y-%m-%d %H:%M")
+                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['to']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj <= time_to}
                 elif not slots['date']['to']:
-                    time_from = datetime.datetime.strptime(slots['date']['from'], "%Y-%m-%d %H:%M")
+                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['from']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if time_from <= dtobj}
                 else:
-                    time_from = datetime.datetime.strptime(slots['date']['from'], "%Y-%m-%d %H:%M")
-                    time_to = datetime.datetime.strptime(slots['date']['to'], "%Y-%m-%d %H:%M")
+                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['from']), dt_format)
+                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['to']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if time_from <= dtobj < time_to}
                     future_part = "Von {from_part} bis {to_part}".format(

@@ -4,7 +4,8 @@ import datetime
 
 
 def alarm_time_str(slots_time):
-    # example string: "2015-04-08 09:39:00 +02:00"
+    # example input string: "2015-04-08 09:39:00 +02:00"
+    # example return string: "2015-04-08 09:39"
     return "{}:{}".format(slots_time.split(":")[0], slots_time.split(":")[1])
 
 
