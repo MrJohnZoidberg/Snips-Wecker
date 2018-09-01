@@ -124,18 +124,18 @@ class AlarmClock:
         # fill the list with all alarms and then filter it
         filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
         dt_format = "%Y-%m-%d %H:%M"
-        if 'date' in slots.keys():
-            if slots['date']['kind'] == "InstantTime":
-                alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['value']), dt_format)
+        if 'time' in slots.keys():
+            if slots['time']['kind'] == "InstantTime":
+                alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
                 if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
                     return {'rc': 3}
                 future_part = ftime.get_future_part(alarm_time, only_date=True)
-                if slots['date']['grain'] == "Hour":
+                if slots['time']['grain'] == "Hour":
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj.date() == alarm_time.date() and dtobj.hour == alarm_time.hour}
                     future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
                                                               min=ftime.get_alarm_minute(alarm_time))
-                elif slots['date']['grain'] == "Minute":
+                elif slots['time']['grain'] == "Minute":
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj == alarm_time}
                     future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
@@ -143,18 +143,18 @@ class AlarmClock:
                 else:
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj.date() == alarm_time.date()}
-            elif slots['date']['kind'] == "TimeInterval":
-                if not slots['date']['from']:
-                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['to']), dt_format)
+            elif slots['time']['kind'] == "TimeInterval":
+                if not slots['time']['from']:
+                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj <= time_to}
-                elif not slots['date']['to']:
-                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['from']), dt_format)
+                elif not slots['time']['to']:
+                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if time_from <= dtobj}
                 else:
-                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['from']), dt_format)
-                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['date']['to']), dt_format)
+                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
+                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if time_from <= dtobj < time_to}
                     future_part = "Von {from_part} bis {to_part}".format(
