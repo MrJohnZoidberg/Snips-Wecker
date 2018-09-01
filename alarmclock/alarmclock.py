@@ -197,40 +197,6 @@ class AlarmClock:
         return {'rc': 0, 'alarms_sorted': filtered_alarms_sorted, 'room_part': room_part, 'future_part': future_part,
                 'alarm_count': alarm_count, 'alarms_dict': filtered_alarms_dict}
 
-    def is_alarm(self, slots, siteid):
-        asked_alarm_str = ftime.alarm_time_str(slots['time'])
-        asked_alarm = datetime.datetime.strptime(asked_alarm_str, "%Y-%m-%d %H:%M")
-        room_part = ""
-        if asked_alarm in self.alarms.keys():
-            isalarm = True
-        else:
-            isalarm = False
-        if len(self.dict_rooms) > 1:
-            if 'room' in slots.keys():
-                room_slot = slots['room'].encode('utf8')
-                if room_slot == "hier":
-                    if siteid in self.dict_siteids.values():
-                        room_part = "hier"
-                    else:
-                        return {'rc': 1}
-                else:
-                    if room_slot in self.dict_siteids.keys():
-                        if siteid == self.dict_siteids[room_slot]:
-                            room_part = "hier"
-                        else:
-                            room_part = utils.get_prepos(room_slot) + " " + room_slot
-                    else:
-                        return {'rc': 2, 'room': room_slot}
-            elif isalarm:
-                    room_part = utils.get_roomstr(self.alarms[asked_alarm], self.dict_rooms, siteid)
-        if ftime.get_delta_obj(asked_alarm).days < 0:  # if date is in the past
-            return {'rc': 3}
-        else:
-            self.remembered_slots[siteid] = slots
-            return {'rc': 0, 'is_alarm': isalarm, 'future_part': ftime.get_future_part(asked_alarm, only_date=True),
-                    'hours': ftime.get_alarm_hour(asked_alarm), 'minutes': ftime.get_alarm_minute(asked_alarm),
-                    'room_part': room_part}
-
     def delete_single(self, slots):
         # TODO
         alarm_str = ftime.alarm_time_str(slots['time'])
