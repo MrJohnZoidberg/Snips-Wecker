@@ -138,6 +138,8 @@ class AlarmClock:
                 elif slots['date']['grain'] == "Minute":
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj == alarm_time}
+                    future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
+                                                              min=ftime.get_alarm_minute(alarm_time))
                 else:
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj.date() == alarm_time.date()}
