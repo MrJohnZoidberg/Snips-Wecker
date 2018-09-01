@@ -99,7 +99,7 @@ def on_message_intent(client, userdata, msg):
                 else:
                     response += "."
                 if len(alarms) > 1 and alarm == alarms[-2]:
-                        response += "und "
+                        response += " und "
             say(session_id, response)
         elif result['rc'] == 1:
             say(session_id, "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
