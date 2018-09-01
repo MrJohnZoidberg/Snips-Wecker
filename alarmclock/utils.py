@@ -115,5 +115,5 @@ def get_roomstr(alarm_siteids, dict_rooms, siteid):
                 if iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
                     room_str += ", "
                 if iter_siteid == alarm_siteids[-2]:
-                    room_str += "und "
+                    room_str += " und "
     return room_str

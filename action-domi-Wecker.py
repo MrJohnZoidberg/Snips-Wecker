@@ -72,7 +72,7 @@ def on_message_intent(client, userdata, msg):
         result = alarmclock.get_alarms(slots, data['siteId'])
         if result['rc'] == 0:
             if result['alarm_count'] == 0:
-                count_part = "keinen Alarm."
+                count_part = "keinen Alarm"
                 end_part = "."
             elif result['alarm_count'] == 1:
                 count_part = "einen Alarm"
