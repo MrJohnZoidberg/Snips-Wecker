@@ -79,10 +79,7 @@ def on_message_intent(client, userdata, msg):
                 end_part = " "
             else:
                 count_part = "{num} Alarme".format(num=result['alarm_count'])
-                if len(result['alarms_sorted']) > 1:
-                    end_part = ". "
-                else:
-                    end_part = " "
+                end_part = ". "
             response = "Es gibt {room_part} {future_part} {num_part}{end}".format(room_part=result['room_part'],
                                                                                   future_part=result['future_part'],
                                                                                   num_part=count_part,
