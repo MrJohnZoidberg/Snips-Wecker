@@ -57,8 +57,9 @@ class AlarmClock:
                                 0 - Everything good, alarm was created (other keys below are available)
                                 1 - This room is not configured (if slot 'room' is "hier")
                                 2 - Room 'room' is not configured (if slot 'room' is not "hier")
-                                3 - Time of the alarm is in the past
-                                4 - Difference of now-time and alarm-time too small
+                                3 - The slots are not properly filled
+                                4 - Time of the alarm is in the past
+                                5 - Difference of now-time and alarm-time too small
                     'fpart' - Part of the sentence which describes the future
                     'rpart' - Room name of the new alarm (context-dependent)
                     'hours' - Alarm time (hours)
@@ -67,7 +68,7 @@ class AlarmClock:
 
         if len(self.dict_rooms) > 1:
             if 'room' in slots.keys():
-                room_slot = slots['room'].encode('utf8')
+                room_slot = slots['room']['value'].encode('utf8')
                 if room_slot == "hier":
                     if siteid in self.dict_siteids.values():
                         alarm_site_id = siteid
@@ -93,12 +94,15 @@ class AlarmClock:
             alarm_site_id = self.dict_siteids[self.default_room]
             room_part = ""
         # remove the timezone and some numbers from time string
-        alarm_time_str = ftime.alarm_time_str(slots['time'])
+        if slots['time']['kind'] == "InstantTime":
+            alarm_time_str = ftime.alarm_time_str(slots['time']['value'])
+        else:
+            return {'rc': 3}
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if ftime.get_delta_obj(alarm_time).days < 0:  # if date is in the past
-            return {'rc': 3}
-        elif ftime.get_delta_obj(alarm_time).seconds < 120:
             return {'rc': 4}
+        elif ftime.get_delta_obj(alarm_time).seconds < 120:
+            return {'rc': 5}
         else:
             if alarm_time in self.alarms.keys():  # if list of siteIds already exists
                 if alarm_site_id not in self.alarms[alarm_time]:
@@ -120,16 +124,40 @@ class AlarmClock:
         # fill the list with all alarms and then filter it
         filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
         if 'date' in slots.keys():
-            # TODO: Until (Alle alarme vor neunzehn uhr)
-            alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
-            if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
-                filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
-                                   if dtobj.date() == alarm_date.date()}
-                future_part = ftime.get_future_part(alarm_date, only_date=True)
-            else:
-                return {'rc': 3}
+            if slots['date']['kind'] == "InstantTime":
+                alarm_time = datetime.datetime.strptime(slots['date']['value'], "%Y-%m-%d %H:%M")
+                if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
+                    return {'rc': 3}
+                if slots['date']['grain'] == "Hour":
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if dtobj.date() == alarm_time.date() and dtobj.hour == alarm_time.hour}
+                elif slots['date']['grain'] == "Minute":
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if dtobj == alarm_time}
+                else:
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if dtobj.date() == alarm_time.date()}
+                future_part = ftime.get_future_part(alarm_time, only_date=False)
+            elif slots['date']['kind'] == "TimeInterval":
+                if not slots['date']['from']:
+                    time_to = datetime.datetime.strptime(slots['date']['to'], "%Y-%m-%d %H:%M")
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if dtobj <= time_to}
+                elif not slots['date']['to']:
+                    time_from = datetime.datetime.strptime(slots['date']['from'], "%Y-%m-%d %H:%M")
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if time_from <= dtobj}
+                else:
+                    time_from = datetime.datetime.strptime(slots['date']['from'], "%Y-%m-%d %H:%M")
+                    time_to = datetime.datetime.strptime(slots['date']['to'], "%Y-%m-%d %H:%M")
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if time_from <= dtobj < time_to}
+                    future_part = "Von {from_part} bis {to_part}".format(
+                        from_part=ftime.get_future_part(time_from, only_date=False),
+                        to_part=ftime.get_future_part(time_to, only_date=False))
+                # TODO: Other future parts
         if 'room' in slots.keys():
-            room_slot = slots['room'].encode('utf8')
+            room_slot = slots['room']['value'].encode('utf8')
             if room_slot == "hier":
                 if siteid in self.dict_siteids.values():
                     context_siteid = siteid

@@ -37,9 +37,9 @@ def get_slots(data):
     slot_dict = {}
     for slot in data['slots']:
         if slot['value']['kind'] in ["InstantTime", "Custom"]:
-            slot_dict[slot['slotName']] = slot['value']['value']
+            slot_dict[slot['slotName']] = slot['value']
         elif slot['value']['kind'] == "TimeInterval":
-            slot_dict[slot['slotName']] = slot['value']['from']
+            slot_dict[slot['slotName']] = slot['value']
     return slot_dict
 
 
@@ -61,8 +61,10 @@ def on_message_intent(client, userdata, msg):
                 say(session_id, "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
                                 "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
             elif result['rc'] == 3:
-                say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
+                say(session_id, "Ich habe dich leider nicht verstanden.")
             elif result['rc'] == 4:
+                say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
+            elif result['rc'] == 5:
                 say(session_id, "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.")
 
     elif intent_id == user_intent('getAlarms'):
@@ -165,7 +167,7 @@ def on_message_intent(client, userdata, msg):
         if confirm_data and 'past_intent' in confirm_data.keys():
             past_data = alarmclock.confirm_intents[data['siteId']]
             slots = get_slots(data)
-            if slots['answer'] == "yes":
+            if slots['answer']['value'] == "yes":
                 if past_data['past_intent'] == user_intent('deleteAlarmsMulti'):
                         result = alarmclock.delete_multi(past_data['alarms'])
                         if result['rc'] == 0:
