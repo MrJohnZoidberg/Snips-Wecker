@@ -243,7 +243,7 @@ class AlarmClock:
         filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
         if 'date' in slots.keys():
             # TODO: Until (Alle alarme vor neunzehn uhr)
-            alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
+            alarm_date = datetime.datetime.strptime(slots['date']['value'][:-16], "%Y-%m-%d")
             if ftime.get_delta_obj(alarm_date, only_date=True).days < 0:
                 return {'rc': 3}
             filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
