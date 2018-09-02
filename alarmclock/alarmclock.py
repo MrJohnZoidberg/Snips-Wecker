@@ -34,6 +34,7 @@ class AlarmClock:
         self.clock_thread.start()
         # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
         self.timeout_thr_dict = {self.dict_siteids[room]: None for room in self.dict_siteids}
+        self.missed_alarms = {}
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()

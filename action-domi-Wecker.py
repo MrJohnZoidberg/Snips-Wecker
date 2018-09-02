@@ -88,23 +88,25 @@ def on_message_intent(client, userdata, msg):
             if result['alarm_count'] > 5:
                 response += "Die nächsten fünf sind: "
                 alarms = alarms[:5]
+            """
             if len(result['alarms_sorted']) == 1:
                 response += "{future_part} {room_part}".format(
                     room_part=result['alarms_dict'][alarms[0]]['room_part'],
                     future_part=result['alarms_dict'][alarms[0]]['future_part'])
             else:
-                for alarm in alarms:
-                    response += "{future_part} um {h} Uhr {min} {room_part}".format(
-                        room_part=result['alarms_dict'][alarm]['room_part'],
-                        future_part=result['alarms_dict'][alarm]['future_part'],
-                        h=result['alarms_dict'][alarm]['hours'],
-                        min=result['alarms_dict'][alarm]['minutes'])
-                    if alarm != alarms[-1]:
-                        response += ", "
-                    else:
-                        response += "."
-                    if len(alarms) > 1 and alarm == alarms[-2]:
-                            response += " und "
+            """
+            for alarm in alarms:
+                response += "{future_part} um {h} Uhr {min} {room_part}".format(
+                    room_part=result['alarms_dict'][alarm]['room_part'],
+                    future_part=result['alarms_dict'][alarm]['future_part'],
+                    h=result['alarms_dict'][alarm]['hours'],
+                    min=result['alarms_dict'][alarm]['minutes'])
+                if alarm != alarms[-1]:
+                    response += ", "
+                else:
+                    response += "."
+                if len(alarms) > 1 and alarm == alarms[-2]:
+                        response += " und "
             say(session_id, response)
         elif result['rc'] == 1:
             say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
