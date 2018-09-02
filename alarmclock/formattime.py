@@ -91,7 +91,7 @@ def get_future_part(alarm_time, only_date=False):
 
 def get_interval_part(from_time, to_time):
     if to_time:
-        if to_time.date() == get_now_time().date():
+        if to_time.date() != get_now_time().date():
             future_part_to = get_future_part(to_time, only_date=True)
         else:
             future_part_to = ""
@@ -104,7 +104,7 @@ def get_interval_part(from_time, to_time):
         from_word = "ab"
         to_part = ""
     if from_time:
-        if from_time.date() == get_now_time().date():
+        if from_time.date() != get_now_time().date():
             future_part_from = get_future_part(from_time, only_date=True)
         else:
             future_part_from = ""
