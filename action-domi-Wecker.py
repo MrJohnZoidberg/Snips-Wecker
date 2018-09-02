@@ -107,13 +107,15 @@ def on_message_intent(client, userdata, msg):
                             response += " und "
             say(session_id, response)
         elif result['rc'] == 1:
+            say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
+        elif result['rc'] == 2:
+            say(session_id, "Ich habe dich leider nicht verstanden.")
+        elif result['rc'] == 3:
             say(session_id, "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
                             "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
-        elif result['rc'] == 2:
+        elif result['rc'] == 4:
             say(session_id, "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
                             "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
-        elif result['rc'] == 3:
-            say(session_id, "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.")
 
     elif intent_id == user_intent('deleteAlarmSingle'):
         slots = get_slots(data)

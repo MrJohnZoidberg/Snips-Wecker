@@ -87,3 +87,19 @@ def get_future_part(alarm_time, only_date=False):
                                                                   int(alarm_time.day),
                                                                   int(alarm_time.month))
     return future_part
+
+
+def get_interval_part(from_time, to_time):
+    if from_time.date() == get_now_time().date():
+        future_part_from = get_future_part(from_time, only_date=True)
+        future_part_to = get_future_part(to_time, only_date=True)
+    else:
+        future_part_from = ""
+        future_part_to = ""
+    h_from = get_alarm_hour(from_time)
+    min_from = get_alarm_minute(from_time)
+    h_to = get_alarm_hour(to_time)
+    min_to = get_alarm_minute(to_time)
+    return "von {future_part_from} {h_from} Uhr {min_from} bis {future_part_to} {h_to} Uhr {min_to}".format(
+        future_part_from=future_part_from, h_from=h_from, min_from=min_from, future_part_to=future_part_to,
+        h_to=h_to, min_to=min_to)

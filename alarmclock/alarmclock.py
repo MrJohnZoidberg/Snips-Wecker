@@ -128,7 +128,7 @@ class AlarmClock:
             if slots['time']['kind'] == "InstantTime":
                 alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
                 if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
-                    return {'rc': 3}
+                    return {'rc': 1}
                 future_part = ftime.get_future_part(alarm_time, only_date=True)
                 if slots['time']['grain'] == "Hour":
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
@@ -157,22 +157,22 @@ class AlarmClock:
                     time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if time_from <= dtobj < time_to}
-                    future_part = "Von {from_part} bis {to_part}".format(
-                        from_part=ftime.get_future_part(time_from, only_date=False),
-                        to_part=ftime.get_future_part(time_to, only_date=False))
+                    future_part = ftime.get_interval_part(time_from, time_to)
                 # TODO: Other future parts
+            else:
+                return {'rc': 2}
         if 'room' in slots.keys():
             room_slot = slots['room']['value'].encode('utf8')
             if room_slot == "hier":
                 if siteid in self.dict_siteids.values():
                     context_siteid = siteid
                 else:
-                    return {'rc': 1}
+                    return {'rc': 3}
             else:
                 if room_slot in self.dict_siteids.keys():
                     context_siteid = self.dict_siteids[room_slot]
                 else:
-                    return {'rc': 2, 'room': room_slot}
+                    return {'rc': 4, 'room': room_slot}
             filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
                                for dtobj in filtered_alarms}
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
@@ -240,14 +240,13 @@ class AlarmClock:
         if 'date' in slots.keys():
             # TODO: Until (Alle alarme vor neunzehn uhr)
             alarm_date = datetime.datetime.strptime(slots['date'][:-16], "%Y-%m-%d")
-            if ftime.get_delta_obj(alarm_date, only_date=True).days >= 0:
-                filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
-                                   if dtobj.date() == alarm_date.date()}
-                future_part = ftime.get_future_part(alarm_date, only_date=True)
-            else:
+            if ftime.get_delta_obj(alarm_date, only_date=True).days < 0:
                 return {'rc': 3}
+            filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                               if dtobj.date() == alarm_date.date()}
+            future_part = ftime.get_future_part(alarm_date, only_date=True)
         if 'room' in slots.keys():
-            room_slot = slots['room'].encode('utf8')
+            room_slot = slots['room']['value'].encode('utf8')
             if room_slot == "hier":
                 if siteid in self.dict_siteids.values():
                     context_siteid = siteid
@@ -421,7 +420,8 @@ class AlarmClock:
             now_time = datetime.datetime.now()
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
                                      json.dumps({"text": "Alarm beendet. Es ist jetzt {h} Uhr {min}".format(
-                                         h=now_time.hour, min=now_time.minute), "sessionId": data['sessionId']}))
+                                         h=ftime.get_alarm_hour(now_time), min=ftime.get_alarm_minute(now_time)),
+                                         "sessionId": data['sessionId']}))
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.siteids_session_not_ended.remove(data['siteId'])
 
