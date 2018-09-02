@@ -145,24 +145,21 @@ class AlarmClock:
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj.date() == alarm_time.date()}
             elif slots['time']['kind'] == "TimeInterval":
-                for detail in slots['time']:
-                    print(slots['time'][detail])
-                if not slots['time']['from'] and slots['time']['to']:
-                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
-                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
-                                       if dtobj <= time_to}
-                    future_part = ftime.get_interval_part(None, time_to)
-                elif not slots['time']['to'] and slots['time']['from']:
+                time_from = None
+                time_to = None
+                if slots['time']['from']:
                     time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
-                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
-                                       if time_from <= dtobj}
-                    future_part = ftime.get_interval_part(time_from, None)
+                if slots['time']['to']:
+                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
+                    time_to = ftime.nlu_time_bug_bypass(time_to)  # NLU bug (only German): hour or minute too much
+                if not time_from and time_to:
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms if dtobj <= time_to}
+                elif not time_to and time_from:
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms if time_from <= dtobj}
                 else:
-                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
-                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
                                        if time_from <= dtobj <= time_to}
-                    future_part = ftime.get_interval_part(time_from, time_to)
+                future_part = ftime.get_interval_part(time_from, time_to)
             else:
                 return {'rc': 2}
         if 'room' in slots.keys():
@@ -241,6 +238,7 @@ class AlarmClock:
         room_part = ""
         # fill the list with all alarms and then filter it
         filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
+        dt_format = "%Y-%m-%d %H:%M"
         if 'date' in slots.keys():
             # TODO: Until (Alle alarme vor neunzehn uhr)
             alarm_date = datetime.datetime.strptime(slots['date']['value'][:-16], "%Y-%m-%d")

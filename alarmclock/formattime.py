@@ -116,3 +116,11 @@ def get_interval_part(from_time, to_time):
     else:
         from_part = ""
     return from_part + " " + to_part
+
+
+def nlu_time_bug_bypass(to_time):
+    if to_time.minute == 0:
+        to_time_fixed = to_time - datetime.timedelta(hours=1)
+    else:
+        to_time_fixed = to_time - datetime.timedelta(minutes=1)
+    return to_time_fixed
