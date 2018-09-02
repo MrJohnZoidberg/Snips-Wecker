@@ -159,7 +159,7 @@ class AlarmClock:
                     time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
                     time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
                     filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
-                                       if time_from <= dtobj < time_to}
+                                       if time_from <= dtobj <= time_to}
                     future_part = ftime.get_interval_part(time_from, time_to)
             else:
                 return {'rc': 2}
