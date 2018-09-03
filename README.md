@@ -168,7 +168,10 @@ JSON Payload:
 |room|*String* - Room name where the alarmclock is ringing|
 
 ## Coming soon...
+
+- Ask for missed alarms
 - New setting: snooze en/disabled (then don't end session)
+- Captcha exercises against oversleeping
 - Internationalisation
 - Nice README
 - Send alarm data over MQTT
