@@ -120,6 +120,7 @@ class AlarmClock:
                     'minutes': ftime.get_alarm_minute(alarm_time), 'rpart': room_part}
 
     def get_alarms(self, slots, siteid):
+        """
         future_part = ""
         room_part = ""
         # fill the list with all alarms and then filter it
@@ -177,6 +178,8 @@ class AlarmClock:
             filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
                                for dtobj in filtered_alarms}
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
+        """
+        filtered_alarms, future_part, room_part = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids)
         filtered_alarms = {dtobj: filtered_alarms[dtobj] for dtobj in filtered_alarms}
         filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms if filtered_alarms[dtobj]]
         filtered_alarms_sorted.sort()
@@ -233,7 +236,7 @@ class AlarmClock:
             'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
                             one time, this means two alarms)
         """
-
+        """
         future_part = ""
         room_part = ""
         # fill the list with all alarms and then filter it
@@ -262,9 +265,16 @@ class AlarmClock:
             filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
                                for dtobj in filtered_alarms}
             room_part = utils.get_roomstr([context_siteid], self.dict_rooms, siteid)
-        alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
-        return {'rc': 0, 'matching_alarms': filtered_alarms, 'room_part': room_part, 'future_part': future_part,
-                'alarm_count': alarm_count}
+        """
+        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids)
+        alarm_count = len([sid for lst in result['filtered_alarms'].itervalues() for sid in lst])
+        return {
+            'rc': 0,
+            'matching_alarms': result['filtered_alarms'],
+            'room_part': result['room_part'],
+            'future_part': result['future_part'],
+            'alarm_count': alarm_count
+        }
 
     def delete_multi(self, alarms_delete):
 

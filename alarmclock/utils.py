@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from pydub import AudioSegment       # change volume of ringtone
+import formattime as ftime
+import datetime
 
 
 def get_ringvol(config):
@@ -117,3 +119,71 @@ def get_roomstr(alarm_siteids, dict_rooms, siteid):
                 if iter_siteid == alarm_siteids[-2]:
                     room_str += " und "
     return room_str
+
+
+def filter_alarms(alarms, slots, siteid, dict_siteids):
+    future_part = ""
+    room_part = ""
+    # fill the list with all alarms and then filter it
+    filtered_alarms = {dtobj: alarms[dtobj] for dtobj in alarms}
+    dt_format = "%Y-%m-%d %H:%M"
+    if 'time' in slots.keys():
+        if slots['time']['kind'] == "InstantTime":
+            alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
+            if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
+                return {'rc': 1}
+                # TODO
+            future_part = ftime.get_future_part(alarm_time, only_date=True)
+            if slots['time']['grain'] == "Hour":
+                filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
+                                   if dtobj.date() == alarm_time.date() and dtobj.hour == alarm_time.hour}
+                future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
+                                                          min=ftime.get_alarm_minute(alarm_time))
+            elif slots['time']['grain'] == "Minute":
+                filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
+                                   if dtobj == alarm_time}
+                future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
+                                                          min=ftime.get_alarm_minute(alarm_time))
+            else:
+                filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
+                                   if dtobj.date() == alarm_time.date()}
+        elif slots['time']['kind'] == "TimeInterval":
+            time_from = None
+            time_to = None
+            if slots['time']['from']:
+                time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
+            if slots['time']['to']:
+                time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
+                time_to = ftime.nlu_time_bug_bypass(time_to)  # NLU bug (only German): hour or minute too much
+            if not time_from and time_to:
+                filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms if dtobj <= time_to}
+            elif not time_to and time_from:
+                filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms if time_from <= dtobj}
+            else:
+                filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
+                                   if time_from <= dtobj <= time_to}
+            future_part = ftime.get_interval_part(time_from, time_to)
+        else:
+            return {'rc': 2}
+    if 'room' in slots.keys():
+        room_slot = slots['room']['value'].encode('utf8')
+        if room_slot == "hier":
+            if siteid in dict_siteids.values():
+                context_siteid = siteid
+            else:
+                return {'rc': 3}
+        else:
+            if room_slot in dict_siteids.keys():
+                context_siteid = dict_siteids[room_slot]
+            else:
+                return {'rc': 4, 'room': room_slot}
+        filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
+                           for dtobj in filtered_alarms}
+        dict_rooms = {siteid: room for room, siteid in dict_siteids.iteritems()}
+        room_part = get_roomstr([context_siteid], dict_rooms, siteid)
+    return {
+        'rc': 0,
+        'filtered_alarms': filtered_alarms,
+        'future_part': future_part,
+        'room_part': room_part
+    }
