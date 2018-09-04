@@ -24,7 +24,10 @@ using [SAM](https://snips.gitbook.io/getting-started/installation)
 ### Installation with SAM
 
 **Important:** The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
-already configured and running on your device. [SAM](https://snips.gitbook.io/getting-started/installation) should
+already configured and running on your device (e.g. a Raspberry Pi 3 from the 
+[Snips Maker Kit](https://makers.snips.ai/kit/) with 
+[Raspbian](https://www.raspberrypi.org/downloads/raspbian/) Stretch Lite). 
+[SAM](https://snips.gitbook.io/getting-started/installation) should
 also already be set up and connected to your device and your account.
 
 1. In the German [app store](https://console.snips.ai/) add the
