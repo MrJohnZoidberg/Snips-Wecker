@@ -87,7 +87,7 @@ Parameters values in the [Snips console](https://console.snips.ai/) in this app:
 
 ### Example sentences
 
-
+Todo
 
 ### While ringing
 
@@ -100,7 +100,14 @@ The ringtone
 
 #### In messages
 
-##### hermes/external/alarmclock/stopringing
+##### external/alarmclock/in/getAllAlarms
+
+You should subscribe to `external/alarmclock/out/allAlarms` before publishing this message. Then you will get all
+alarms.
+
+No JSON Payload required.
+
+##### hermes/external/alarmclock/in/stopringing
 
 JSON Payload (I'm working on it):
 
@@ -110,7 +117,7 @@ JSON Payload (I'm working on it):
 
 #### Out messages
 
-##### external/alarmclock/newalarm
+##### external/alarmclock/out/newalarm
 
 JSON Payload: `data` (example access name)
 
@@ -158,7 +165,13 @@ mqttc.loop_forever()
 
 ```
 
-**external/alarmclock/ringing**
+##### external/alarmclock/out/allAlarms
+
+todo
+
+
+
+##### external/alarmclock/out/ringing
 
 JSON Payload:
 
@@ -166,6 +179,15 @@ JSON Payload:
 |-----|-------|
 |siteId|*String* - Site where the alarmclock is ringing|
 |room|*String* - Room name where the alarmclock is ringing|
+
+## Troubleshooting
+
+- I can't receive some MQTT messages from the Alarmclock.
+
+    Some MQTT clients may have a package size limit, so you won be able to receive messages with a larger
+    payload than the limit size until you increase this. E.g. in the library `PubSubClient` for the Arduino the package
+    limit is 128 bytes. In the file `<Arduino libraries folder>/PubSubClient/src/PubSubClient.h` the constant 
+    `MQTT_MAX_PACKET_SIZE` must be increased. How much? It depends on how many alarms you will create.
 
 ## Coming soon...
 
