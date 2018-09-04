@@ -6,7 +6,6 @@ An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 - Full multi-room support 🏠
 - context-awareness: it detects what room you're in  💬
 - customizable (ringtone sound, volume, ringing timeout, rooms) 🛠
-- no system command for the ringtone used, all realized with the Snips platform 💙
 
 
 ## Installation
