@@ -21,7 +21,12 @@ also already be set up and connected to your device and your account.
 app `Wecker & Alarme` (by domi; [this]) to
 your *German* assistant.
 
-2. If you already have the same assistant on your platform, update it with:
+2. You want to have a more unique alarmclock? Take a look at the section `Configuration` below and see what you can
+change.
+
+3. Now you may change some parameter values of the alarmclock in the app store.
+
+4. If you already have the same assistant on your platform, update it with:
       ```bash
       sam update-assistant
       ```
@@ -95,7 +100,7 @@ alarms.
 
 No JSON Payload required.
 
-##### hermes/external/alarmclock/in/stopringing
+##### hermes/external/alarmclock/in/stopRinging
 
 JSON Payload (I'm working on it):
 
@@ -105,7 +110,7 @@ JSON Payload (I'm working on it):
 
 #### Out messages
 
-##### external/alarmclock/out/newalarm
+##### external/alarmclock/out/newAlarm
 
 JSON Payload: `data` (example access name)
 
@@ -127,36 +132,12 @@ JSON Payload: `data` (example access name)
 |-----|-------|
 |datetime (*String* - Includes date and time; can be parsed into `datetime` object with `strptime` from module `datetime` (see below))|siteId (*String* - Site where the user created the alarm)|
 
-Example parsing:
-```python
-import json
-import datetime
-import paho.mqtt.client as mqtt
+An example parsing with Python is in `examples/exaple_parsing_newAlarm.py`
 
-def on_connect(client, userdata, flags, rc):
-    mqttc.subscribe('external/alarmclock/newalarm')
-    
-def on_message(client, userdata, msg):
-    data = json.loads(msg.payload.decode("utf-8"))
-    dt = datetime.datetime
-    # parsing of string to datetime object
-    dt_newalarm = dt.strptime(data['new']['datetime'], "%Y-%m-%d %H:%M")
-    # dictionary with all alarms
-    alarms_dict = {dt.strptime(dtstr, "%Y-%m-%d %H:%M"): data['all'][dtstr] for dtstr in data['all']}
-    # [...]
-
-mqttc = mqtt.Client()
-mqttc.on_connect = on_connect
-mqttc.on_message = on_message
-mqttc.connect(host='localhost', port=1883)
-mqttc.loop_forever()
-
-```
 
 ##### external/alarmclock/out/allAlarms
 
 todo
-
 
 
 ##### external/alarmclock/out/ringing
