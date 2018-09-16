@@ -235,68 +235,6 @@ class AlarmClock:
             return {}, "Es gibt {room_part} {future_part} keinen Alarm.".format(
                 room_part=result['room_part'], future_part=result['future_part'])
 
-    def delete_single(self, slots):
-        # TODO
-        alarm_str = ftime.alarm_time_str(slots['time'])
-        alarm = datetime.datetime.strptime(alarm_str, "%Y-%m-%d %H:%M")
-        room_slot = slots['room'].encode('utf8')
-        if ftime.get_delta_obj(alarm).days < 0:
-            return "Diese Zeit liegt in der Vergangenheit."
-        if alarm in self.alarms.keys():
-            del self.alarms[alarm]
-            self.save_alarms()
-            return "Der Alarm {0} um {1} Uhr {2} wurde entfernt.".format(ftime.get_future_part(alarm, 1),
-                                                                         ftime.get_alarm_hour(alarm),
-                                                                         ftime.get_alarm_minute(alarm))
-        else:
-            return "Dieser Alarm ist nicht vorhanden."
-
-    def delete_multi_try(self, slots, siteid):
-
-        """
-        Called when the user want to delete multiple alarms. If user said room and/or date the alarms with these
-        properties will be deleted. Otherwise all alarms will be deleted.
-        :param slots: The slots of the intent from Snips
-        :param siteid: The siteId where the user triggered the intent
-        :return: Dictionary with some keys:
-            'rc' - Return code: Numbers representing normal or error message.
-                        0 - Everything good (other keys below are available)
-                        1 - This room is not configured (if slot 'room' is "hier")
-                        2 - Room 'room' is not configured (if slot 'room' is not "hier")
-                        3 - Date is in the past
-            'matching_alarms' - List with datetime objects which will be deleted on confirmation
-            'future_part' - Part of the sentence which describes the future
-            'room_part' - Room name of the alarms (context-dependent)
-            'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
-                            one time, this means two alarms)
-        """
-        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids)
-        if result['rc'] == 1:
-            return "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm."
-        elif result['rc'] == 2:
-            return "Ich habe dich leider nicht verstanden."
-        elif result['rc'] == 3:
-            return ("Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
-                    "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
-        elif result['rc'] == 4:
-            return ("Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
-                    "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
-        if result['alarm_count'] >= 1:
-            if result['alarm_count'] == 1:
-                self.delete_alarms(result['filtered_alarms'])
-                return None, "Der Alarm {future_part} {room_part} wurde gelöscht.".format(
-                    future_part=result['future_part'],
-                    room_part=result['room_part'])
-            else:
-                return (result['filtered_alarms'],
-                        "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
-                            future_part=result['future_part'],
-                            room_part=result['room_part'],
-                            num=result['alarm_count']))
-        else:
-            return {}, "Es gibt {room_part} {future_part} keinen Alarm.".format(
-                room_part=result['room_part'], future_part=result['future_part'])
-
     def delete_alarms(self, alarms_delete):
 
         """

@@ -135,12 +135,7 @@ def filter_alarms(alarms, slots, siteid, dict_siteids):
                 return {'rc': 1}
                 # TODO
             future_part = ftime.get_future_part(alarm_time, only_date=True)
-            if slots['time']['grain'] == "Hour":
-                filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
-                                   if dtobj.date() == alarm_time.date() and dtobj.hour == alarm_time.hour}
-                future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
-                                                          min=ftime.get_alarm_minute(alarm_time))
-            elif slots['time']['grain'] == "Minute":
+            if slots['time']['grain'] == "Hour"or slots['time']['grain'] == "Minute":
                 filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                    if dtobj == alarm_time}
                 future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
