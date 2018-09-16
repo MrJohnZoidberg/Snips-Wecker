@@ -312,7 +312,7 @@ class AlarmClock:
         :return: Nothing
         """
 
-        current_ringtone_id = uuid.uuid4()
+        current_ringtone_id = str(uuid.uuid4())
         self.ringing_dict[siteid]['current_id'] = current_ringtone_id
         self.mqtt_client.publish('hermes/audioServer/{site_id}/playBytes/{ring_id}'.format(
             site_id=siteid, ring_id=current_ringtone_id), payload=self.ringtone_wav)
@@ -345,8 +345,6 @@ class AlarmClock:
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
         if self.ringing_dict[siteid]['state']:
             bytes_id = json.loads(msg.payload.decode("utf-8"))['id']
-            print("bytes_id", bytes_id)
-            print("curent_id", self.ringing_dict[siteid]['current_id'])
             if self.ringing_dict[siteid]['current_id'] == bytes_id:
                 self.ring(siteid)
 
