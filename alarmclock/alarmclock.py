@@ -221,15 +221,16 @@ class AlarmClock:
                     "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
         if result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
-                count_part = "einen Alarm"
+                self.delete_alarms(result['filtered_alarms'])
+                return None, "Der Alarm {future_part} {room_part} wurde gelöscht.".format(
+                    future_part=result['future_part'],
+                    room_part=result['room_part'])
             else:
-                count_part = "{num} Alarme".format(num=result['alarm_count'])
-
-            return (result['filtered_alarms'],
-                    "Es gibt {future_part} {room_part} {num_part}. Bist du dir sicher?".format(
-                        future_part=result['future_part'],
-                        room_part=result['room_part'],
-                        num_part=count_part))
+                return (result['filtered_alarms'],
+                        "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
+                            future_part=result['future_part'],
+                            room_part=result['room_part'],
+                            num=result['alarm_count']))
         else:
             return {}, "Es gibt {room_part} {future_part} keinen Alarm.".format(
                 room_part=result['room_part'], future_part=result['future_part'])
@@ -282,7 +283,7 @@ class AlarmClock:
                     "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
         if result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
-                self.delete_multi(result['filtered_alarms'])
+                self.delete_alarms(result['filtered_alarms'])
                 return None, "Der Alarm {future_part} {room_part} wurde gelöscht.".format(
                     future_part=result['future_part'],
                     room_part=result['room_part'])

@@ -86,7 +86,7 @@ def on_message_intent(client, userdata, msg):
             past_data = alarmclock.confirm_intents[data['siteId']]
             slots = get_slots(data)
             if slots['answer']['value'] == "yes":
-                if past_data['past_intent'] == user_intent('deleteAlarmsMulti'):
+                if past_data['past_intent'] == user_intent('deleteAlarms'):
                         result = alarmclock.delete_alarms(past_data['alarms'])
                         if result['rc'] == 0:
                             say(session_id, "Erledigt.")
