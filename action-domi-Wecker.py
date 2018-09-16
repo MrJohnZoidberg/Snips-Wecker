@@ -58,7 +58,13 @@ def on_message_intent(client, userdata, msg):
 
     elif intent_id == user_intent('deleteAlarms'):
         slots = get_slots(data)
-        say(session_id, alarmclock.delete_alarms_try(slots, data['siteId']))
+        multi_alarms, response = alarmclock.delete_alarms_try(slots, data['siteId'])
+        if multi_alarms:
+            alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
+                                                          'alarms': multi_alarms}
+            dialogue(session_id, response, [user_intent('confirmAlarm')])
+        else:
+            say(session_id, response)
 
     elif intent_id == user_intent('deleteAlarmSingle'):
         slots = get_slots(data)
