@@ -167,7 +167,7 @@ JSON Payload:
 - Nice README
 - Send alarm data over MQTT
 - Ability to change the ringtone sound
-- Maybe: periodical alarms (daily, weekly)
+- Maybe: periodical alarms (daily, weekly); before: change clock thread to schedule module
 - Publish app in the snips console app store
 
 

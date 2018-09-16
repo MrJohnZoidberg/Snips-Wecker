@@ -19,6 +19,7 @@ def get_ringvol(config):
 
 
 def get_ringtmo(config):
+    # Take 'm' and 'h' too
     ringtmo = config['global']['ringing_timeout'].encode('utf8')
     if not ringtmo:
         ringtmo = 30
@@ -181,9 +182,14 @@ def filter_alarms(alarms, slots, siteid, dict_siteids):
                            for dtobj in filtered_alarms}
         dict_rooms = {siteid: room for room, siteid in dict_siteids.iteritems()}
         room_part = get_roomstr([context_siteid], dict_rooms, siteid)
+    filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms if filtered_alarms[dtobj]]
+    filtered_alarms_sorted.sort()
+    alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
     return {
         'rc': 0,
         'filtered_alarms': filtered_alarms,
+        'sorted_alarms': filtered_alarms_sorted,
+        'alarm_count': alarm_count,
         'future_part': future_part,
         'room_part': room_part
     }
