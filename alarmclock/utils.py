@@ -131,16 +131,17 @@ def filter_alarms(alarms, slots, siteid, dict_siteids):
     if 'time' in slots.keys():
         if slots['time']['kind'] == "InstantTime":
             alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
-            if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
-                return {'rc': 1}
-                # TODO
             future_part = ftime.get_future_part(alarm_time, only_date=True)
             if slots['time']['grain'] == "Hour"or slots['time']['grain'] == "Minute":
+                if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:  # TODO
+                    return {'rc': 1}
                 filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                    if dtobj == alarm_time}
                 future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
                                                           min=ftime.get_alarm_minute(alarm_time))
             else:
+                if ftime.get_delta_obj(alarm_time.date(), only_date=True).days < 0:
+                    return {'rc': 1}
                 filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                    if dtobj.date() == alarm_time.date()}
         elif slots['time']['kind'] == "TimeInterval":

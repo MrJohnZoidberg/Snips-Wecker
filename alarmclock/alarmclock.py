@@ -129,7 +129,7 @@ class AlarmClock:
     def get_alarms(self, slots, siteid):
         result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids)
         if result['rc'] == 1:
-            return "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm."
+            return "Diese Zeit liegt in der Vergangenheit."
         elif result['rc'] == 2:
             return "Ich habe dich leider nicht verstanden."
         elif result['rc'] == 3:
@@ -345,6 +345,8 @@ class AlarmClock:
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
         if self.ringing_dict[siteid]['state']:
             bytes_id = json.loads(msg.payload.decode("utf-8"))['id']
+            print(bytes_id)
+            print(self.ringing_dict[siteid]['current_id'])
             if self.ringing_dict[siteid]['current_id'] == bytes_id:
                 self.ring(siteid)
 
