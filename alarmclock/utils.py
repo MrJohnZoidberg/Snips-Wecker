@@ -140,7 +140,11 @@ def filter_alarms(alarms, slots, siteid, dict_siteids):
                 future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
                                                           min=ftime.get_alarm_minute(alarm_time))
             else:
-                if ftime.get_delta_obj(alarm_time.date(), only_date=True).days < 0:
+                now = datetime.datetime.now()
+                now_time_str = "{0}-{1}-{2}".format(now.year, now.month, now.day)
+                now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d")
+                delta_obj = (alarm_time.date() - now_time.date())
+                if delta_obj.days < 0:
                     return {'rc': 1}
                 filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                    if dtobj.date() == alarm_time.date()}
