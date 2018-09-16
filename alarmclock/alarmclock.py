@@ -153,7 +153,7 @@ class AlarmClock:
                                                                               future_part=result['future_part'],
                                                                               num_part=count_part,
                                                                               end=end_part)
-        alarms = result['filtered_alarms_sorted']
+        alarms = result['sorted_alarms']
         if alarm_count > 5:
             response += "Die nächsten fünf sind: "
             alarms = alarms[:5]
