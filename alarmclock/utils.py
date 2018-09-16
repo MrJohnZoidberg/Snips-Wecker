@@ -133,7 +133,7 @@ def filter_alarms(alarms, slots, siteid, dict_siteids):
             alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
             future_part = ftime.get_future_part(alarm_time, only_date=True)
             if slots['time']['grain'] == "Hour"or slots['time']['grain'] == "Minute":
-                if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:  # TODO
+                if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
                     return {'rc': 1}
                 filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                    if dtobj == alarm_time}

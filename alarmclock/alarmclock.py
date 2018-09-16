@@ -345,8 +345,8 @@ class AlarmClock:
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
         if self.ringing_dict[siteid]['state']:
             bytes_id = json.loads(msg.payload.decode("utf-8"))['id']
-            print(bytes_id)
-            print(self.ringing_dict[siteid]['current_id'])
+            print("bytes_id", bytes_id)
+            print("curent_id", self.ringing_dict[siteid]['current_id'])
             if self.ringing_dict[siteid]['current_id'] == bytes_id:
                 self.ring(siteid)
 
