@@ -421,7 +421,7 @@ class AlarmClock:
         """
 
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
-        if self.ringing_dict[siteid]:
+        if self.ringing_dict[siteid]['state']:
             self.stop_ringing(siteid)
             self.siteids_session_not_ended.append(siteid)
             self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
@@ -438,7 +438,7 @@ class AlarmClock:
         """
 
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
-        if self.ringing_dict[siteid]:
+        if self.ringing_dict[siteid]['state']:
             self.stop_ringing(siteid)
 
     def on_message_sessionstarted(self, client, userdata, msg):
