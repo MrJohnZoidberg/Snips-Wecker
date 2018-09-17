@@ -34,7 +34,7 @@ TRANSLATION_DE = {
         "keinen Alarm",
 
     "one alarm":
-        "ein Alarm",
+        "einen Alarm",
 
     "multiple alarms":
         "{num} Alarme",

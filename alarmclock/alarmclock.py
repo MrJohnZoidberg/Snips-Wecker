@@ -178,7 +178,6 @@ class AlarmClock:
             else:
                 future_part = ""
             if not result['room_part']:
-                alarms_all = result['filtered_alarms']
                 room_part = self.get_roomstr(result['filtered_alarms'][dtobj], siteid)
             else:
                 room_part = ""
