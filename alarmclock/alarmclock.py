@@ -8,34 +8,38 @@ import json                          # payload in mqtt messages
 import uuid                          # indentifier for wav-data send to audioserver
 import utils                         # utils.py
 import formattime as ftime           # ftime.py
+from translation import Translation  # translation.py
 import functools                     # functools.partial for threading.Timeout callback with parameter
 import io                            # open the file for saving the alarms
 
 
 class AlarmClock:
-    def __init__(self, ringtone_wav=None, ringing_timeout=None, dict_siteid=None, default_room=None,
-                 restore_alarms=True, ringtone_status=True):
-        self.ringtone_wav = ringtone_wav
-        self.ringing_timeout = ringing_timeout
+    def __init__(self, config):
+        self.ringtone_wav = utils.edit_volume("alarm-sound.wav", utils.get_ringvol(config))
+        self.ringing_timeout = utils.get_ringtmo(config)
         # self.dict_siteids -> { key=RoomName: value=siteId }
-        self.dict_siteids = dict_siteid
+        self.dict_siteids = utils.get_dsiteid(config)
         # self.dict_rooms -> { key=siteId: value=RoomName }
         self.dict_rooms = {siteid: room for room, siteid in self.dict_siteids.iteritems()}
-        self.default_room = default_room
+        self.default_room = utils.get_dfroom(config)
         self.saved_alarms_path = ".saved_alarms.json"
         self.remembered_slots = {}
         self.confirm_intents = {self.dict_siteids[room]: None for room in self.dict_siteids}
         # self.ringing_dict -> { key=siteId: value={ key='state' value=True/False; key='current_id' value=uuid} }
         self.ringing_dict = {self.dict_siteids[room]: {'state': False, 'current_id': None}
                              for room in self.dict_siteids}
-        self.ringtone_status = ringtone_status
+        self.ringtone_status = utils.get_ringtonestat(config)
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
-        self.alarms = self.read_alarms(restore_alarms)
+        self.alarms = self.read_alarms(utils.get_restorestat(config))
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
         self.timeout_thr_dict = {self.dict_siteids[room]: None for room in self.dict_siteids}
         self.missed_alarms = {}
+
+        # Language
+        self.language = "de-DE"
+        self.translation = Translation(self.language)
 
         # Connect to MQTT broker
         self.mqtt_client = mqtt.Client()
@@ -71,30 +75,27 @@ class AlarmClock:
         if len(self.dict_rooms) > 1:
             if 'room' in slots.keys():
                 room_slot = slots['room']['value'].encode('utf8')
-                if room_slot == "hier":
+                if room_slot == self.translation.get("here"):
                     if siteid in self.dict_siteids.values():
                         alarm_site_id = siteid
-                        room_part = "hier"
+                        room_part = self.translation.get("here")
                     else:
-                        return ("Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
-                                "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
+                        return self.translation.get("this room not configured")
                 else:
                     if room_slot in self.dict_siteids.keys():
                         alarm_site_id = self.dict_siteids[room_slot]
                         if siteid == self.dict_siteids[room_slot]:
-                            room_part = "hier"
+                            room_part = self.translation.get("here")
                         else:
-                            room_part = utils.get_prepos(room_slot) + " " + room_slot
+                            room_part = self.translation.get_prepos(room_slot) + " " + room_slot
                     else:
-                        return ("Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der "
-                                "Anleitung von dieser Wecker-Äpp nach, wie man Räume hinzufügen "
-                                "kann.".format(room=room_slot))
+                        return self.translation.get("room not configured", {'room': room_slot})
             else:
                 alarm_site_id = self.dict_siteids[self.default_room]
                 if siteid == self.dict_siteids[self.default_room]:
-                    room_part = "hier"
+                    room_part = self.translation.get("here")
                 else:
-                    room_part = utils.get_prepos(self.default_room) + " " + self.default_room
+                    room_part = self.translation.get_prepos(self.default_room) + " " + self.default_room
         else:
             alarm_site_id = self.dict_siteids[self.default_room]
             room_part = ""
@@ -102,12 +103,12 @@ class AlarmClock:
         if slots['time']['kind'] == "InstantTime":
             alarm_time_str = ftime.alarm_time_str(slots['time']['value'])
         else:
-            return "Ich habe dich leider nicht verstanden."
+            return self.translation.get("not understood")
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if ftime.get_delta_obj(alarm_time).days < 0:  # if date is in the past
-            return "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm."
+            return self.translation.get("time in past")
         elif ftime.get_delta_obj(alarm_time).seconds < 120:
-            return "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm."
+            return self.translation.get("alarm would ring now")
         else:
             if alarm_time in self.alarms.keys():  # if list of siteIds already exists
                 if alarm_site_id not in self.alarms[alarm_time]:
@@ -120,42 +121,45 @@ class AlarmClock:
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
             self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': (alarm_time_str, alarm_site_id),
                                                                                  'all': dic_al_str}))
-            return "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.".format(
-                future_part=ftime.get_future_part(alarm_time),
-                h=ftime.get_alarm_hour(alarm_time),
-                min=ftime.get_alarm_minute(alarm_time),
-                room_part=room_part)
+            return self.translation.get("alarm will ring", {
+                'future_part': ftime.get_future_part(alarm_time),
+                'h': ftime.get_alarm_hour(alarm_time),
+                'min': ftime.get_alarm_minute(alarm_time),
+                'room_part': room_part})
 
     def get_alarms(self, slots, siteid):
-        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids)
+        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids, self.translation)
         if result['rc'] == 1:
-            return "Diese Zeit liegt in der Vergangenheit."
+            return self.translation.get("time in past")
         elif result['rc'] == 2:
-            return "Ich habe dich leider nicht verstanden."
+            return self.translation.get("not understood")
         elif result['rc'] == 3:
-            return ("Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
-                    "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
+            return self.translation.get("this room not configured")
         elif result['rc'] == 4:
-            return ("Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
-                    "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
+            return self.translation.get("room not configured", {'room': result['room']})
 
         alarm_count = result['alarm_count']
-        if alarm_count == 0:
-            count_part = "keinen Alarm"
-            end_part = "."
-        elif alarm_count == 1:
-            count_part = "einen Alarm"
-            end_part = " "
+        if alarm_count == 0 or alarm_count == 1:
+            if alarm_count == 0:
+                count_part = self.translation.get("no alarm")
+                end_part = "."
+            else:
+                count_part = self.translation.get("one alarm")
+                end_part = " "
+            response = self.translation.get("there is alarm", {'room_part': result['room_part'],
+                                                               'future_part': result['future_part'],
+                                                               'num_part': count_part,
+                                                               'end': end_part})
         else:
-            count_part = "{num} Alarme".format(num=alarm_count)
+            count_part = self.translation.get("multiple alarms", {'num': alarm_count})
             end_part = ". "
-        response = "Es gibt {room_part} {future_part} {num_part}{end}".format(room_part=result['room_part'],
-                                                                              future_part=result['future_part'],
-                                                                              num_part=count_part,
-                                                                              end=end_part)
+            response = self.translation.get("there are alarms", {'room_part': result['room_part'],
+                                                                 'future_part': result['future_part'],
+                                                                 'num_part': count_part,
+                                                                 'end': end_part})
         alarms = result['sorted_alarms']
         if alarm_count > 5:
-            response += "Die nächsten fünf sind: "
+            response += self.translation.get("next five are")
             alarms = alarms[:5]
 
         """
@@ -174,20 +178,19 @@ class AlarmClock:
             else:
                 future_part = ""
             if not result['room_part']:
-                room_part = utils.get_roomstr(result['filtered_alarms'][dtobj], self.dict_rooms, siteid)
+                room_part = utils.get_roomstr(result['filtered_alarms'][dtobj], self.dict_rooms, siteid, self.language)
             else:
                 room_part = ""
-            response += "{future_part} um {h} Uhr {min} {room_part}".format(
-                room_part=room_part,
-                future_part=future_part,
-                h=ftime.get_alarm_hour(dtobj),
-                min=ftime.get_alarm_minute(dtobj))
+            response += self.translation.get("individual alarms", {'room_part': room_part,
+                                                                   'future_part': future_part,
+                                                                   'h': ftime.get_alarm_hour(dtobj),
+                                                                   'min': ftime.get_alarm_minute(dtobj)})
             if dtobj != alarms[-1]:
                 response += ", "
             else:
                 response += "."
             if len(alarms) > 1 and dtobj == alarms[-2]:
-                response += " und "
+                response += " {and_word} ".format(and_word=self.translation.get("and"))
         return response
 
     def delete_alarms_try(self, slots, siteid):
@@ -208,32 +211,28 @@ class AlarmClock:
                     'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
                                     one time, this means two alarms)
         """
-        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids)
+        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids, self.translation)
         if result['rc'] == 1:
-            return "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm."
+            return self.translation.get("time in past")
         elif result['rc'] == 2:
-            return "Ich habe dich leider nicht verstanden."
+            return self.translation.get("not understood")
         elif result['rc'] == 3:
-            return ("Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung "
-                    "von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.")
+            return self.translation.get("this room not configured")
         elif result['rc'] == 4:
-            return ("Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von "
-                    "dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.".format(room=result['room']))
+            return self.translation.get("room not configured", {'room': result['room']})
         if result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
                 self.delete_alarms(result['filtered_alarms'])
-                return None, "Der Alarm {future_part} {room_part} wurde gelöscht.".format(
-                    future_part=result['future_part'],
-                    room_part=result['room_part'])
+                return None, self.translation.get("single alarm deleted", {'future_part': result['future_part'],
+                                                                           'room_part': result['room_part']})
             else:
                 return (result['filtered_alarms'],
-                        "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?".format(
-                            future_part=result['future_part'],
-                            room_part=result['room_part'],
-                            num=result['alarm_count']))
+                        self.translation.get("ask for deletion", {'future_part': result['future_part'],
+                                                                  'room_part': result['room_part'],
+                                                                  'num': result['alarm_count']}))
         else:
-            return {}, "Es gibt {room_part} {future_part} keinen Alarm.".format(
-                room_part=result['room_part'], future_part=result['future_part'])
+            return {}, self.translation.get("there is no alarm", {'room_part': result['room_part'],
+                                                                  'future_part': result['future_part']})
 
     def delete_alarms(self, alarms_delete):
 
@@ -251,7 +250,7 @@ class AlarmClock:
                                or dtobj not in alarms_delete.keys()] for dtobj in self.alarms}
         self.alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms if self.alarms[dtobj]}
         self.save_alarms()
-        return {'rc': 0}
+        return self.translation.get("done")
 
     def save_alarms(self, path=None):
         if not path:
@@ -283,7 +282,7 @@ class AlarmClock:
             now_time = ftime.get_now_time()
             if now_time in self.alarms.keys():
                 # make copy of list for the for-loop, because next step is deleting the alarm
-                current_alarms = self.alarms[now_time]
+                current_alarms = self.alarms[now_time].copy()
                 for siteid in current_alarms:
                     if len(self.alarms[now_time]) == 1:
                         del self.alarms[now_time]
@@ -395,9 +394,9 @@ class AlarmClock:
         if data['siteId'] in self.siteids_session_not_ended:
             now_time = datetime.datetime.now()
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
-                                     json.dumps({"text": "Alarm beendet. Es ist jetzt {h} Uhr {min}".format(
-                                         h=ftime.get_alarm_hour(now_time), min=ftime.get_alarm_minute(now_time)),
-                                         "sessionId": data['sessionId']}))
+                                     json.dumps({"text": self.translation.get("alarm ended and clock", {
+                                         'h': ftime.get_alarm_hour(now_time),
+                                         'min': ftime.get_alarm_minute(now_time)}), "sessionId": data['sessionId']}))
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.siteids_session_not_ended.remove(data['siteId'])
 

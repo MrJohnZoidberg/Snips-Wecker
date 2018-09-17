@@ -163,9 +163,9 @@ JSON Payload:
 - Ask for missed alarms
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping
-- Internationalisation
-- Nice README
-- Send alarm data over MQTT
+- Internationalisation [####_______________]
+- Nice README [###_________________]
+- Send alarm data over MQTT [###_________________]
 - Ability to change the ringtone sound
 - Maybe: periodical alarms (daily, weekly); before: change clock thread to schedule module
 - Publish app in the snips console app store

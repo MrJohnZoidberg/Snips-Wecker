@@ -17,9 +17,8 @@ def user_intent(intentname):
 
 class SnipsConfigParser(ConfigParser.SafeConfigParser):
     def to_dict(self):
-        return {section: {
-            option_name: option for option_name, option in self.items(section)
-        } for section in self.sections()}
+        return {section: {option_name: option for option_name, option in self.items(section)}
+                for section in self.sections()}
 
 
 def read_configuration_file(configuration_file):
@@ -73,34 +72,31 @@ def on_message_intent(client, userdata, msg):
             slots = get_slots(data)
             if slots['answer']['value'] == "yes":
                 if past_data['past_intent'] == user_intent('deleteAlarms'):
-                        result = alarmclock.delete_alarms(past_data['alarms'])
-                        if result['rc'] == 0:
-                            say(session_id, "Erledigt.")
-                        else:
-                            say(session_id, "Es ist ein Fehler aufgetreten.")
+                        response = alarmclock.delete_alarms(past_data['alarms'])
+                        say(session_id, response)
             else:
-                say(session_id, "Abgebrochen.")
+                end_session(session_id)
             alarmclock.confirm_intents[data['siteId']] = None
 
 
 def say(session_id, text):
-    mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({'text': text, "sessionId": session_id}))
+    mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({'text': text,
+                                                                         'sessionId': session_id}))
+
+
+def end_session(session_id):
+    mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({'sessionId': session_id}))
 
 
 def dialogue(session_id, text, intent_filter):
-    mqtt_client.publish('hermes/dialogueManager/continueSession',
-                        json.dumps({'text': text, "sessionId": session_id, "intentFilter": intent_filter}))
+    mqtt_client.publish('hermes/dialogueManager/continueSession', json.dumps({'text': text,
+                                                                              'sessionId': session_id,
+                                                                              'intentFilter': intent_filter}))
 
 
 if __name__ == "__main__":
-    conf = read_configuration_file("config.ini")
-    ringtone_wav = alarmclock.utils.edit_volume("alarm-sound.wav", alarmclock.utils.get_ringvol(conf))
-    ringing_timeout = alarmclock.utils.get_ringtmo(conf)
-    dict_siteid = alarmclock.utils.get_dsiteid(conf)
-    default_room = alarmclock.utils.get_dfroom(conf)
-    restore_alarms = alarmclock.utils.get_restorestat(conf)
-    ringtone_status = alarmclock.utils.get_ringtonestat(conf)
-    alarmclock = AlarmClock(ringtone_wav, ringing_timeout, dict_siteid, default_room, restore_alarms, ringtone_status)
+    config = read_configuration_file("config.ini")
+    alarmclock = AlarmClock(config)
     mqtt_client = mqtt.Client()
     mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
     mqtt_client.connect("localhost", "1883")

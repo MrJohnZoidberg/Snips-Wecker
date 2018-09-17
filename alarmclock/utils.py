@@ -48,25 +48,6 @@ def get_dsiteid(config):
     return dsiteid
 
 
-def get_prepos(room):
-    room = room.lower()
-    if "kammer" in room or room[-1] in ["e", "a"]:
-        if "terasse" in room:
-            prepos = "auf der"
-        else:
-            prepos = "in der"
-    elif room[-1] in ["m", "r", "o", "g", "l", "d", "t", "n", "s", "h", "f", "c"]:
-        if "unten" in room or "außen" in room:
-            prepos = ""
-        elif "boden" in room or room == "balkon":
-            prepos = "auf dem"
-        else:
-            prepos = "im"
-    else:
-        prepos = "im Raum"
-    return prepos
-
-
 def get_dfroom(config):
     dfroom = config['global']['default_room'].encode('utf8')
     if not dfroom:
@@ -106,23 +87,23 @@ def edit_volume(wav_path, volume):
     return ringtone_wav
 
 
-def get_roomstr(alarm_siteids, dict_rooms, siteid):
+def get_roomstr(alarm_siteids, dict_rooms, siteid, translation):
     room_str = ""
     if len(dict_rooms) > 1:
         for iter_siteid in alarm_siteids:
             if iter_siteid == siteid:
-                room_str += "hier"
+                room_str += translation.get("here")
             else:
-                room_str += get_prepos(dict_rooms[iter_siteid]) + " " + dict_rooms[iter_siteid]
+                room_str += translation.get_prepos(dict_rooms[iter_siteid]) + " " + dict_rooms[iter_siteid]
             if len(alarm_siteids) > 1:
                 if iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
                     room_str += ", "
                 if iter_siteid == alarm_siteids[-2]:
-                    room_str += " und "
+                    room_str += " {and_word} ".format(and_word=translation.get("and"))
     return room_str
 
 
-def filter_alarms(alarms, slots, siteid, dict_siteids):
+def filter_alarms(alarms, slots, siteid, dict_siteids, translation):
     future_part = ""
     room_part = ""
     # fill the list with all alarms and then filter it
@@ -140,6 +121,7 @@ def filter_alarms(alarms, slots, siteid, dict_siteids):
                 future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
                                                           min=ftime.get_alarm_minute(alarm_time))
             else:
+                # TODO: Make more functional (with delta_object function)
                 now = datetime.datetime.now()
                 now_time_str = "{0}-{1}-{2}".format(now.year, now.month, now.day)
                 now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d")
@@ -181,7 +163,7 @@ def filter_alarms(alarms, slots, siteid, dict_siteids):
         filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
                            for dtobj in filtered_alarms}
         dict_rooms = {siteid: room for room, siteid in dict_siteids.iteritems()}
-        room_part = get_roomstr([context_siteid], dict_rooms, siteid)
+        room_part = get_roomstr([context_siteid], dict_rooms, siteid, translation)
     filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms if filtered_alarms[dtobj]]
     filtered_alarms_sorted.sort()
     alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
