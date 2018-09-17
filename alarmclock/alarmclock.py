@@ -128,7 +128,7 @@ class AlarmClock:
                 'room_part': room_part})
 
     def get_alarms(self, slots, siteid):
-        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids, self.translation)
+        result = self.filter_alarms(slots, siteid)
         if result['rc'] == 1:
             return self.translation.get("time in past")
         elif result['rc'] == 2:
@@ -178,7 +178,8 @@ class AlarmClock:
             else:
                 future_part = ""
             if not result['room_part']:
-                room_part = utils.get_roomstr(result['filtered_alarms'][dtobj], self.dict_rooms, siteid, self.language)
+                alarms_all = result['filtered_alarms']
+                room_part = self.get_roomstr(result['filtered_alarms'][dtobj], siteid)
             else:
                 room_part = ""
             response += self.translation.get("individual alarms", {'room_part': room_part,
@@ -192,6 +193,23 @@ class AlarmClock:
             if len(alarms) > 1 and dtobj == alarms[-2]:
                 response += " {and_word} ".format(and_word=self.translation.get("and"))
         return response
+
+    def get_roomstr(self, alarm_siteids, siteid):
+        room_str = ""
+        if len(self.dict_rooms) > 1:
+            for iter_siteid in alarm_siteids:
+                if iter_siteid == siteid:
+                    room_str += self.translation.get("here")
+                else:
+                    current_room_prepos = self.translation.get_prepos(self.dict_rooms[iter_siteid])
+                    room_str += "{prepos} {room}".format(prepos=current_room_prepos,
+                                                         room=self.dict_rooms[iter_siteid])
+                if len(alarm_siteids) > 1:
+                    if iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
+                        room_str += ", "
+                    if iter_siteid == alarm_siteids[-2]:
+                        room_str += " {and_word} ".format(and_word=self.translation.get("and"))
+        return room_str
 
     def delete_alarms_try(self, slots, siteid):
         """
@@ -211,7 +229,7 @@ class AlarmClock:
                     'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
                                     one time, this means two alarms)
         """
-        result = utils.filter_alarms(self.alarms, slots, siteid, self.dict_siteids, self.translation)
+        result = self.filter_alarms(slots, siteid)
         if result['rc'] == 1:
             return self.translation.get("time in past")
         elif result['rc'] == 2:
@@ -251,6 +269,81 @@ class AlarmClock:
         self.alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms if self.alarms[dtobj]}
         self.save_alarms()
         return self.translation.get("done")
+
+    def filter_alarms(self, slots, siteid):
+
+        """Helper function which filters alarms with datetime and rooms"""
+
+        future_part = ""
+        room_part = ""
+        # fill the list with all alarms and then filter it
+        filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
+        dt_format = "%Y-%m-%d %H:%M"
+        if 'time' in slots.keys():
+            if slots['time']['kind'] == "InstantTime":
+                alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
+                future_part = ftime.get_future_part(alarm_time, only_date=True)
+                if slots['time']['grain'] == "Hour" or slots['time']['grain'] == "Minute":
+                    if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
+                        return {'rc': 1}
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if dtobj == alarm_time}
+                    future_part += " um {h} Uhr {min}".format(h=ftime.get_alarm_hour(alarm_time),
+                                                              min=ftime.get_alarm_minute(alarm_time))
+                else:
+                    # TODO: Make more functional (with delta_object function)
+                    now = datetime.datetime.now()
+                    now_time_str = "{0}-{1}-{2}".format(now.year, now.month, now.day)
+                    now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d")
+                    delta_obj = (alarm_time.date() - now_time.date())
+                    if delta_obj.days < 0:
+                        return {'rc': 1}
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if dtobj.date() == alarm_time.date()}
+            elif slots['time']['kind'] == "TimeInterval":
+                time_from = None
+                time_to = None
+                if slots['time']['from']:
+                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
+                if slots['time']['to']:
+                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
+                    time_to = ftime.nlu_time_bug_bypass(time_to)  # NLU bug (only German): hour or minute too much
+                if not time_from and time_to:
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms if dtobj <= time_to}
+                elif not time_to and time_from:
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms if time_from <= dtobj}
+                else:
+                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                                       if time_from <= dtobj <= time_to}
+                future_part = ftime.get_interval_part(time_from, time_to)
+            else:
+                return {'rc': 2}
+        if 'room' in slots.keys():
+            room_slot = slots['room']['value'].encode('utf8')
+            if room_slot == "hier":
+                if siteid in self.dict_siteids.values():
+                    context_siteid = siteid
+                else:
+                    return {'rc': 3}
+            else:
+                if room_slot in self.dict_siteids.keys():
+                    context_siteid = self.dict_siteids[room_slot]
+                else:
+                    return {'rc': 4, 'room': room_slot}
+            filtered_alarms = {dtobj: [sid for sid in filtered_alarms[dtobj] if sid == context_siteid]
+                               for dtobj in filtered_alarms}
+            room_part = self.get_roomstr([context_siteid], siteid)
+        filtered_alarms_sorted = [dtobj for dtobj in filtered_alarms if filtered_alarms[dtobj]]
+        filtered_alarms_sorted.sort()
+        alarm_count = len([sid for lst in filtered_alarms.itervalues() for sid in lst])
+        return {
+            'rc': 0,
+            'filtered_alarms': filtered_alarms,
+            'sorted_alarms': filtered_alarms_sorted,
+            'alarm_count': alarm_count,
+            'future_part': future_part,
+            'room_part': room_part
+        }
 
     def save_alarms(self, path=None):
         if not path:
