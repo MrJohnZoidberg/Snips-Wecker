@@ -156,14 +156,14 @@ JSON Payload:
     Some MQTT clients may have a package size limit, so you won be able to receive messages with a larger
     payload than the limit size until you increase this. E.g. in the library `PubSubClient` for the Arduino the package
     limit is 128 bytes. In the file `<Arduino libraries folder>/PubSubClient/src/PubSubClient.h` the constant 
-    `MQTT_MAX_PACKET_SIZE` must be increased. How much? It depends on how many alarms you will create.
+    `MQTT_MAX_PACKET_SIZE` must be increased. How much? This depends on how many alarms you will create.
 
 ## Coming soon...
 
 - Ask for missed alarms
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping
-- Internationalisation [####_______________]
+- Internationalisation [#############____]
 - Nice README [###_________________]
 - Send alarm data over MQTT [###_________________]
 - Ability to change the ringtone sound
