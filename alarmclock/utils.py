@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from pydub import AudioSegment       # change volume of ringtone
-import formattime as ftime
-import datetime
 
 
 def get_ringvol(config):

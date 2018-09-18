@@ -193,23 +193,6 @@ class AlarmClock:
                 response += " {and_word} ".format(and_word=self.translation.get("and"))
         return response
 
-    def get_roomstr(self, alarm_siteids, siteid):
-        room_str = ""
-        if len(self.dict_rooms) > 1:
-            for iter_siteid in alarm_siteids:
-                if iter_siteid == siteid:
-                    room_str += self.translation.get("here")
-                else:
-                    current_room_prepos = self.translation.get_prepos(self.dict_rooms[iter_siteid])
-                    room_str += "{prepos} {room}".format(prepos=current_room_prepos,
-                                                         room=self.dict_rooms[iter_siteid])
-                if len(alarm_siteids) > 1:
-                    if iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
-                        room_str += ", "
-                    if iter_siteid == alarm_siteids[-2]:
-                        room_str += " {and_word} ".format(and_word=self.translation.get("and"))
-        return room_str
-
     def delete_alarms_try(self, slots, siteid):
         """
                 Called when the user want to delete multiple alarms. If user said room and/or date the alarms with these
@@ -239,14 +222,16 @@ class AlarmClock:
             return self.translation.get("room not configured", {'room': result['room']})
         if result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
+                # TODO: Say future part and room part if single alarm delete
+                # TODO: Say "der einzige" if this single alarm was the last one
                 self.delete_alarms(result['filtered_alarms'])
                 return None, self.translation.get("single alarm deleted", {'future_part': result['future_part'],
                                                                            'room_part': result['room_part']})
             else:
-                return (result['filtered_alarms'],
-                        self.translation.get("ask for deletion", {'future_part': result['future_part'],
-                                                                  'room_part': result['room_part'],
-                                                                  'num': result['alarm_count']}))
+                return result['filtered_alarms'], self.translation.get("ask for deletion",
+                                                                       {'future_part': result['future_part'],
+                                                                        'room_part': result['room_part'],
+                                                                        'num': result['alarm_count']})
         else:
             return {}, self.translation.get("there is no alarm", {'room_part': result['room_part'],
                                                                   'future_part': result['future_part']})
@@ -343,6 +328,23 @@ class AlarmClock:
             'future_part': future_part,
             'room_part': room_part
         }
+
+    def get_roomstr(self, alarm_siteids, siteid):
+        room_str = ""
+        if len(self.dict_rooms) > 1:
+            for iter_siteid in alarm_siteids:
+                if iter_siteid == siteid:
+                    room_str += self.translation.get("here")
+                else:
+                    current_room_prepos = self.translation.get_prepos(self.dict_rooms[iter_siteid])
+                    room_str += "{prepos} {room}".format(prepos=current_room_prepos,
+                                                         room=self.dict_rooms[iter_siteid])
+                if len(alarm_siteids) > 1:
+                    if iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
+                        room_str += ", "
+                    if iter_siteid == alarm_siteids[-2]:
+                        room_str += " {and_word} ".format(and_word=self.translation.get("and"))
+        return room_str
 
     def save_alarms(self, path=None):
         if not path:
