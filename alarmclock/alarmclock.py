@@ -213,28 +213,28 @@ class AlarmClock:
         """
         result = self.filter_alarms(slots, siteid)
         if result['rc'] == 1:
-            return self.translation.get("time in past")
+            return None, self.translation.get("time in past")
         elif result['rc'] == 2:
-            return self.translation.get("not understood")
+            return None, self.translation.get("not understood")
         elif result['rc'] == 3:
-            return self.translation.get("this room not configured")
+            return None, self.translation.get("this room not configured")
         elif result['rc'] == 4:
-            return self.translation.get("room not configured", {'room': result['room']})
+            return None, self.translation.get("room not configured", {'room': result['room']})
         if result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
                 # TODO: Say future part and room part if single alarm delete
                 # TODO: Say "der einzige" if this single alarm was the last one
                 self.delete_alarms(result['filtered_alarms'])
-                return {}, self.translation.get("single alarm deleted", {'future_part': result['future_part'],
-                                                                         'room_part': result['room_part']})
+                return None, self.translation.get("single alarm deleted", {'future_part': result['future_part'],
+                                                                           'room_part': result['room_part']})
             else:
                 return result['filtered_alarms'], self.translation.get("ask for deletion",
                                                                        {'future_part': result['future_part'],
                                                                         'room_part': result['room_part'],
                                                                         'num': result['alarm_count']})
         else:
-            return {}, self.translation.get("there is no alarm", {'room_part': result['room_part'],
-                                                                  'future_part': result['future_part']})
+            return None, self.translation.get("there is no alarm", {'room_part': result['room_part'],
+                                                                    'future_part': result['future_part']})
 
     def delete_alarms(self, alarms_delete):
 
