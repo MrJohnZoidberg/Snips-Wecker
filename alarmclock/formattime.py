@@ -52,26 +52,24 @@ def weekday(alarm_time):
 
 def get_future_part(alarm_time, only_date=False):
     delta_days = get_delta_obj(alarm_time, only_date=True).days
-    delta_hours = get_delta_obj(alarm_time, only_date=False).hours
+    delta_hours = (alarm_time - get_now_time()).seconds // 3600
     if delta_hours <= 12 and not only_date:
-        delta_seconds = (alarm_time - get_now_time()).seconds
-        delta_hours = delta_seconds // 3600
-        minutes_remain = (delta_seconds % 3600) // 60
+        minutes_remain = ((alarm_time - get_now_time()).seconds % 3600) // 60
+        # TODO: Internationalization
         if delta_hours == 1:  # for word fix in German
-            hour_word = "Stunde"
-            delta_hours = "einer"
+            hour_words = "einer Stunde"
         else:
-            hour_word = "Stunden"
-        if (delta_seconds // 3600) > 0:  # if delta_hours > 0 - not "delta_hours" because of string above
-            if minutes_remain == 0:
-                future_part = "in {0} {1}".format(delta_hours, hour_word)
-            else:
-                future_part = "in {0} {1} und {2} Minuten".format(delta_hours, hour_word, minutes_remain)
+            hour_words = "{h} Stunden".format(h=delta_hours)
+        if minutes_remain == 1:
+            minute_words = "einer Minute"
         else:
-            if minutes_remain == 1:
-                future_part = "in einer Minute"
-            else:
-                future_part = "in {0} Minuten".format(minutes_remain)
+            minute_words = "{min} Minuten".format(min=minutes_remain)
+        if delta_hours > 0 and minutes_remain == 0:
+            future_part = "in {h_words}".format(h_words=hour_words)
+        elif delta_hours > 0 and minutes_remain > 0:
+            future_part = "in {h_words} und {min_words}".format(h_words=hour_words, min_words=minute_words)
+        else:
+            future_part = "in {min_words}".format(min_words=minute_words)
     elif delta_days == 0:
         future_part = "heute"
     elif delta_days == 1:
