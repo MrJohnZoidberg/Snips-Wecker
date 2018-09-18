@@ -79,6 +79,12 @@ def on_message_intent(client, userdata, msg):
             alarmclock.confirm_intents[data['siteId']] = None
 
 
+def on_session_ended(client, userdata, msg):
+    data = json.loads(msg.payload.decode("utf-8"))
+    if alarmclock.confirm_intents[data['siteId']] and data['termination']['reason'] != "nominal":
+        alarmclock.confirm_intents[data['siteId']] = None
+
+
 def say(session_id, text):
     mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({'text': text,
                                                                          'sessionId': session_id}))
@@ -99,6 +105,8 @@ if __name__ == "__main__":
     alarmclock = AlarmClock(config)
     mqtt_client = mqtt.Client()
     mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
+    mqtt_client.message_callback_add('hermes/dialogueManager/sessionEnded', on_session_ended)
     mqtt_client.connect("localhost", "1883")
     mqtt_client.subscribe('hermes/intent/#')
+    mqtt_client.subscribe('hermes/dialogueManager/sessionEnded')
     mqtt_client.loop_forever()
