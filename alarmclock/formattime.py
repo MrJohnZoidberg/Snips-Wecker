@@ -52,28 +52,28 @@ def weekday(alarm_time):
 
 def get_future_part(alarm_time, only_date=False):
     delta_days = get_delta_obj(alarm_time, only_date=True).days
-    if delta_days == 0:
-        if not only_date:
-            delta_seconds = (alarm_time - get_now_time()).seconds
-            delta_hours = delta_seconds // 3600
-            minutes_remain = (delta_seconds % 3600) // 60
-            if delta_hours == 1:  # for word fix in German
-                hour_word = "Stunde"
-                delta_hours = "einer"
-            else:
-                hour_word = "Stunden"
-            if (delta_seconds // 3600) > 0:  # if delta_hours > 0 - not "delta_hours" because of string above
-                if minutes_remain == 0:
-                    future_part = "in {0} {1}".format(delta_hours, hour_word)
-                else:
-                    future_part = "in {0} {1} und {2} Minuten".format(delta_hours, hour_word, minutes_remain)
-            else:
-                if minutes_remain == 1:
-                    future_part = "in einer Minute"
-                else:
-                    future_part = "in {0} Minuten".format(minutes_remain)
+    delta_hours = get_delta_obj(alarm_time, only_date=False).hours
+    if delta_hours <= 12 and not only_date:
+        delta_seconds = (alarm_time - get_now_time()).seconds
+        delta_hours = delta_seconds // 3600
+        minutes_remain = (delta_seconds % 3600) // 60
+        if delta_hours == 1:  # for word fix in German
+            hour_word = "Stunde"
+            delta_hours = "einer"
         else:
-            future_part = "heute"
+            hour_word = "Stunden"
+        if (delta_seconds // 3600) > 0:  # if delta_hours > 0 - not "delta_hours" because of string above
+            if minutes_remain == 0:
+                future_part = "in {0} {1}".format(delta_hours, hour_word)
+            else:
+                future_part = "in {0} {1} und {2} Minuten".format(delta_hours, hour_word, minutes_remain)
+        else:
+            if minutes_remain == 1:
+                future_part = "in einer Minute"
+            else:
+                future_part = "in {0} Minuten".format(minutes_remain)
+    elif delta_days == 0:
+        future_part = "heute"
     elif delta_days == 1:
         future_part = "morgen"
     elif delta_days == 2:
