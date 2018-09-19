@@ -1,67 +1,99 @@
 # -*- coding: utf-8 -*-
 
-TRANSLATION_DE = {
+TRANSLATIONS_DE = {
 
-    "done": "Erledigt.",
-
-    "this room not configured":
-        "Dieser Raum wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser Wecker-Äpp "
-        "nach, wie man Räume hinzufügen kann.",
-
-    "room not configured":
-        "Der Raum {room} wurde noch nicht eingestellt. Bitte schaue in der Anleitung von dieser Wecker-Äpp "
-        "nach, wie man Räume hinzufügen kann.",
-
+    "Done.":
+        "Erledigt.",
+    "This room here hasn't been configured yet.":
+        "Dieser Raum wurde noch nicht eingestellt.",
+    "The room {room} has not been configured yet.":
+        "Der Raum {room} wurde noch nicht eingestellt.",
+    "as of":
+        "ab",
+    "from":
+        "von",
+    "to {future_part_to} {h_to}:{min_to}":
+        "bis {future_part_to} {h_to} Uhr {min_to}",
+    "{from_word} {future_part_from} {h_from}:{min_from}":
+        "{from_word} {future_part_from} {h_from} Uhr {min_from}",
+    "at {h}:{min}":
+        "um {h} Uhr {min}",
+    "This alarm would ring now. Please set another alarm.":
+        "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.",
+    "The alarm will ring {room_part} {future_part} at {h}:{min} .":
+        "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.",
+    "The next five are: ":
+        "Die nächsten fünf sind: ",
+    "{num} alarms":
+        "{num} Alarme",
+    "There is {room_part} {future_part} {num_part}{end}":
+        "Es gibt {room_part} {future_part} {num_part}{end}",
+    "There are {room_part} {future_part} {num_part}{end}":
+        "Es gibt {room_part} {future_part} {num_part}{end}",
+    "{future_part} at {h}:{min} {room_part}":
+        "{future_part} um {h} Uhr {min} {room_part}",
+    "The alarm {future_part} {room_part} has been deleted.":
+        "Der Alarm {future_part} {room_part} wurde gelöscht.",
+    "Alarm is now ended. It's {h}:{min} .":
+        "Alarm beendet. Es ist jetzt {h} Uhr {min} .",
+    "There are {future_part} {room_part} {num} alarms. Are you sure?":
+        "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?",
+    "There is no alarm {room_part} {future_part}.":
+        "Es gibt {room_part} {future_part} keinen Alarm.",
+    "This time is in the past. Please set another alarm.":
+        "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.",
+    "I'm afraid I didn't understand you.":
+        "Ich habe dich leider nicht verstanden.",
+    "Please see the instructions for this alarm clock app for how to add rooms.":
+        "Bitte schaue in der Anleitung von dieser Wecker-Äpp nach, wie man Räume hinzufügen kann.",
     "here":
         "hier",
-
-    "not understood":
-        "Ich habe dich leider nicht verstanden.",
-
-    "time in past":
-        "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.",
-
-    "alarm would ring now":
-        "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.",
-
-    "alarm will ring":
-        "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.",
-
-    "next five are":
-        "Die nächsten fünf sind: ",
-
     "no alarm":
         "keinen Alarm",
-
     "one alarm":
         "einen Alarm",
-
-    "multiple alarms":
-        "{num} Alarme",
-
-    "there is alarm":
-        "Es gibt {room_part} {future_part} {num_part}{end}",
-
-    "there are alarms":
-        "Es gibt {room_part} {future_part} {num_part}{end}",
-
-    "individual alarms":
-        "{future_part} um {h} Uhr {min} {room_part}",
-
     "and":
         "und",
-
-    "single alarm deleted":
-        "Der Alarm {future_part} {room_part} wurde gelöscht.",
-
-    "alarm ended and clock":
-        "Alarm beendet. Es ist jetzt {h} Uhr {min} .",
-
-    "ask for deletion":
-        "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?",
-
-    "there is no alarm":
-        "Es gibt {room_part} {future_part} keinen Alarm."
+    "monday":
+        "Montag",
+    "tuesday":
+        "Dienstag",
+    "wednesday":
+        "Mittwoch",
+    "thursday":
+        "Donnerstag",
+    "friday":
+        "Freitag",
+    "saturday":
+        "Samstag",
+    "sunday":
+        "Sonntag",
+    "today":
+        "heute",
+    "tomorrow":
+        "morgen",
+    "the day after tomorrow":
+        "übermorgen",
+    "one hour":
+        "einer Stunde",
+    "{delta_hours} hours":
+        "{delta_hours} Stunden",
+    "one minute":
+        "einer Minute",
+    "{delta_minutes} minutes":
+        "{delta_minutes} Minuten",
+    "in {hour_part}":
+        "in {hour_part}",
+    "in {hour_part} and {minute_part}":
+        "in {hour_part} und {minute_part}",
+    "in {minute_part}":
+        "in {minute_part}",
+    "in {delta_days} days, on {weekday}, the {day}.{month}.":
+        "in {delta_days} Tagen, am {weekday}, dem {day}.{month}.",
+    "on {weekday}":
+        "am {weekday}",
+    "on {weekday} in exactly one week":
+        "am {weekday} in genau einer Woche"
 }
 
 
@@ -124,7 +156,9 @@ class Translation:
         if not data:
             data = {}
         if self.language == "de-DE":
-            return TRANSLATION_DE[description].format(**data)
+            return TRANSLATIONS_DE[description].format(**data)
+        elif self.language == "en-US":
+            return description.format(**data)
 
     def get_prepos(self, room):
         if self.language not in PREPOSITIONS.keys():

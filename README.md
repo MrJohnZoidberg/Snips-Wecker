@@ -163,7 +163,7 @@ JSON Payload:
 - Ask for missed alarms
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping
-- Internationalisation [#############____]
+- Internationalisation [#############_]
 - Nice README [###_________________]
 - Send alarm data over MQTT [###_________________]
 - Ability to change the ringtone sound
