@@ -303,7 +303,7 @@ class AlarmClock:
             now_time = ftime.get_now_time()
             if now_time in self.alarms.keys():
                 # make copy of list for the for-loop, because next step is deleting the alarm
-                current_alarms = self.alarms[now_time].copy()
+                current_alarms = list(self.alarms[now_time])
                 for siteid in current_alarms:
                     if len(self.alarms[now_time]) == 1:
                         del self.alarms[now_time]
