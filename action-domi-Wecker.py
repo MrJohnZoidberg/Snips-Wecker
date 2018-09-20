@@ -55,6 +55,10 @@ def on_message_intent(client, userdata, msg):
         slots = get_slots(data)
         say(session_id, alarmclock.get_alarms(slots, data['siteId']))
 
+    elif intent_id == user_intent('getMissedAlarms'):
+        slots = get_slots(data)
+        say(session_id, alarmclock.get_missed(slots, data['siteId']))
+
     elif intent_id == user_intent('deleteAlarms'):
         slots = get_slots(data)
         multi_alarms, response = alarmclock.delete_alarms_try(slots, data['siteId'])

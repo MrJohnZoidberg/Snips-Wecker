@@ -133,7 +133,7 @@ class AlarmClock:
                 'room_part': room_part})
 
     def get_alarms(self, slots, siteid):
-        result = self.filter_alarms(slots, siteid)
+        result = self.filter_alarms(self.alarms, slots, siteid)
         if result['rc'] == 1:
             return None, self.translation.get("This time is in the past. Please set another alarm.")
         elif result['rc'] == 2:
@@ -204,6 +204,20 @@ class AlarmClock:
                 response += " {and_word} ".format(and_word=self.translation.get("and"))
         return response
 
+    def get_missed(self, slots, siteid):
+        result = self.filter_alarms(self.missed_alarms, slots, siteid, no_past=True)
+        if result['rc'] == 2:
+            return None, self.translation.get("I'm afraid I didn't understand you.")
+        elif result['rc'] == 3:
+            return None, "{} {}".format(self.translation.get("This room here hasn't been configured yet."),
+                                        self.translation.get("Please see the instructions for this alarm clock "
+                                                             "app for how to add rooms."))
+        elif result['rc'] == 4:
+            return None, "{} {}".format(self.translation.get("The room {room} has not been configured yet.",
+                                                             {'room': result['room']}),
+                                        self.translation.get("Please see the instructions for this alarm clock "
+                                                             "app for how to add rooms."))
+
     def delete_alarms_try(self, slots, siteid):
         """
                 Called when the user want to delete multiple alarms. If user said room and/or date the alarms with these
@@ -222,7 +236,7 @@ class AlarmClock:
                     'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
                                     one time, this means two alarms)
         """
-        result = self.filter_alarms(slots, siteid)
+        result = self.filter_alarms(self.alarms, slots, siteid)
         if result['rc'] == 1:
             return None, self.translation.get("This time is in the past. Please set another alarm.")
         elif result['rc'] == 2:
@@ -442,23 +456,23 @@ class AlarmClock:
         if 'ringtoneBytes' in data.keys():
             self.ringtone_wav = data['ringtoneBytes']
 
-    def filter_alarms(self, slots, siteid):
+    def filter_alarms(self, alarms, slots, siteid, no_past=False):
 
         """Helper function which filters alarms with datetime and rooms"""
 
         future_part = ""
         room_part = ""
         # fill the list with all alarms and then filter it
-        filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in self.alarms}
+        filtered_alarms = {dtobj: alarms[dtobj] for dtobj in alarms}
         dt_format = "%Y-%m-%d %H:%M"
         if 'time' in slots.keys():
             if slots['time']['kind'] == "InstantTime":
                 alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
                 future_part = self.get_future_part(alarm_time, only_date=True)
                 if slots['time']['grain'] == "Hour" or slots['time']['grain'] == "Minute":
-                    if ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
+                    if not no_past and ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
                         return {'rc': 1}
-                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                    filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj == alarm_time}
                     future_part += " " + self.translation.get("at {h}:{min}",
                                                               {'h': ftime.get_alarm_hour(alarm_time),
@@ -471,7 +485,7 @@ class AlarmClock:
                     delta_obj = (alarm_time.date() - now_time.date())
                     if delta_obj.days < 0:
                         return {'rc': 1}
-                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                    filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj.date() == alarm_time.date()}
             elif slots['time']['kind'] == "TimeInterval":
                 time_from = None
@@ -483,11 +497,11 @@ class AlarmClock:
                     if self.language == "de-DE":
                         time_to = ftime.nlu_time_bug_bypass(time_to)  # NLU bug (only German): hour or minute too much
                 if not time_from and time_to:
-                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms if dtobj <= time_to}
+                    filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms if dtobj <= time_to}
                 elif not time_to and time_from:
-                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms if time_from <= dtobj}
+                    filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms if time_from <= dtobj}
                 else:
-                    filtered_alarms = {dtobj: self.alarms[dtobj] for dtobj in filtered_alarms
+                    filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                        if time_from <= dtobj <= time_to}
                 future_part = self.get_interval_part(time_from, time_to)
             else:
