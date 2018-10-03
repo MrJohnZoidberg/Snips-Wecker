@@ -40,6 +40,8 @@ TRANSLATIONS_DE = {
         "Es gibt {future_part} {time_part} {room_part} {num} Alarme. Bist du dir sicher?",
     "There is no alarm {room_part} {future_part} {time_part}.":
         "Es gibt {room_part} {future_part} {time_part} keinen Alarm.",
+    "You missed {room_part} {future_part} {time_part} {num_part}{end}":
+        "Du hast {room_part} {future_part} {time_part} {num_part} verpasst{end}",
     "This time is in the past.":
         "Diese Zeit liegt in der Vergangenheit.",
     "Please set another alarm.":

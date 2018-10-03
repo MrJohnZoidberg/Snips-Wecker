@@ -159,32 +159,18 @@ class AlarmClock:
                 count_part = self.translation.get("one alarm")
                 end_part = " "
             response = self.translation.get("There is {room_part} {future_part} {time_part} {num_part}{end}",
-                                            {'room_part': result['room_part'],
-                                             'future_part': result['future_part'],
-                                             'time_part': result['time_part'],
-                                             'num_part': count_part,
-                                             'end': end_part})
+                                            {'room_part': result['room_part'], 'future_part': result['future_part'],
+                                             'time_part': result['time_part'], 'num_part': count_part, 'end': end_part})
         else:
             count_part = self.translation.get("{num} alarms", {'num': alarm_count})
             end_part = ". "
             response = self.translation.get("There are {room_part} {future_part} {time_part} {num_part}{end}",
-                                            {'room_part': result['room_part'],
-                                             'future_part': result['future_part'],
-                                             'time_part': result['time_part'],
-                                             'num_part': count_part,
-                                             'end': end_part})
+                                            {'room_part': result['room_part'], 'future_part': result['future_part'],
+                                             'time_part': result['time_part'], 'num_part': count_part, 'end': end_part})
         alarms = result['sorted_alarms']
         if alarm_count > 5:
             response += self.translation.get("The next five are: ")
             alarms = alarms[:5]
-
-        """
-        if len(result['alarms_sorted']) == 1:
-            response += "{future_part} {room_part}".format(
-                room_part=result['alarms_dict'][alarms[0]]['room_part'],
-                future_part=result['alarms_dict'][alarms[0]]['future_part'])
-        else:
-        """
 
         for dtobj in alarms:
             # If room and/or time not said in speech command, the alarms were not filtered with that.
@@ -199,7 +185,8 @@ class AlarmClock:
                 time_part = self.translation.get("at {h}:{min}", {'h': ftime.get_alarm_hour(dtobj),
                                                                   'min': ftime.get_alarm_minute(dtobj)})
             if not result['room_part']:
-                room_part = self.get_roomstr(result['filtered_alarms'][dtobj], siteid)
+                filtered_alarms = dict(result['filtered_alarms'])
+                room_part = self.get_roomstr(filtered_alarms[dtobj], siteid)
             else:
                 room_part = ""
             response += self.translation.get("{future_part} {time_part} {room_part}",
@@ -227,6 +214,55 @@ class AlarmClock:
                                         self.translation.get("Please see the instructions for this alarm clock "
                                                              "app for how to add rooms."))
         # TODO
+        filtered_alarms = dict(result['filtered_alarms'])
+        self.missed_alarms = {dtobj: [sid for sid in self.missed_alarms[dtobj]
+                               if sid not in [x for lst in filtered_alarms.itervalues() for x in lst]
+                               or dtobj not in filtered_alarms.keys()] for dtobj in self.missed_alarms}
+        self.missed_alarms = {dtobj: self.missed_alarms[dtobj] for dtobj in self.missed_alarms
+                              if self.missed_alarms[dtobj]}
+
+        alarm_count = result['alarm_count']
+        if alarm_count == 0 or alarm_count == 1:
+            if alarm_count == 0:
+                count_part = self.translation.get("no alarm")
+                end_part = "."
+            else:
+                count_part = self.translation.get("one alarm")
+                end_part = " "
+        else:
+            count_part = self.translation.get("{num} alarms", {'num': alarm_count})
+            end_part = ". "
+        response = self.translation.get("You missed {room_part} {future_part} {time_part} {num_part}{end}",
+                                        {'room_part': result['room_part'], 'future_part': result['future_part'],
+                                         'time_part': result['time_part'], 'num_part': count_part, 'end': end_part})
+        alarms = list(result['sorted_alarms'])
+        for dtobj in alarms:
+            # If room and/or time not said in speech command, the alarms were not filtered with that.
+            # So these parts must be looked up for every datetime object.
+            if not result['future_part']:
+                future_part = self.get_future_part(dtobj, only_date=True)
+            else:
+                future_part = ""
+            if result['time_part']:
+                time_part = ""
+            else:
+                time_part = self.translation.get("at {h}:{min}", {'h': ftime.get_alarm_hour(dtobj),
+                                                                  'min': ftime.get_alarm_minute(dtobj)})
+            if not result['room_part']:
+                filtered_alarms = dict(result['filtered_alarms'])
+                room_part = self.get_roomstr(filtered_alarms[dtobj], siteid)
+            else:
+                room_part = ""
+            response += self.translation.get("{future_part} {time_part} {room_part}",
+                                             {'room_part': room_part, 'time_part': time_part,
+                                              'future_part': future_part})
+            if dtobj != alarms[-1]:
+                response += ", "
+            else:
+                response += "."
+            if len(alarms) > 1 and dtobj == alarms[-2]:
+                response += " {and_word} ".format(and_word=self.translation.get("and"))
+        return response
 
     def delete_alarms_try(self, slots, siteid):
         """
@@ -343,8 +379,9 @@ class AlarmClock:
                             site_id=siteid), self.on_message_playfinished)
                         self.ring(siteid)
                         self.ringing_dict[siteid]['state'] = True
+                        self.ringing_dict[siteid]['time'] = now_time
                         timeout_thread = threading.Timer(self.ringing_timeout,
-                                                         functools.partial(self.stop_ringing, siteid))
+                                                         functools.partial(self.timeout_reached, siteid))
                         self.timeout_thr_dict[siteid] = timeout_thread
                         timeout_thread.start()
             time.sleep(3)
@@ -371,10 +408,18 @@ class AlarmClock:
         """
 
         self.ringing_dict[siteid]['state'] = False
+        self.ringing_dict[siteid]['time'] = None
         self.ringing_dict[siteid]['current_id'] = None
         self.timeout_thr_dict[siteid].cancel()  # cancel timeout thread from siteId
         self.timeout_thr_dict[siteid] = None
         self.mqtt_client.message_callback_remove('hermes/audioServer/{site_id}/playFinished'.format(site_id=siteid))
+
+    def timeout_reached(self, siteid):
+        if self.ringing_dict[siteid]['time'] in self.missed_alarms.keys():
+            self.missed_alarms[self.ringing_dict[siteid]['time']].append(siteid)
+        else:
+            self.missed_alarms[self.ringing_dict[siteid]['time']] = [siteid]
+        self.stop_ringing(siteid)
 
     def on_message_playfinished(self, client, userdata, msg):
 
