@@ -265,19 +265,19 @@ class AlarmClock:
                 # TODO: Say future part and room part if single alarm delete
                 # TODO: Say "der einzige" if this single alarm was the last one
                 self.delete_alarms(result['filtered_alarms'])
-                return None, self.translation.get("The alarm {future_part} {room_part} has been deleted.",
+                return None, self.translation.get("The alarm {future_part} {time_part} {room_part} has been deleted.",
                                                   {'future_part': result['future_part'],
-                                                   'room_part': result['room_part']})
+                                                   'time_part': result['time_part'], 'room_part': result['room_part']})
             else:
                 return result['filtered_alarms'],\
-                       self.translation.get("There are {future_part} {room_part} {num} alarms. Are you sure?",
-                                            {'future_part': result['future_part'],
-                                             'room_part': result['room_part'],
-                                             'num': result['alarm_count']})
+                       self.translation.get("There are {future_part} {time_part} {room_part} {num} alarms. "
+                                            "Are you sure?",
+                                            {'future_part': result['future_part'], 'time_part': result['time_part'],
+                                             'room_part': result['room_part'], 'num': result['alarm_count']})
         else:
-            return None, self.translation.get("There is no alarm {room_part} {future_part}.",
-                                              {'room_part': result['room_part'],
-                                               'future_part': result['future_part']})
+            return None, self.translation.get("There is no alarm {room_part} {future_part} {time_part}.",
+                                              {'room_part': result['room_part'], 'future_part': result['future_part'],
+                                               'time_part': result['time_part']})
 
     def delete_alarms(self, alarms_delete):
 

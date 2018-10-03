@@ -36,10 +36,10 @@ TRANSLATIONS_DE = {
         "Der Alarm {future_part} {room_part} wurde gelöscht.",
     "Alarm is now ended. It's {h}:{min} .":
         "Alarm beendet. Es ist jetzt {h} Uhr {min} .",
-    "There are {future_part} {room_part} {num} alarms. Are you sure?":
-        "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?",
-    "There is no alarm {room_part} {future_part}.":
-        "Es gibt {room_part} {future_part} keinen Alarm.",
+    "There are {future_part} {time_part} {room_part} {num} alarms. Are you sure?":
+        "Es gibt {future_part} {time_part} {room_part} {num} Alarme. Bist du dir sicher?",
+    "There is no alarm {room_part} {future_part} {time_part}.":
+        "Es gibt {room_part} {future_part} {time_part} keinen Alarm.",
     "This time is in the past.":
         "Diese Zeit liegt in der Vergangenheit.",
     "Please set another alarm.":
