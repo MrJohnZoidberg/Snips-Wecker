@@ -11,6 +11,7 @@ import formattime as ftime           # ftime.py
 from translation import Translation  # translation.py
 import functools                     # functools.partial for threading.Timeout callback with parameter
 import io                            # open the file for saving the alarms
+import re
 
 
 class AlarmClock:
@@ -100,7 +101,8 @@ class AlarmClock:
                 if siteid == self.dict_siteids[self.default_room]:
                     room_part = self.translation.get("here")
                 else:
-                    room_part = self.translation.get_prepos(self.default_room) + " " + self.default_room
+                    room_part = "{} {}".format(self.translation.get_prepos(self.default_room),
+                                               self.default_room)
         else:
             alarm_site_id = self.dict_siteids[self.default_room]
             room_part = ""
@@ -128,11 +130,12 @@ class AlarmClock:
             dic_al_str = {dt.strftime(dtobj, "%Y-%m-%d %H:%M"): self.alarms[dtobj] for dtobj in self.alarms}
             self.mqtt_client.publish('external/alarmclock/newalarm', json.dumps({'new': (alarm_time_str, alarm_site_id),
                                                                                  'all': dic_al_str}))
-            return self.translation.get("The alarm will ring {room_part} {future_part} at {h}:{min} .", {
+            response = self.translation.get("The alarm will ring {room_part} {future_part} at {h}:{min} .", {
                 'future_part': self.get_future_part(alarm_time),
                 'h': ftime.get_alarm_hour(alarm_time),
                 'min': ftime.get_alarm_minute(alarm_time),
                 'room_part': room_part})
+            return self.del_multi_spaces(response)
 
     def get_alarms(self, slots, siteid):
         result = self.filter_alarms(self.alarms, slots, siteid)
@@ -198,6 +201,7 @@ class AlarmClock:
                 response += "."
             if len(alarms) > 1 and dtobj == alarms[-2]:
                 response += " {and_word} ".format(and_word=self.translation.get("and"))
+        response = self.del_multi_spaces(response)
         return response
 
     def get_missed(self, slots, siteid):
@@ -213,7 +217,6 @@ class AlarmClock:
                                                              {'room': result['room']}),
                                         self.translation.get("Please see the instructions for this alarm clock "
                                                              "app for how to add rooms."))
-        # TODO
         filtered_alarms = dict(result['filtered_alarms'])
         self.missed_alarms = {dtobj: [sid for sid in self.missed_alarms[dtobj]
                                if sid not in [x for lst in filtered_alarms.itervalues() for x in lst]
@@ -262,6 +265,7 @@ class AlarmClock:
                 response += "."
             if len(alarms) > 1 and dtobj == alarms[-2]:
                 response += " {and_word} ".format(and_word=self.translation.get("and"))
+        response = self.del_multi_spaces(response)
         return response
 
     def delete_alarms_try(self, slots, siteid):
@@ -283,38 +287,42 @@ class AlarmClock:
                                     one time, this means two alarms)
         """
         result = self.filter_alarms(self.alarms, slots, siteid)
+        multi_alarms = None
         if result['rc'] == 1:
-            return None, self.translation.get("This time is in the past.")
+            response = self.translation.get("This time is in the past.")
         elif result['rc'] == 2:
-            return None, self.translation.get("I'm afraid I didn't understand you.")
+            response = self.translation.get("I'm afraid I didn't understand you.")
         elif result['rc'] == 3:
-            return None, "{} {}".format(self.translation.get("This room here hasn't been configured yet."),
-                                        self.translation.get("Please see the instructions for this alarm clock "
-                                                             "app for how to add rooms."))
+            response = "{} {}".format(self.translation.get("This room here hasn't been configured yet."),
+                                      self.translation.get("Please see the instructions for this alarm clock "
+                                                           "app for how to add rooms."))
         elif result['rc'] == 4:
-            return None, "{} {}".format(self.translation.get("The room {room} has not been configured yet.",
-                                                             {'room': result['room']}),
-                                        self.translation.get("Please see the instructions for this alarm clock "
-                                                             "app for how to add rooms."))
-        if result['alarm_count'] >= 1:
+            response = "{} {}".format(self.translation.get("The room {room} has not been configured yet.",
+                                                           {'room': result['room']}),
+                                      self.translation.get("Please see the instructions for this alarm clock "
+                                                           "app for how to add rooms."))
+        elif result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
                 # TODO: Say future part and room part if single alarm delete
                 # TODO: Say "der einzige" if this single alarm was the last one
                 filtered_alarms = dict(result['filtered_alarms'])
                 self.delete_alarms(filtered_alarms)
-                return None, self.translation.get("The alarm {future_part} {time_part} {room_part} has been deleted.",
-                                                  {'future_part': result['future_part'],
-                                                   'time_part': result['time_part'], 'room_part': result['room_part']})
+                response = self.translation.get("The alarm {future_part} {time_part} {room_part} has been deleted.",
+                                                {'future_part': result['future_part'],
+                                                 'time_part': result['time_part'], 'room_part': result['room_part']})
             else:
-                return result['filtered_alarms'],\
-                       self.translation.get("There are {future_part} {time_part} {room_part} {num} alarms. "
-                                            "Are you sure?",
-                                            {'future_part': result['future_part'], 'time_part': result['time_part'],
-                                             'room_part': result['room_part'], 'num': result['alarm_count']})
+                response = self.translation.get("There are {future_part} {time_part} {room_part} {num} alarms. "
+                                                "Are you sure?",
+                                                {'future_part': result['future_part'], 'time_part': result['time_part'],
+                                                 'room_part': result['room_part'], 'num': result['alarm_count']})
+                multi_alarms = result['filtered_alarms']
         else:
-            return None, self.translation.get("There is no alarm {room_part} {future_part} {time_part}.",
-                                              {'room_part': result['room_part'], 'future_part': result['future_part'],
-                                               'time_part': result['time_part']})
+            response = self.translation.get("There is no alarm {room_part} {future_part} {time_part}.",
+                                            {'room_part': result['room_part'], 'future_part': result['future_part'],
+                                             'time_part': result['time_part']})
+            response = self.del_multi_spaces(response)
+        response = self.del_multi_spaces(response)
+        return multi_alarms, response
 
     def delete_alarms(self, alarms_delete):
 
@@ -672,3 +680,7 @@ class AlarmClock:
         else:
             from_part = ""
         return "{} {}".format(from_part, to_part)
+
+    @staticmethod
+    def del_multi_spaces(sentence):
+        return re.sub(' +', ' ', sentence)
