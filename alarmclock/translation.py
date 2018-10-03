@@ -18,8 +18,8 @@ TRANSLATIONS_DE = {
         "{from_word} {future_part_from} {h_from} Uhr {min_from}",
     "at {h}:{min}":
         "um {h} Uhr {min}",
-    "This alarm would ring now. Please set another alarm.":
-        "Dieser Alarm würde jetzt klingeln. Bitte stelle einen anderen Alarm.",
+    "This alarm would ring now.":
+        "Dieser Alarm würde jetzt klingeln.",
     "The alarm will ring {room_part} {future_part} at {h}:{min} .":
         "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.",
     "The next five are: ":
@@ -40,8 +40,10 @@ TRANSLATIONS_DE = {
         "Es gibt {future_part} {room_part} {num} Alarme. Bist du dir sicher?",
     "There is no alarm {room_part} {future_part}.":
         "Es gibt {room_part} {future_part} keinen Alarm.",
-    "This time is in the past. Please set another alarm.":
-        "Diese Zeit liegt in der Vergangenheit. Bitte stelle einen anderen Alarm.",
+    "This time is in the past.":
+        "Diese Zeit liegt in der Vergangenheit.",
+    "Please set another alarm.":
+        "Bitte stelle einen anderen Alarm.",
     "I'm afraid I didn't understand you.":
         "Ich habe dich leider nicht verstanden.",
     "Please see the instructions for this alarm clock app for how to add rooms.":

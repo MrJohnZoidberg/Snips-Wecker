@@ -111,9 +111,11 @@ class AlarmClock:
             return self.translation.get("I'm afraid I didn't understand you.")
         alarm_time = datetime.datetime.strptime(alarm_time_str, "%Y-%m-%d %H:%M")
         if ftime.get_delta_obj(alarm_time).days < 0:  # if date is in the past
-            return self.translation.get("This time is in the past. Please set another alarm.")
+            return "{} {}".format(self.translation.get("This time is in the past."),
+                                  self.translation.get("Please set another alarm."))
         elif ftime.get_delta_obj(alarm_time).seconds < 120:
-            return self.translation.get("This alarm would ring now. Please set another alarm.")
+            return "{} {}".format(self.translation.get("This alarm would ring now."),
+                                  self.translation.get("Please set another alarm."))
         else:
             if alarm_time in self.alarms.keys():  # if list of siteIds already exists
                 if alarm_site_id not in self.alarms[alarm_time]:
@@ -135,7 +137,7 @@ class AlarmClock:
     def get_alarms(self, slots, siteid):
         result = self.filter_alarms(self.alarms, slots, siteid)
         if result['rc'] == 1:
-            return self.translation.get("This time is in the past. Please set another alarm.")
+            return self.translation.get("This time is in the past.")
         elif result['rc'] == 2:
             return self.translation.get("I'm afraid I didn't understand you.")
         elif result['rc'] == 3:
@@ -246,7 +248,7 @@ class AlarmClock:
         """
         result = self.filter_alarms(self.alarms, slots, siteid)
         if result['rc'] == 1:
-            return None, self.translation.get("This time is in the past. Please set another alarm.")
+            return None, self.translation.get("This time is in the past.")
         elif result['rc'] == 2:
             return None, self.translation.get("I'm afraid I didn't understand you.")
         elif result['rc'] == 3:
