@@ -1,4 +1,4 @@
-# Snips-Wecker ⏰
+# Snips-Wecker :alarm_clock:
 An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 
 ##### Table of Contents  
