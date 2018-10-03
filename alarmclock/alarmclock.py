@@ -313,8 +313,9 @@ class AlarmClock:
                 if result['time_part']:
                     time_part = result['time_part']
                 else:
-                    time_part = self.translation.get("at {h}:{min}", {'h': ftime.get_alarm_hour(filtered_alarms),
-                                                                      'min': ftime.get_alarm_minute(filtered_alarms)})
+                    single_dtobj = filtered_alarms.keys[0]
+                    time_part = self.translation.get("at {h}:{min}", {'h': ftime.get_alarm_hour(single_dtobj),
+                                                                      'min': ftime.get_alarm_minute(single_dtobj)})
 
                 response = self.translation.get("The {only_part} alarm {future_part} {time_part} {room_part} "
                                                 "has been deleted.",
