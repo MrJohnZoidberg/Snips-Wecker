@@ -194,7 +194,8 @@ class AlarmClock:
             if result['time_part']:
                 time_part = ""
             else:
-                time_part = result['time_part']
+                time_part = self.translation.get("at {h}:{min}", {'h': ftime.get_alarm_hour(dtobj),
+                                                                  'min': ftime.get_alarm_minute(dtobj)})
             if not result['room_part']:
                 room_part = self.get_roomstr(result['filtered_alarms'][dtobj], siteid)
             else:
