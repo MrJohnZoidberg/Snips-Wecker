@@ -33,7 +33,7 @@ TRANSLATIONS_DE = {
     "{future_part} {time_part} {room_part}":
         "{future_part} {time_part} {room_part}",
     "The alarm {future_part} {time_part} {room_part} has been deleted.":
-        "Der Alarm {future_part} {room_part} {room_part} wurde gelöscht.",
+        "Der Alarm {future_part} {time_part} {room_part} wurde gelöscht.",
     "Alarm is now ended. It's {h}:{min} .":
         "Alarm beendet. Es ist jetzt {h} Uhr {min} .",
     "There are {future_part} {time_part} {room_part} {num} alarms. Are you sure?":
