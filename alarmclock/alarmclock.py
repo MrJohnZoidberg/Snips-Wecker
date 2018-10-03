@@ -135,18 +135,18 @@ class AlarmClock:
     def get_alarms(self, slots, siteid):
         result = self.filter_alarms(self.alarms, slots, siteid)
         if result['rc'] == 1:
-            return None, self.translation.get("This time is in the past. Please set another alarm.")
+            return self.translation.get("This time is in the past. Please set another alarm.")
         elif result['rc'] == 2:
-            return None, self.translation.get("I'm afraid I didn't understand you.")
+            return self.translation.get("I'm afraid I didn't understand you.")
         elif result['rc'] == 3:
-            return None, "{} {}".format(self.translation.get("This room here hasn't been configured yet."),
-                                        self.translation.get("Please see the instructions for this alarm clock "
-                                                             "app for how to add rooms."))
+            return "{} {}".format(self.translation.get("This room here hasn't been configured yet."),
+                                  self.translation.get("Please see the instructions for this alarm clock "
+                                                       "app for how to add rooms."))
         elif result['rc'] == 4:
-            return None, "{} {}".format(self.translation.get("The room {room} has not been configured yet.",
-                                                             {'room': result['room']}),
-                                        self.translation.get("Please see the instructions for this alarm clock "
-                                                             "app for how to add rooms."))
+            return "{} {}".format(self.translation.get("The room {room} has not been configured yet.",
+                                                       {'room': result['room']}),
+                                  self.translation.get("Please see the instructions for this alarm clock "
+                                                       "app for how to add rooms."))
 
         alarm_count = result['alarm_count']
         if alarm_count == 0 or alarm_count == 1:
