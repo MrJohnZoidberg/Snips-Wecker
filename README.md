@@ -31,8 +31,8 @@ also already be set up and connected to your device and your account.
 app `Wecker & Alarme` (by domi; [this]) to
 your *German* assistant.
 
-2. You want to have a more unique alarmclock? Take a look at the section `Configuration` below and see what you can
-change.
+2. You want to have a more unique alarmclock? Take a look at the section [Configuration](#iii-configuration) below and
+see what you can change.
 
 3. Now you may change some parameter values of the alarmclock in the app store.
 
