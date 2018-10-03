@@ -26,12 +26,12 @@ TRANSLATIONS_DE = {
         "Die nächsten fünf sind: ",
     "{num} alarms":
         "{num} Alarme",
-    "There is {room_part} {future_part} {num_part}{end}":
-        "Es gibt {room_part} {future_part} {num_part}{end}",
-    "There are {room_part} {future_part} {num_part}{end}":
-        "Es gibt {room_part} {future_part} {num_part}{end}",
-    "{future_part} at {h}:{min} {room_part}":
-        "{future_part} um {h} Uhr {min} {room_part}",
+    "There is {room_part} {future_part} {future_part} {num_part}{end}":
+        "Es gibt {room_part} {future_part} {future_part} {num_part}{end}",
+    "There are {room_part} {future_part} {future_part} {num_part}{end}":
+        "Es gibt {room_part} {future_part} {future_part} {num_part}{end}",
+    "{future_part} {time_part} {room_part}":
+        "{future_part} {time_part} {room_part}",
     "The alarm {future_part} {room_part} has been deleted.":
         "Der Alarm {future_part} {room_part} wurde gelöscht.",
     "Alarm is now ended. It's {h}:{min} .":

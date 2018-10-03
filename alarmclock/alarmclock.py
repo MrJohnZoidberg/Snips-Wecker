@@ -156,17 +156,19 @@ class AlarmClock:
             else:
                 count_part = self.translation.get("one alarm")
                 end_part = " "
-            response = self.translation.get("There is {room_part} {future_part} {num_part}{end}",
+            response = self.translation.get("There is {room_part} {future_part} {time_part} {num_part}{end}",
                                             {'room_part': result['room_part'],
                                              'future_part': result['future_part'],
+                                             'time_part': result['time_part'],
                                              'num_part': count_part,
                                              'end': end_part})
         else:
             count_part = self.translation.get("{num} alarms", {'num': alarm_count})
             end_part = ". "
-            response = self.translation.get("There are {room_part} {future_part} {num_part}{end}",
+            response = self.translation.get("There are {room_part} {future_part} {time_part} {num_part}{end}",
                                             {'room_part': result['room_part'],
                                              'future_part': result['future_part'],
+                                             'time_part': result['time_part'],
                                              'num_part': count_part,
                                              'end': end_part})
         alarms = result['sorted_alarms']
@@ -189,13 +191,17 @@ class AlarmClock:
                 future_part = self.get_future_part(dtobj, only_date=True)
             else:
                 future_part = ""
+            if result['time_part']:
+                time_part = ""
+            else:
+                time_part = result['time_part']
             if not result['room_part']:
                 room_part = self.get_roomstr(result['filtered_alarms'][dtobj], siteid)
             else:
                 room_part = ""
-            response += self.translation.get("{future_part} at {h}:{min} {room_part}",
-                                             {'room_part': room_part, 'future_part': future_part,
-                                              'h': ftime.get_alarm_hour(dtobj), 'min': ftime.get_alarm_minute(dtobj)})
+            response += self.translation.get("{future_part} {time_part} {room_part}",
+                                             {'room_part': room_part, 'time_part': time_part,
+                                              'future_part': future_part})
             if dtobj != alarms[-1]:
                 response += ", "
             else:
@@ -217,6 +223,7 @@ class AlarmClock:
                                                              {'room': result['room']}),
                                         self.translation.get("Please see the instructions for this alarm clock "
                                                              "app for how to add rooms."))
+        # TODO
 
     def delete_alarms_try(self, slots, siteid):
         """
@@ -461,6 +468,7 @@ class AlarmClock:
         """Helper function which filters alarms with datetime and rooms"""
 
         future_part = ""
+        time_part = ""
         room_part = ""
         # fill the list with all alarms and then filter it
         filtered_alarms = {dtobj: alarms[dtobj] for dtobj in alarms}
@@ -474,9 +482,9 @@ class AlarmClock:
                         return {'rc': 1}
                     filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj == alarm_time}
-                    future_part += " " + self.translation.get("at {h}:{min}",
-                                                              {'h': ftime.get_alarm_hour(alarm_time),
-                                                               'min': ftime.get_alarm_minute(alarm_time)})
+                    time_part = self.translation.get("at {h}:{min}",
+                                                     {'h': ftime.get_alarm_hour(alarm_time),
+                                                      'min': ftime.get_alarm_minute(alarm_time)})
                 else:
                     # TODO: Make more functional (with delta_object function)
                     now = datetime.datetime.now()
@@ -530,6 +538,7 @@ class AlarmClock:
             'sorted_alarms': filtered_alarms_sorted,
             'alarm_count': alarm_count,
             'future_part': future_part,
+            'time_part': time_part,
             'room_part': room_part
         }
 

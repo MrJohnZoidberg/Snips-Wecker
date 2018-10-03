@@ -1,14 +1,14 @@
 # Snips-Wecker ⏰
 An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 
-## Features
+## I. Features
 
 - Full multi-room support 🏠
 - context-awareness: it detects what room you're in  💬
 - customizable (ringtone sound, volume, ringing timeout, rooms) 🛠
 
 
-## Installation
+## II. Installation
 
 ⚠ The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
 already configured and running on your device (e.g. a Raspberry Pi 3 from the 
@@ -37,7 +37,9 @@ change.
       sam install assistant
       ```
     
-## Configuration
+## III. Configuration
+
+### 1. Normal (single/multi-room)
 
 In the Snips console or manually in the file `/var/lib/snips/skills/Snips-Wecker/config.ini` you can change
 some parameters that influence the behaviour of the alarm clock app:
@@ -49,21 +51,18 @@ some parameters that influence the behaviour of the alarm clock app:
 | restore_alarms | yes     | yes/no | Whether the alarms should be restored after reboot |
 | ringtone_status | on | on/off | Describes the state of the ringtone. If it's off, only a MQTT message will be sent when the alarm is ringing |
 
-### Multi-room specific
+### 2. Multi-room specific
 
-#### Parameter `dict_site-id`
+- **Parameter** `dict_site-id`:<br/>
+  Important if you have a multi-room setup of Snips! These are pairs of room names and siteIds of these rooms.
 
-Important if you have a multi-room setup of Snips!
-These are pairs of room names and siteIds of these rooms.
+  Default: `Schlafzimmer:default`
 
-Default: `Schlafzimmer:default`
+- **Parameter** `default_room`:<br/>
+  Important if you have a multi-room setup of Snips!<br/>
+  Here must be the name of the room in which the alarm is to be set, if no room was said in the command.
 
-#### Parameter `default_room`
-
-Important if you have a multi-room setup of Snips!
-Here must be the name of the room in which the alarm is to be set, if no room was said in the command.
-
-Default: `Schlafzimmer`
+  Default: `Schlafzimmer`
 
 #### Examples of multi-room configurations
 
@@ -76,20 +75,20 @@ Parameters values in the [Snips console](https://console.snips.ai/) in this app:
 - dict_site-id: `Wohnzimmer:main, Küche:kitchen, Büro:office, Schlafzimmer:bedroom`
 - default_room: `Schlafzimmer`
 
-## Usage
+## IV. Usage
 
-### Example sentences
+### 1. Example sentences
 
 Todo
 
-### While ringing
+### 2. While ringing
 
 While an alarm is ringing in a room you can say a hotword in this room, which is by default "Hey Snips!".
 The ringtone
 
 ![img](resources/Snips-Alarmclock-ringing.png)
 
-### MQTT messages
+### 3. MQTT messages
 
 #### In messages
 
@@ -149,7 +148,7 @@ JSON Payload:
 |siteId|*String* - Site where the alarmclock is ringing|
 |room|*String* - Room name where the alarmclock is ringing|
 
-## Troubleshooting
+## V. Troubleshooting
 
 - I can't receive some MQTT messages from the Alarmclock.
 
@@ -158,12 +157,12 @@ JSON Payload:
     limit is 128 bytes. In the file `<Arduino libraries folder>/PubSubClient/src/PubSubClient.h` the constant 
     `MQTT_MAX_PACKET_SIZE` must be increased. How much? This depends on how many alarms you will create.
 
-## Coming soon...
+## VI. Coming soon...
 
 - Ask for missed alarms
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping [______________________]
-- Internationalisation [#############_]
+- Internationalisation [###########____]
 - Nice README [###_________________]
 - Send alarm data over MQTT [###_________________]
 - Ability to change the ringtone sound [########__________]
@@ -171,10 +170,10 @@ JSON Payload:
 - Publish app in the snips console app store
 
 
-## Contribution
+## VII. Contribution
 
-Please report errors (you can see them with `sam service log snips-skill-server` or on the Pi
-with `sudo tail -f /var/log/syslog`) and bugs by opening
+Please report errors and bugs (you can see them with `sam service log snips-skill-server` or on the Pi
+with `sudo tail -f /var/log/syslog`) by opening
 a [new issue](https://github.com/MrJohnZoidberg/Snips-Wecker/issues/new).
 You can also write other ideas for this app. Thank you for your contribution.
 
