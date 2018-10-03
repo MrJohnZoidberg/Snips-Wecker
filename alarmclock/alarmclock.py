@@ -264,7 +264,8 @@ class AlarmClock:
             if result['alarm_count'] == 1:
                 # TODO: Say future part and room part if single alarm delete
                 # TODO: Say "der einzige" if this single alarm was the last one
-                self.delete_alarms(result['filtered_alarms'])
+                filtered_alarms = dict(result['filtered_alarms'])
+                self.delete_alarms(filtered_alarms)
                 return None, self.translation.get("The alarm {future_part} {time_part} {room_part} has been deleted.",
                                                   {'future_part': result['future_part'],
                                                    'time_part': result['time_part'], 'room_part': result['room_part']})

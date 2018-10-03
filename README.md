@@ -1,11 +1,14 @@
 # Snips-Wecker ⏰
 An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 
+**Content:**
+- [Features](#i-features)
+
 ## I. Features
 
-- Full multi-room support 🏠
-- context-awareness: it detects what room you're in  💬
-- customizable (ringtone sound, volume, ringing timeout, rooms) 🛠
+- Full multi-room support :house:
+- context-awareness: it detects what room you're in :speech_balloon:
+- customizable (ringtone sound, volume, ringing timeout, rooms) :wrench:
 
 
 ## II. Installation
@@ -159,7 +162,7 @@ JSON Payload:
 
 ## VI. Coming soon...
 
-- Ask for missed alarms
+- Ask for missed alarms [######______________]
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping [______________________]
 - Internationalisation [###########____]
