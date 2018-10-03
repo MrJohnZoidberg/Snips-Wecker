@@ -625,4 +625,4 @@ class AlarmClock:
                                               'h_from': h_from, 'min_from': min_from})
         else:
             from_part = ""
-        return from_part + " " + to_part
+        return "{} {}".format(from_part, to_part)
