@@ -7,7 +7,7 @@ An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 [Configuration](#iii-configuration)  
 [Usage](#iv-usage)  
 [Troubleshooting](#v-troubleshooting)  
-[Coming soon...](#vi-coming-soon)  
+[Coming soon](#vi-coming-soon)  
 [Contribution](#vii-contribution)  
 
 
@@ -20,7 +20,7 @@ An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 
 ## II. Installation
 
-⚠ The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
+:exclamation: The following instructions assume that [Snips](https://snips.gitbook.io/documentation/snips-basics) is
 already configured and running on your device (e.g. a Raspberry Pi 3 from the 
 [Snips Maker Kit](https://makers.snips.ai/kit/) with 
 [Raspbian](https://www.raspberrypi.org/downloads/raspbian/) Stretch Lite). 
@@ -167,7 +167,7 @@ JSON Payload:
     limit is 128 bytes. In the file `<Arduino libraries folder>/PubSubClient/src/PubSubClient.h` the constant 
     `MQTT_MAX_PACKET_SIZE` must be increased. How much? This depends on how many alarms you will create.
 
-## VI. Coming soon...
+## VI. Coming :soon:
 
 - Ask for missed alarms [######______________]
 - New setting: snooze en/disabled (then don't end session)
