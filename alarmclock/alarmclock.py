@@ -304,12 +304,22 @@ class AlarmClock:
         elif result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
                 # TODO: Say future part and room part if single alarm delete
-                # TODO: Say "der einzige" if this single alarm was the last one
+                if len([sid for lst in self.alarms.itervalues() for sid in lst]) == 1:
+                    only_part = self.translation.get("only")
+                else:
+                    only_part = ""
                 filtered_alarms = dict(result['filtered_alarms'])
                 self.delete_alarms(filtered_alarms)
-                response = self.translation.get("The alarm {future_part} {time_part} {room_part} has been deleted.",
-                                                {'future_part': result['future_part'],
-                                                 'time_part': result['time_part'], 'room_part': result['room_part']})
+                if result['time_part']:
+                    time_part = result['time_part']
+                else:
+                    time_part = self.translation.get("at {h}:{min}", {'h': ftime.get_alarm_hour(filtered_alarms),
+                                                                      'min': ftime.get_alarm_minute(filtered_alarms)})
+
+                response = self.translation.get("The {only_part} alarm {future_part} {time_part} {room_part} "
+                                                "has been deleted.",
+                                                {'only_part': only_part, 'future_part': result['future_part'],
+                                                 'time_part': time_part, 'room_part': result['room_part']})
             else:
                 response = self.translation.get("There are {future_part} {time_part} {room_part} {num} alarms. "
                                                 "Are you sure?",
