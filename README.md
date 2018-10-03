@@ -1,8 +1,15 @@
 # Snips-Wecker ⏰
 An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 
-**Content:**
-- [Features](#i-features)
+##### Table of Contents  
+[Features](#i-features)
+[Installation](#ii-installation)
+[Configuration](#iii-configuration)
+[Usage](#iv-usage)
+[Troubleshooting](#v-troubleshooting)
+[Coming soon...](#vi-coming-soon)
+[Contribution](#vii-contribution)
+
 
 ## I. Features
 
