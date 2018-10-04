@@ -505,7 +505,7 @@ class AlarmClock:
         :param msg: MQTT message object (from paho)
         :return: Nothing
         """
-
+        print(self.snooze_status)
         data = json.loads(msg.payload.decode("utf-8"))
         if not self.snooze_status and data['siteId'] in self.siteids_session_not_ended:
             now_time = datetime.datetime.now()
