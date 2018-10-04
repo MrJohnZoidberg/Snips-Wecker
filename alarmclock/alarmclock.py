@@ -11,7 +11,7 @@ import formattime as ftime           # ftime.py
 from translation import Translation  # translation.py
 import functools                     # functools.partial for threading.Timeout callback with parameter
 import io                            # open the file for saving the alarms
-import re
+import re                            # remove multiple spaces in strings
 
 
 class AlarmClock:
@@ -30,8 +30,10 @@ class AlarmClock:
         self.ringing_dict = {self.dict_siteids[room]: {'state': False, 'current_id': None}
                              for room in self.dict_siteids}
         self.ringtone_status = utils.get_ringtonestat(config)
+        self.snooze_status = utils.get_snoozestat(config)
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
         self.alarms = self.read_alarms(utils.get_restorestat(config))
+        self.save_alarms()
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
         # self.timeout_thr_dict -> { key=siteId: value=timeout_thread } (dict for threading-objects)
@@ -205,7 +207,7 @@ class AlarmClock:
         return response
 
     def get_missed(self, slots, siteid):
-        result = self.filter_alarms(self.missed_alarms, slots, siteid, no_past=True)
+        result = self.filter_alarms(self.missed_alarms, slots, siteid, timeslot_with_past=True)
         if result['rc'] == 2:
             return None, self.translation.get("I'm afraid I didn't understand you.")
         elif result['rc'] == 3:
@@ -303,7 +305,6 @@ class AlarmClock:
                                                            "app for how to add rooms."))
         elif result['alarm_count'] >= 1:
             if result['alarm_count'] == 1:
-                # TODO: Say future part and room part if single alarm delete
                 if len([sid for lst in self.alarms.itervalues() for sid in lst]) == 1:
                     only_part = self.translation.get("only")
                 else:
@@ -313,7 +314,7 @@ class AlarmClock:
                 if result['time_part']:
                     time_part = result['time_part']
                 else:
-                    single_dtobj = filtered_alarms.keys[0]
+                    single_dtobj = filtered_alarms.keys()[0]
                     time_part = self.translation.get("at {h}:{min}", {'h': ftime.get_alarm_hour(single_dtobj),
                                                                       'min': ftime.get_alarm_minute(single_dtobj)})
 
@@ -369,7 +370,9 @@ class AlarmClock:
                     dic_al_str = {}
         else:
             dic_al_str = {}  # { key=datetime_obj: value=siteId_list }
-        alarms = {datetime.datetime.strptime(dtstr, "%Y-%m-%d %H:%M"): dic_al_str[dtstr] for dtstr in dic_al_str}
+        tformat = "%Y-%m-%d %H:%M"
+        alarms = {datetime.datetime.strptime(dtstr, tformat): dic_al_str[dtstr] for dtstr in dic_al_str
+                  if ftime.get_delta_obj(datetime.datetime.strptime(dtstr, tformat), only_date=False).days >= 0}
         return alarms
 
     def clock(self):
@@ -440,6 +443,9 @@ class AlarmClock:
             self.missed_alarms[self.ringing_dict[siteid]['time']] = [siteid]
         self.stop_ringing(siteid)
 
+    def alarm_snooze(self):
+        pass
+
     def on_message_playfinished(self, client, userdata, msg):
 
         """
@@ -501,14 +507,18 @@ class AlarmClock:
         """
 
         data = json.loads(msg.payload.decode("utf-8"))
-        if data['siteId'] in self.siteids_session_not_ended:
+        if not self.snooze_status and data['siteId'] in self.siteids_session_not_ended:
             now_time = datetime.datetime.now()
+            text = self.translation.get("Alarm is now ended.") + " " + self.translation.get("It's {h}:{min} .", {
+                'h': ftime.get_alarm_hour(now_time), 'min': ftime.get_alarm_minute(now_time)})
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
-                                     json.dumps({"text": self.translation.get("Alarm is now ended. It's {h}:{min} .", {
-                                         'h': ftime.get_alarm_hour(now_time),
-                                         'min': ftime.get_alarm_minute(now_time)}), "sessionId": data['sessionId']}))
+                                     json.dumps({"text": text, "sessionId": data['sessionId']}))
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.siteids_session_not_ended.remove(data['siteId'])
+        elif self.snooze_status and data['siteId'] in self.siteids_session_not_ended:
+            self.mqtt_client.publish('hermes/dialogueManager/continueSession',
+                                     json.dumps({"sessionId": data['sessionId'],
+                                                 'intentFilter': ["domi:bla"]}))
 
     def on_message_setringtone(self, client, userdata, msg):
 
@@ -531,7 +541,7 @@ class AlarmClock:
         if 'ringtoneBytes' in data.keys():
             self.ringtone_wav = data['ringtoneBytes']
 
-    def filter_alarms(self, alarms, slots, siteid, no_past=False):
+    def filter_alarms(self, alarms, slots, siteid, timeslot_with_past=False):
 
         """Helper function which filters alarms with datetime and rooms"""
 
@@ -546,7 +556,7 @@ class AlarmClock:
                 alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
                 future_part = self.get_future_part(alarm_time, only_date=True)
                 if slots['time']['grain'] == "Hour" or slots['time']['grain'] == "Minute":
-                    if not no_past and ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
+                    if not timeslot_with_past and ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
                         return {'rc': 1}
                     filtered_alarms = {dtobj: alarms[dtobj] for dtobj in filtered_alarms
                                        if dtobj == alarm_time}
@@ -632,7 +642,8 @@ class AlarmClock:
         alarm_weekday = self.translation.get(weekdays[alarm_time.weekday()])
         delta_days = ftime.get_delta_obj(alarm_time, only_date=True).days
         delta_hours = (alarm_time - ftime.get_now_time()).seconds // 3600
-        if delta_hours <= 12 and not only_date:
+        # TODO: Morgen um 10:30 -> In 6 Stunden um 10:30
+        if delta_days == 0 and delta_hours <= 12 and not only_date:
             minutes_remain = ((alarm_time - ftime.get_now_time()).seconds % 3600) // 60
             if delta_hours == 1:  # for word fix in German
                 hour_words = self.translation.get("one hour")
@@ -649,7 +660,7 @@ class AlarmClock:
                                                                                  'minute_part': minute_words})
             else:
                 return "in {minute_part}".format(minute_part=minute_words)
-        elif delta_days == 0:
+        elif delta_days == 0 and delta_hours > 12:
             return self.translation.get("today")
         elif delta_days == 1:
             return self.translation.get("tomorrow")

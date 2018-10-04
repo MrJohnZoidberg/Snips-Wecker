@@ -64,11 +64,20 @@ def get_restorestat(config):
 
 def get_ringtonestat(config):
     ringtone_str = config['global']['ringtone_status'].encode('utf8')
-    if ringtone_str == "no":
+    if ringtone_str == "off":
         ringtone_status = False
     else:
         ringtone_status = True
     return ringtone_status
+
+
+def get_snoozestat(config):
+    snooze_str = config['global']['snooze_status'].encode('utf8')
+    if snooze_str == "off":
+        snooze_status = False
+    else:
+        snooze_status = True
+    return snooze_status
 
 
 def edit_volume(wav_path, volume):

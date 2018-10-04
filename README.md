@@ -170,7 +170,8 @@ JSON Payload:
 ## VI. Coming :soon:
 
 - Clean past alarms at start of app
-- Ask for missed alarms [#########________]
+- Ask for missed alarms [############_]
+    - Write more sentences in Snips console
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping [______________________]
 - Internationalisation [###########____]

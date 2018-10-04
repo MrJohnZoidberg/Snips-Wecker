@@ -34,8 +34,10 @@ TRANSLATIONS_DE = {
         "{future_part} {time_part} {room_part}",
     "The {only_part} alarm {future_part} {time_part} {room_part} has been deleted.":
         "Der {only_part} Alarm {future_part} {time_part} {room_part} wurde gelöscht.",
-    "Alarm is now ended. It's {h}:{min} .":
-        "Alarm beendet. Es ist jetzt {h} Uhr {min} .",
+    "Alarm is now ended.":
+        "Alarm beendet.",
+    "It's {h}:{min} .":
+        "Es ist jetzt {h} Uhr {min} .",
     "There are {future_part} {time_part} {room_part} {num} alarms. Are you sure?":
         "Es gibt {future_part} {time_part} {room_part} {num} Alarme. Bist du dir sicher?",
     "There is no alarm {room_part} {future_part} {time_part}.":
@@ -99,7 +101,9 @@ TRANSLATIONS_DE = {
     "on {weekday} in exactly one week":
         "am {weekday} in genau einer Woche",
     "only":
-        "einzige"
+        "einzige",
+    "Repeat the following sentence.":
+        "Wiederhole den folgenden Satz."
 }
 
 

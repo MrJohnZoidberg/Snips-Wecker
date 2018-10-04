@@ -5,4 +5,5 @@ dict_site-id=Schlafzimmer:default
 default_room=Schlafzimmer
 restore_alarms=yes
 ringtone_status=on
+snooze_status=on
 [secret]
