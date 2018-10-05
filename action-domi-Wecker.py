@@ -63,16 +63,16 @@ def on_message_intent(client, userdata, msg):
         slots = get_slots(data)
         multi_alarms, response = alarmclock.delete_alarms_try(slots, data['siteId'])
         if multi_alarms:
-            alarmclock.confirm_intents[data['siteId']] = {'past_intent': intent_id,
-                                                          'alarms': multi_alarms}
+            alarmclock.temp_memory[data['siteId']] = {'past_intent': intent_id,
+                                                      'alarms': multi_alarms}
             dialogue(session_id, response, [user_intent('confirmAlarm')])
         else:
             say(session_id, response)
 
     elif intent_id == user_intent('confirmAlarm'):
-        confirm_data = alarmclock.confirm_intents[data['siteId']]
+        confirm_data = alarmclock.temp_memory[data['siteId']]
         if confirm_data and 'past_intent' in confirm_data.keys():
-            past_data = alarmclock.confirm_intents[data['siteId']]
+            past_data = alarmclock.temp_memory[data['siteId']]
             slots = get_slots(data)
             if slots['answer']['value'] == "yes":
                 if past_data['past_intent'] == user_intent('deleteAlarms'):
@@ -80,7 +80,7 @@ def on_message_intent(client, userdata, msg):
                         say(session_id, response)
             else:
                 end_session(session_id)
-            alarmclock.confirm_intents[data['siteId']] = None
+            alarmclock.temp_memory[data['siteId']] = None
 
     elif intent_id == user_intent('answerAlarm'):
         slots = get_slots(data)
@@ -89,8 +89,8 @@ def on_message_intent(client, userdata, msg):
 
 def on_session_ended(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
-    if alarmclock.confirm_intents[data['siteId']] and data['termination']['reason'] != "nominal":
-        alarmclock.confirm_intents[data['siteId']] = None
+    if alarmclock.temp_memory[data['siteId']] and data['termination']['reason'] != "nominal":
+        alarmclock.temp_memory[data['siteId']] = None
 
 
 def say(session_id, text):

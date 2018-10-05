@@ -26,7 +26,7 @@ class AlarmClock:
         self.default_room = utils.get_dfroom(config)
         self.saved_alarms_path = ".saved_alarms.json"
         self.remembered_slots = {}
-        self.confirm_intents = {self.dict_siteids[room]: None for room in self.dict_siteids}
+        self.temp_memory = {self.dict_siteids[room]: None for room in self.dict_siteids}
         # self.ringing_dict -> { key=siteId: value={ key='state' value=True/False; key='current_id' value=uuid} }
         self.ringing_dict = {self.dict_siteids[room]: {'state': False, 'current_id': None}
                              for room in self.dict_siteids}
@@ -222,8 +222,7 @@ class AlarmClock:
                                                              "app for how to add rooms."))
         filtered_alarms = dict(result['filtered_alarms'])
         self.missed_alarms = {dtobj: [sid for sid in self.missed_alarms[dtobj]
-                               if sid not in [x for lst in filtered_alarms.itervalues() for x in lst]
-                               or dtobj not in filtered_alarms.keys()] for dtobj in self.missed_alarms}
+                                      or dtobj not in filtered_alarms.keys()] for dtobj in self.missed_alarms}
         self.missed_alarms = {dtobj: self.missed_alarms[dtobj] for dtobj in self.missed_alarms
                               if self.missed_alarms[dtobj]}
 
@@ -398,6 +397,7 @@ class AlarmClock:
                     self.mqtt_client.publish('external/alarmclock/ringing', json.dumps({'siteId': siteid,
                                                                                         'room': room}))
                     if self.ringtone_status:
+                        self.temp_memory[siteid] = {'alarm': now_time}
                         self.mqtt_client.message_callback_add('hermes/audioServer/{site_id}/playFinished'.format(
                             site_id=siteid), self.on_message_playfinished)
                         self.ring(siteid)
@@ -521,10 +521,19 @@ class AlarmClock:
         # TODO
         if slots and 'answer' in slots.keys():
             if slots['answer'] == "snooze" and 'duration' in slots.keys():
-                pass
+                # TODO: max duration
+                next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(minutes=slots['duration'])
+                if self.alarms[next_alarm]:
+                    self.alarms[next_alarm].append(siteid)
+                else:
+                    self.alarms[next_alarm] = [siteid]
             elif slots['answer'] == "snooze" and 'duration' not in slots.keys():
-                pass
-            elif slots['answer'] == "stop":
+                next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(minutes=5)
+                if self.alarms[next_alarm]:
+                    self.alarms[next_alarm].append(siteid)
+                else:
+                    self.alarms[next_alarm] = [siteid]
+            elif slots['answer'] == "stop" and not self.config("challenge"):
                 pass
             else:
                 pass
