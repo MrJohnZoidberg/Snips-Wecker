@@ -54,7 +54,7 @@ def get_dfroom(config):
 
 
 def get_restorestat(config):
-    restore_str = config['global']['restore_alarms'].encode('utf8')
+    restore_str = config['global']['restore_alarms'].encode('utf8').strip()
     if restore_str == "no":
         restore_status = False
     else:
@@ -63,21 +63,27 @@ def get_restorestat(config):
 
 
 def get_ringtonestat(config):
-    ringtone_str = config['global']['ringtone_status'].encode('utf8')
-    if ringtone_str == "off":
-        ringtone_status = False
+    ringtone_str = config['global']['ringtone_status'].encode('utf8').strip()
+    if ringtone_str not in ["off", "on"] or ringtone_str == "on":
+        return True
     else:
-        ringtone_status = True
-    return ringtone_status
+        return False
 
 
 def get_snoozestat(config):
-    snooze_str = config['global']['snooze_status'].encode('utf8')
-    if snooze_str == "off":
-        snooze_status = False
+    snooze_str = config['global']['snooze_status'].encode('utf8').strip()
+    if snooze_str not in ["off", "on"] or snooze_str == "off":
+        return False
     else:
-        snooze_status = True
-    return snooze_status
+        return True
+
+
+def get_captchatype(config):
+    captcha_type_str = config['global']['captcha_type'].encode('utf8').strip()
+    if captcha_type_str not in ["clock", "math"]:
+        return "clock"
+    else:
+        return captcha_type_str
 
 
 def edit_volume(wav_path, volume):

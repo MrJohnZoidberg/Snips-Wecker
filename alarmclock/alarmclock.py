@@ -18,6 +18,7 @@ class AlarmClock:
     def __init__(self, config):
         self.ringtone_wav = utils.edit_volume("alarm-sound.wav", utils.get_ringvol(config))
         self.ringing_timeout = utils.get_ringtmo(config)
+        self.captcha_type = utils.get_captchatype(config)
         # self.dict_siteids -> { key=RoomName: value=siteId }
         self.dict_siteids = utils.get_dsiteid(config)
         # self.dict_rooms -> { key=siteId: value=RoomName }
@@ -443,9 +444,6 @@ class AlarmClock:
             self.missed_alarms[self.ringing_dict[siteid]['time']] = [siteid]
         self.stop_ringing(siteid)
 
-    def alarm_snooze(self):
-        pass
-
     def on_message_playfinished(self, client, userdata, msg):
 
         """
@@ -505,7 +503,6 @@ class AlarmClock:
         :param msg: MQTT message object (from paho)
         :return: Nothing
         """
-        print(self.snooze_status)
         data = json.loads(msg.payload.decode("utf-8"))
         if not self.snooze_status and data['siteId'] in self.siteids_session_not_ended:
             now_time = datetime.datetime.now()
@@ -518,7 +515,21 @@ class AlarmClock:
         elif self.snooze_status and data['siteId'] in self.siteids_session_not_ended:
             self.mqtt_client.publish('hermes/dialogueManager/continueSession',
                                      json.dumps({"sessionId": data['sessionId'],
-                                                 'intentFilter': ["domi:bla"]}))
+                                                 'intentFilter': ["domi:answerAlarm"]}))
+
+    def answer_alarm(self, slots, siteid):
+        # TODO
+        if slots and 'answer' in slots.keys():
+            if slots['answer'] == "snooze" and 'duration' in slots.keys():
+                pass
+            elif slots['answer'] == "snooze" and 'duration' not in slots.keys():
+                pass
+            elif slots['answer'] == "stop":
+                pass
+            else:
+                pass
+        else:
+            return self.translation.get("I'm afraid I didn't understand you.")
 
     def on_message_setringtone(self, client, userdata, msg):
 

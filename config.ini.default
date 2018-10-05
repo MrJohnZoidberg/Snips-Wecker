@@ -6,4 +6,5 @@ default_room=Schlafzimmer
 restore_alarms=yes
 ringtone_status=on
 snooze_status=on
+captcha_type=clock
 [secret]

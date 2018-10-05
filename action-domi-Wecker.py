@@ -82,6 +82,10 @@ def on_message_intent(client, userdata, msg):
                 end_session(session_id)
             alarmclock.confirm_intents[data['siteId']] = None
 
+    elif intent_id == user_intent('answerAlarm'):
+        slots = get_slots(data)
+        alarmclock.answer_alarm(slots, data['siteId'])
+
 
 def on_session_ended(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
