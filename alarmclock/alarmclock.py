@@ -16,24 +16,22 @@ import re                            # remove multiple spaces in strings
 
 class AlarmClock:
     def __init__(self, config):
-        self.ringtone_wav = utils.edit_volume("alarm-sound.wav", utils.get_ringvol(config))
-        self.ringing_timeout = utils.get_ringtmo(config)
-        self.captcha_type = utils.get_captchatype(config)
+        self.config = utils.get_config(config)
+        self.ringtone_wav = utils.edit_volume("alarm-sound.wav", self.config['ringing_volume'])
         # self.dict_siteids -> { key=RoomName: value=siteId }
-        self.dict_siteids = utils.get_dsiteid(config)
+        self.dict_siteids = self.config['dict_site-id']
         # self.dict_rooms -> { key=siteId: value=RoomName }
         self.dict_rooms = {siteid: room for room, siteid in self.dict_siteids.iteritems()}
-        self.default_room = utils.get_dfroom(config)
+        self.default_room = self.config['default_room']
         self.saved_alarms_path = ".saved_alarms.json"
         self.remembered_slots = {}
         self.temp_memory = {self.dict_siteids[room]: None for room in self.dict_siteids}
         # self.ringing_dict -> { key=siteId: value={ key='state' value=True/False; key='current_id' value=uuid} }
         self.ringing_dict = {self.dict_siteids[room]: {'state': False, 'current_id': None}
                              for room in self.dict_siteids}
-        self.ringtone_status = utils.get_ringtonestat(config)
-        self.snooze_status = utils.get_snoozestat(config)
+        self.ringtone_status = self.config['ringtone_status']
         self.siteids_session_not_ended = []  # list for func 'on_message_sessionstarted'
-        self.alarms = self.read_alarms(utils.get_restorestat(config))
+        self.alarms = self.read_alarms()
         self.save_alarms()
         self.clock_thread = threading.Thread(target=self.clock)
         self.clock_thread.start()
@@ -361,8 +359,8 @@ class AlarmClock:
         with io.open(path, "w") as f:
             f.write(unicode(json.dumps(dic_al_str)))
 
-    def read_alarms(self, restore_alarms):
-        if restore_alarms:
+    def read_alarms(self):
+        if self.config['ringtone_status']:
             with io.open(self.saved_alarms_path, "r") as f:
                 try:
                     dic_al_str = json.load(f)
@@ -403,7 +401,7 @@ class AlarmClock:
                         self.ring(siteid)
                         self.ringing_dict[siteid]['state'] = True
                         self.ringing_dict[siteid]['time'] = now_time
-                        timeout_thread = threading.Timer(self.ringing_timeout,
+                        timeout_thread = threading.Timer(self.config['ringing_timeout'],
                                                          functools.partial(self.timeout_reached, siteid))
                         self.timeout_thr_dict[siteid] = timeout_thread
                         timeout_thread.start()
@@ -504,7 +502,7 @@ class AlarmClock:
         :return: Nothing
         """
         data = json.loads(msg.payload.decode("utf-8"))
-        if not self.snooze_status and data['siteId'] in self.siteids_session_not_ended:
+        if not self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             now_time = datetime.datetime.now()
             text = self.translation.get("Alarm is now ended.") + " " + self.translation.get("It's {h}:{min} .", {
                 'h': ftime.get_alarm_hour(now_time), 'min': ftime.get_alarm_minute(now_time)})
@@ -512,9 +510,9 @@ class AlarmClock:
                                      json.dumps({"text": text, "sessionId": data['sessionId']}))
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.siteids_session_not_ended.remove(data['siteId'])
-        elif self.snooze_status and data['siteId'] in self.siteids_session_not_ended:
+        elif self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             self.mqtt_client.publish('hermes/dialogueManager/continueSession',
-                                     json.dumps({"sessionId": data['sessionId'],
+                                     json.dumps({'text': "Bla.", 'sessionId': data['sessionId'],
                                                  'intentFilter': ["domi:answerAlarm"]}))
 
     def answer_alarm(self, slots, siteid):
@@ -527,16 +525,19 @@ class AlarmClock:
                     self.alarms[next_alarm].append(siteid)
                 else:
                     self.alarms[next_alarm] = [siteid]
+                return "Ich wecke dich in 2 Minuten."
             elif slots['answer'] == "snooze" and 'duration' not in slots.keys():
-                next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(minutes=5)
+                next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
+                    minutes=self.config['snooze_config']['default_duration'])
                 if self.alarms[next_alarm]:
                     self.alarms[next_alarm].append(siteid)
                 else:
                     self.alarms[next_alarm] = [siteid]
+                return "Ich wecke dich in 3 Minuten."
             elif slots['answer'] == "stop" and not self.config("challenge"):
-                pass
+                return "Ich wecke dich in 4 Minuten."
             else:
-                pass
+                return "Ich wecke dich in 5 Minuten."
         else:
             return self.translation.get("I'm afraid I didn't understand you.")
 

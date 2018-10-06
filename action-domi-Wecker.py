@@ -83,8 +83,11 @@ def on_message_intent(client, userdata, msg):
             alarmclock.temp_memory[data['siteId']] = None
 
     elif intent_id == user_intent('answerAlarm'):
+        print("AHAHAHAHAHAHAHA")
         slots = get_slots(data)
-        alarmclock.answer_alarm(slots, data['siteId'])
+        answer = alarmclock.answer_alarm(slots, data['siteId'])
+        print("ANSWERR: ", answer)
+        say(session_id, answer)
 
 
 def on_session_ended(client, userdata, msg):
