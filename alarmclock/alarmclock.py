@@ -514,7 +514,7 @@ class AlarmClock:
             self.siteids_session_not_ended.remove(data['siteId'])
         elif self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             self.mqtt_client.publish('hermes/dialogueManager/continueSession',
-                                     json.dumps({'text': "Bla.", 'sessionId': data['sessionId'],
+                                     json.dumps({'sessionId': data['sessionId'],
                                                  'intentFilter': ["domi:answerAlarm"]}))
 
     def answer_alarm(self, slots, siteid):
@@ -533,7 +533,7 @@ class AlarmClock:
                     self.alarms[next_alarm].append(siteid)
                 else:
                     self.alarms[next_alarm] = [siteid]
-                return "Ich wecke dich wieder in {min} Minuten."
+                return "Ich wecke dich wieder in {min} Minuten.".format(min=int(slots['duration']['minutes']))
             elif slots['answer'] == "snooze" and 'duration' not in slots.keys():
                 next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
                     minutes=self.config['snooze_config']['default_duration'])
