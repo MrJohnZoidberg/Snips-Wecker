@@ -34,7 +34,7 @@ def read_configuration_file(configuration_file):
 def get_slots(data):
     slot_dict = {}
     for slot in data['slots']:
-        if slot['value']['kind'] in ["InstantTime", "Custom", "TimeInterval"]:
+        if slot['value']['kind'] in ["InstantTime", "TimeInterval"]:
             slot_dict[slot['slotName']] = slot['value']
         elif slot['value']['kind'] == "Duration":
             slot_dict[slot['slotName']] = slot
