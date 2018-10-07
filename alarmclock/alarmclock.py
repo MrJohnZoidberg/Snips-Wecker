@@ -502,6 +502,8 @@ class AlarmClock:
         :return: Nothing
         """
         data = json.loads(msg.payload.decode("utf-8"))
+        print(self.config['snooze_config']['state'])
+        print(self.siteids_session_not_ended)
         if not self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             now_time = datetime.datetime.now()
             text = self.translation.get("Alarm is now ended.") + " " + self.translation.get("It's {h}:{min} .", {
@@ -531,7 +533,7 @@ class AlarmClock:
                     self.alarms[next_alarm].append(siteid)
                 else:
                     self.alarms[next_alarm] = [siteid]
-                return "Ich wecke dich in 2 Minuten."
+                return "Ich wecke dich wieder in {min} Minuten."
             elif slots['answer'] == "snooze" and 'duration' not in slots.keys():
                 next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
                     minutes=self.config['snooze_config']['default_duration'])
