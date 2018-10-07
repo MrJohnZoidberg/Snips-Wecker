@@ -34,10 +34,8 @@ def read_configuration_file(configuration_file):
 def get_slots(data):
     slot_dict = {}
     for slot in data['slots']:
-        if slot['value']['kind'] in ["InstantTime", "TimeInterval"]:
+        if slot['value']['kind'] in ["InstantTime", "TimeInterval", "Duration"]:
             slot_dict[slot['slotName']] = slot['value']
-        elif slot['value']['kind'] == "Duration":
-            slot_dict[slot['slotName']] = slot
         elif slot['value']['kind'] == "Custom":
             slot_dict[slot['slotName']] = slot['value']['value']
     # TODO: Manage empty slots dict (wrong types)
