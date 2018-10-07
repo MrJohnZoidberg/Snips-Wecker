@@ -38,6 +38,8 @@ def get_slots(data):
             slot_dict[slot['slotName']] = slot['value']
         elif slot['value']['kind'] == "Duration":
             slot_dict[slot['slotName']] = slot
+        elif slot['value']['kind'] == "Custom":
+            slot_dict[slot['slotName']] = slot['value']['value']
     # TODO: Manage empty slots dict (wrong types)
     return slot_dict
 
