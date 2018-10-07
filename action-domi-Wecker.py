@@ -34,10 +34,10 @@ def read_configuration_file(configuration_file):
 def get_slots(data):
     slot_dict = {}
     for slot in data['slots']:
-        if slot['value']['kind'] in ["InstantTime", "Custom"]:
+        if slot['value']['kind'] in ["InstantTime", "Custom", "TimeInterval"]:
             slot_dict[slot['slotName']] = slot['value']
-        elif slot['value']['kind'] == "TimeInterval":
-            slot_dict[slot['slotName']] = slot['value']
+        elif slot['value']['kind'] == "Duration":
+            slot_dict[slot['slotName']] = slot
     # TODO: Manage empty slots dict (wrong types)
     return slot_dict
 
@@ -83,11 +83,8 @@ def on_message_intent(client, userdata, msg):
             alarmclock.temp_memory[data['siteId']] = None
 
     elif intent_id == user_intent('answerAlarm'):
-        print("AHAHAHAHAHAHAHA")
         slots = get_slots(data)
-        answer = alarmclock.answer_alarm(slots, data['siteId'])
-        print("ANSWERR: ", answer)
-        say(session_id, answer)
+        say(session_id, alarmclock.answer_alarm(slots, data['siteId']))
 
 
 def on_session_ended(client, userdata, msg):

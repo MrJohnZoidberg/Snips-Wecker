@@ -518,9 +518,12 @@ class AlarmClock:
     def answer_alarm(self, slots, siteid):
         # TODO
         if slots and 'answer' in slots.keys():
+            print(slots.keys())
+            print(slots['answer'])
             if slots['answer'] == "snooze" and 'duration' in slots.keys():
                 # TODO: max duration
-                next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(minutes=slots['duration'])
+                next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
+                    minutes=int(slots['duration']['minutes']))
                 if self.alarms[next_alarm]:
                     self.alarms[next_alarm].append(siteid)
                 else:
