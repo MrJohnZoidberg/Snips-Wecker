@@ -527,7 +527,7 @@ class AlarmClock:
                 # TODO: max duration
                 next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
                     minutes=int(slots['duration']['minutes']))
-                if self.alarms[next_alarm]:
+                if next_alarm in self.alarms.keys():
                     self.alarms[next_alarm].append(siteid)
                 else:
                     self.alarms[next_alarm] = [siteid]
