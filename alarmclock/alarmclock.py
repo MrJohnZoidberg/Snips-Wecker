@@ -521,6 +521,7 @@ class AlarmClock:
             #                         json.dumps({'siteId': data['siteId'],
             #                                     'init': {'type': "action", 'canBeEnqueued': False,
             #                                              'intentFilter': ["domi:answerAlarm"]}}))
+            self.mqtt_client.publish('hermes/asr/toggleOff')
             self.mqtt_client.publish('hermes/dialogueManager/continueSession',
                                      json.dumps({'text': "Was willst du mit dem Alarm machen?",
                                                  'sessionId': data['sessionId'], 'intentFilter': ["domi:answerAlarm"]}))
