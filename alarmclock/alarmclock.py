@@ -515,8 +515,8 @@ class AlarmClock:
         elif self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             print("Publishing continueSession...")
             self.mqtt_client.publish('hermes/dialogueManager/continueSession',
-                                     json.dumps({'text': "", 'sessionId': data['sessionId'],
-                                                 'intentFilter': ["domi:answerAlarm"]}))
+                                     json.dumps({'text': "Was willst du mit dem Alarm machen?",
+                                                 'sessionId': data['sessionId'], 'intentFilter': ["domi:answerAlarm"]}))
 
     def answer_alarm(self, slots, siteid):
         # TODO
