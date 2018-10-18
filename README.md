@@ -167,6 +167,10 @@ JSON Payload:
     limit is 128 bytes. In the file `<Arduino libraries folder>/PubSubClient/src/PubSubClient.h` the constant 
     `MQTT_MAX_PACKET_SIZE` must be increased. How much? This depends on how many alarms you will create.
 
+- The time is wrong on my device.
+
+    Make sure that the time and date are correct on your device.
+
 ## VI. Coming :soon:
 
 - Clean past alarms at start of app
