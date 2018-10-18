@@ -528,11 +528,7 @@ class AlarmClock:
     def answer_alarm(self, slots, siteid):
         # TODO
         if slots:
-            print(slots.keys())
-            print(slots['answer'])
-            print(slots['duration'])
-            print(slots['duration']['minutes'])
-            print(int(slots['duration']['minutes']))
+            print(slots)
             if 'answer' not in slots.keys() and 'duration' in slots.keys():
                 # TODO: max/min duration
                 next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
