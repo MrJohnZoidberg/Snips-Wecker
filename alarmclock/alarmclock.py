@@ -527,14 +527,23 @@ class AlarmClock:
 
     def answer_alarm(self, slots, siteid):
         # TODO
-        if slots and 'answer' in slots.keys():
+        if slots:
             print(slots.keys())
             print(slots['answer'])
             print(slots['duration'])
             print(slots['duration']['minutes'])
             print(int(slots['duration']['minutes']))
-            if slots['answer'] == "snooze" and 'duration' in slots.keys():
-                # TODO: max duration
+            if 'answer' not in slots.keys() and 'duration' in slots.keys():
+                # TODO: max/min duration
+                next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
+                    minutes=int(slots['duration']['minutes']))
+                if next_alarm in self.alarms.keys():
+                    self.alarms[next_alarm].append(siteid)
+                else:
+                    self.alarms[next_alarm] = [siteid]
+                return "Ich wecke dich wieder in {min} Minuten.".format(min=int(slots['duration']['minutes']))
+            elif slots['answer'] == "snooze" and 'duration' in slots.keys():
+                # TODO: max/min duration
                 next_alarm = self.temp_memory[siteid]['alarm'] + datetime.timedelta(
                     minutes=int(slots['duration']['minutes']))
                 if next_alarm in self.alarms.keys():
