@@ -74,6 +74,7 @@ def on_message_intent(client, userdata, msg):
         if confirm_data and 'past_intent' in confirm_data.keys():
             past_data = alarmclock.temp_memory[data['siteId']]
             slots = get_slots(data)
+            print(slots)
             if slots['answer']['value'] == "yes":
                 if past_data['past_intent'] == user_intent('deleteAlarms'):
                         response = alarmclock.delete_alarms(past_data['alarms'])
