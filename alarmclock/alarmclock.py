@@ -514,6 +514,7 @@ class AlarmClock:
             self.siteids_session_not_ended.remove(data['siteId'])
         elif self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             print("Publishing continueSession...")
+            self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
                                      json.dumps({"sessionId": data['sessionId']}))
             self.mqtt_client.publish('hermes/dialogueManager/startSession',
