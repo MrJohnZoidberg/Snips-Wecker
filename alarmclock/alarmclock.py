@@ -473,13 +473,9 @@ class AlarmClock:
         siteid = json.loads(msg.payload.decode("utf-8"))['siteId']
         if self.ringing_dict[siteid]['state']:
             self.stop_ringing(siteid)
-            #self.siteids_session_not_ended.append(siteid)
-            #self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
-            #                                      self.on_message_sessionstarted)
-            self.mqtt_client.publish('hermes/dialogueManager/startSession',
-                                     json.dumps({'siteId': siteid,
-                                                 'init': {'type': "action", 'canBeEnqueued': False,
-                                                          'intentFilter': ["domi:answerAlarm"]}}))
+            self.siteids_session_not_ended.append(siteid)
+            self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
+                                                  self.on_message_sessionstarted)
 
     def on_message_stopringing(self, client, userdata, msg):
 
@@ -519,8 +515,8 @@ class AlarmClock:
         elif self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             print("Publishing continueSession...")
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
-            self.mqtt_client.publish('hermes/dialogueManager/endSession',
-                                     json.dumps({"sessionId": data['sessionId']}))
+            #self.mqtt_client.publish('hermes/dialogueManager/endSession',
+            #                         json.dumps({"sessionId": data['sessionId']}))
             self.mqtt_client.publish('hermes/dialogueManager/startSession',
                                      json.dumps({'siteId': data['siteId'],
                                                  'init': {'type': "action", 'canBeEnqueued': False,
