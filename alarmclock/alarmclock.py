@@ -516,11 +516,21 @@ class AlarmClock:
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
                                      json.dumps({"sessionId": data['sessionId']}))
+            self.mqtt_client.subscribe('hermes/nlu/intentNotRecognized')
+            self.mqtt_client.message_callback_add('hermes/nlu/intentNotRecognized', self.on_message_nlu_error)
             self.mqtt_client.publish('hermes/dialogueManager/startSession',
                                      json.dumps({'siteId': data['siteId'],
                                                  'init': {'type': "action", 'text': "Was soll mit dem Alarm passieren?",
                                                           'canBeEnqueued': False,
                                                           'intentFilter': ["domi:answerAlarm"]}}))
+
+    def on_message_nlu_error(self, client, userdata, msg):
+        self.mqtt_client.unsubscribe('hermes/nlu/intentNotRecognized')
+        session_id = json.loads(msg.payload.decode("utf-8"))['sessionId']
+        # TODO: siteId
+        response = self.answer_alarm({"answer": "snooze"}, "default")
+        self.mqtt_client.publish('hermes/dialogueManager/endSession',
+                                 json.dumps({"text": response, "sessionId": session_id}))
 
     def answer_alarm(self, slots, siteid):
         # TODO
