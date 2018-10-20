@@ -504,6 +504,7 @@ class AlarmClock:
         data = json.loads(msg.payload.decode("utf-8"))
         print(self.config['snooze_config']['state'])
         print(self.siteids_session_not_ended)
+        self.mqtt_client.publish('hermes/asr/toggleOn')
         if not self.config['snooze_config']['state'] and data['siteId'] in self.siteids_session_not_ended:
             now_time = datetime.datetime.now()
             text = self.translation.get("Alarm is now ended.") + " " + self.translation.get("It's {h}:{min} .", {
@@ -518,10 +519,9 @@ class AlarmClock:
                                      json.dumps({"sessionId": data['sessionId']}))
             #self.mqtt_client.subscribe('hermes/nlu/intentNotRecognized')
             #self.mqtt_client.message_callback_add('hermes/nlu/intentNotRecognized', self.on_message_nlu_error)
-            #self.mqtt_client.publish('hermes/asr/toggleOff')
             self.mqtt_client.publish('hermes/dialogueManager/startSession',
                                      json.dumps({'siteId': data['siteId'],
-                                                 'init': {'type': "action", 'text': "",
+                                                 'init': {'type': "action", 'text': "Was soll der Alarm tun?",
                                                           'canBeEnqueued': True,
                                                           'intentFilter': ["domi:answerAlarm"]}}))
 
