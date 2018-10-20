@@ -521,7 +521,7 @@ class AlarmClock:
             self.mqtt_client.publish('hermes/dialogueManager/startSession',
                                      json.dumps({'siteId': data['siteId'],
                                                  'init': {'type': "action", 'text': "Was soll mit dem Alarm passieren?",
-                                                          'canBeEnqueued': False,
+                                                          'canBeEnqueued': True,
                                                           'intentFilter': ["domi:answerAlarm"]}}))
 
     def on_message_nlu_error(self, client, userdata, msg):
