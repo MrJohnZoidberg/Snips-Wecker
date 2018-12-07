@@ -89,7 +89,37 @@ Parameters values in the [Snips console](https://console.snips.ai/) in this app:
 
 ### 1. Example sentences
 
+**New alarm:**
+
+- *Wecke mich `in neun Stunden`.*
+- *Kannst du mich `morgen um 8 Uhr 30` wecken?*
+- *Bitte wecke mich `in drei Tagen um 5 Uhr`.*
+- *Stelle einen Alarm `in zwei Minuten`.*
+- *Alarmiere mich `hier` `in 15 Minuten`.*
+- *Stelle im `Schlafzimmer` einen Alarm auf `10 Uhr 20`.*
+- *Stelle einen Alarm in der `Küche` auf `18 Uhr 50`.*
+- *Ich möchte `morgen um 7 Uhr` in `diesem Raum` geweckt werden.*
+- *`Morgen` soll mich ein Wecker `um 10 Uhr` wecken.*
+
+**Get alarms:**
+
+- *Gibt es einen Alarm `um 12 Uhr`?*
+- *Gibt es einen Wecker `um 1 Uhr` in `diesem Zimmer`?*
+- *Sage alle Alarme `hier` `zwischen 21 Uhr und 23 Uhr`.*
+- *Bitte zähle die Alarme von der `Küche` `bis zwanzig Uhr` auf.*
+- *Wird `heute um Mitternacht` der Wecker im `Kinderzimmer` losgehen?*
+- *Ist für `heute Abend neunzehn Uhr` ein Wecker aktiv?*
+- *Ich will alle Alarme wissen, die `heute` in `diesem Zimmer` klingeln.*
+- *Welche Alarme werden `am Mittwoch in zwei Wochen` klingeln?*
+
+**Delete alarms:**
+
 Todo
+
+**Get missed alarms:**
+
+Todo
+
 
 ### 2. While ringing
 
