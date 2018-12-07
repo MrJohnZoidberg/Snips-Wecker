@@ -175,7 +175,6 @@ JSON Payload:
 
 - Clean past alarms at start of app
 - Ask for missed alarms [############_]
-    - Write more sentences in Snips console
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping [______________________]
 - Internationalisation [###########____]
@@ -183,7 +182,6 @@ JSON Payload:
 - Send alarm data over MQTT [###_________________]
 - Ability to change the ringtone sound [########__________]
 - Maybe: periodical alarms (daily, weekly); before: change clock thread to schedule module
-- Publish app in the snips console app store
 
 
 ## VII. Contribution
@@ -193,4 +191,4 @@ with `sudo tail -f /var/log/syslog`) by opening
 a [new issue](https://github.com/MrJohnZoidberg/Snips-Wecker/issues/new).
 You can also write other ideas for this app. Thank you for your contribution.
 
-Made with 💙
+Made with 💙:love:
