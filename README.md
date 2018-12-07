@@ -191,4 +191,4 @@ with `sudo tail -f /var/log/syslog`) by opening
 a [new issue](https://github.com/MrJohnZoidberg/Snips-Wecker/issues/new).
 You can also write other ideas for this app. Thank you for your contribution.
 
-Made with 💙:love:
+Made with :blue_heart:
