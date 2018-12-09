@@ -28,7 +28,7 @@ already configured and running on your device (e.g. a Raspberry Pi 3 from the
 also already be set up and connected to your device and your account.
 
 1. In the German [app store](https://console.snips.ai/) add the
-app `Wecker & Alarme` (by domi; [this]) to
+app `Wecker & Alarme` (by domi; [this](https://console.snips.ai/store/de/skill_61Vz8lVkXQbM)) to
 your *German* assistant.
 
 2. You want to have a more unique alarmclock? Take a look at the section [Configuration](#iii-configuration) below and
