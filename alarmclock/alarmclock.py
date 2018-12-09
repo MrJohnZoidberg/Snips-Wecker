@@ -692,8 +692,7 @@ class AlarmClock:
         alarm_weekday = self.translation.get(weekdays[alarm_time.weekday()])
         delta_days = ftime.get_delta_obj(alarm_time, only_date=True).days
         delta_hours = (alarm_time - ftime.get_now_time()).seconds // 3600
-        # TODO: Morgen um 10:30 -> In 6 Stunden um 10:30
-        if delta_days == 0 and delta_hours <= 12 and not only_date:
+        if (delta_days == 0 or delta_hours <= 12) and not only_date:
             minutes_remain = ((alarm_time - ftime.get_now_time()).seconds % 3600) // 60
             if delta_hours == 1:  # for word fix in German
                 hour_words = self.translation.get("one hour")
@@ -710,7 +709,7 @@ class AlarmClock:
                                                                                  'minute_part': minute_words})
             else:
                 return "in {minute_part}".format(minute_part=minute_words)
-        elif delta_days == 0 and delta_hours > 12:
+        elif delta_days == 0:
             return self.translation.get("today")
         elif delta_days == 1:
             return self.translation.get("tomorrow")
