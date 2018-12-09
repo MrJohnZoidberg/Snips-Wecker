@@ -76,8 +76,7 @@ class AlarmClock:
 
         if len(self.dict_rooms) > 1:
             if 'room' in slots.keys():
-                print("SLOTS:", slots)
-                room_slot = slots['room']['value'].encode('utf8')
+                room_slot = slots['room'].encode('utf8')
                 if room_slot == self.translation.get("here"):
                     if siteid in self.dict_siteids.values():
                         alarm_site_id = siteid
