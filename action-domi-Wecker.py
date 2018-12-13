@@ -48,18 +48,22 @@ def on_message_intent(client, userdata, msg):
     intent_id = data['intent']['intentName']
 
     if intent_id == user_intent('newAlarm'):
+        # create new alarm with the given properties
         slots = get_slots(data)
         say(session_id, alarmclock.new_alarm(slots, data['siteId']))
 
     elif intent_id == user_intent('getAlarms'):
+        # say alarms with the given properties
         slots = get_slots(data)
         say(session_id, alarmclock.get_alarms(slots, data['siteId']))
 
     elif intent_id == user_intent('getMissedAlarms'):
+        # say missed alarms with the given properties
         slots = get_slots(data)
         say(session_id, alarmclock.get_missed(slots, data['siteId']))
 
     elif intent_id == user_intent('deleteAlarms'):
+        # delete alarms with the given properties
         slots = get_slots(data)
         multi_alarms, response = alarmclock.delete_alarms_try(slots, data['siteId'])
         if multi_alarms:
@@ -74,7 +78,6 @@ def on_message_intent(client, userdata, msg):
         if confirm_data and 'past_intent' in confirm_data.keys():
             past_data = alarmclock.temp_memory[data['siteId']]
             slots = get_slots(data)
-            print(slots)
             if slots['answer'] == "yes":
                 if past_data['past_intent'] == user_intent('deleteAlarms'):
                         response = alarmclock.delete_alarms(past_data['alarms'])
@@ -91,6 +94,7 @@ def on_message_intent(client, userdata, msg):
 def on_session_ended(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
     if alarmclock.temp_memory[data['siteId']] and data['termination']['reason'] != "nominal":
+        # if session was ended while confirmation process clean the past intent memory
         alarmclock.temp_memory[data['siteId']] = None
 
 
