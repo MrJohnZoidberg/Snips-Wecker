@@ -45,8 +45,7 @@ class Captcha:
             hours = ftime.get_alarm_hour(now_time)
             minutes = ftime.get_alarm_minute(now_time)
             solution = (hours, minutes)
-            clock_part = self.translation.get("It's {h}:{min} .", {'h': hours,
-                                                                   'min': minutes})
+            clock_part = self.translation.get("It's {h}:{min} .", {'h': hours, 'min': minutes})
             excercise = self.translation.get("Repeat the following sentence.") + " " + clock_part
             return excercise, solution
 

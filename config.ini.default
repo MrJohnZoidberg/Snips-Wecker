@@ -1,9 +1,9 @@
 [global]
 ringing_volume=50
-ringing_timeout=30s
-dict_site-id=Schlafzimmer:default
+ringing_timeout=30
+dict_siteids=Schlafzimmer:default
 default_room=Schlafzimmer
-restore_alarms=yes
+restore_alarms=on
 ringtone_status=on
-snooze_status=state:off
+snooze_config=state:off
 [secret]

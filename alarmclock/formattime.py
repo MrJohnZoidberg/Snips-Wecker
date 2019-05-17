@@ -41,11 +41,3 @@ def get_alarm_minute(alarm_time):
     else:
         alarm_minute = alarm_time.minute
     return alarm_minute
-
-
-def nlu_time_bug_bypass(to_time):
-    if to_time.minute == 0:
-        to_time_fixed = to_time - datetime.timedelta(hours=1)
-    else:
-        to_time_fixed = to_time - datetime.timedelta(minutes=1)
-    return to_time_fixed

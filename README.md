@@ -53,29 +53,52 @@ see what you can change.
     
 ## III. Configuration
 
-### 1. Normal (single/multi-room)
+### 1. Normal (single-room specific)
 
 In the Snips console or manually in the file `/var/lib/snips/skills/Snips-Wecker/config.ini` you can change
 some parameters that influence the behaviour of the alarm clock app:
 
-| Parameter name | Default | Range | Description |
-|----------------|---------|-------|-------------|
-| ringing_volume | 50      | 0 - 100 | Volume of the ringtone |
-| ringing_timeout| 30s     | 3s - infinit | Time in seconds for the ringing timeout |
-| restore_alarms | yes     | yes/no | Whether the alarms should be restored after reboot |
-| ringtone_status | on | on/off | Describes the state of the ringtone. If it's off, only a MQTT message will be sent when the alarm is ringing |
+| Parameter name  | Default | Range   | Description                                                                    |
+|-----------------|---------|---------|--------------------------------------------------------------------------------|
+| ringing_volume  | 50      | 0 - 100 | Volume of the ringtone                                                         |
+| ringing_timeout | 30     | 3 - 8000| Time in seconds for the ringing timeout                                        |
+| restore_alarms  | on      | on/off  | Whether the alarms should be restored after reboot                             |
+| ringtone_status | on      | on/off  | Describes the state of the ringtone. If it's off, only a MQTT message will be sent when the alarm is ringing |
 
-### 2. Multi-room specific
+### 2. Advanced (multi-room specific)
 
-- **Parameter** `dict_site-id`:<br/>
+- **Parameter** `ringing_volume` for different ringing volume in each room:<br/>
+
+  Scheme: ```siteId1: volume1, siteId2: volume2, siteId3: volume3, [...]``` <br/> 
+  Unit: Volume in _%_ with range 0 - 100
+  
+  Example: ```kitchen: 20, bedroom: 70, bathroom: 100```
+  
+- **Parameter** `ringing_timeout` for different ringing timeout in each room:<br/>
+  
+  Scheme: ```siteId1: timeout1, siteId2: timeout2, siteId3: timeout3, [...]``` <br/> 
+  Unit: Timeout in _seconds_ with range 3 to 8000
+  
+  Example: ```kitchen: 50, bedroom: 120, bathroom: 300```
+
+- **Parameter** `ringtone_status` for different ringtone status in each room:<br/>
+  
+  Scheme: ```siteId1: status1, siteId2: status2, siteId3: status3, [...]``` <br/> 
+  Unit: Status with _on_ or _off_
+  
+  Example: ```kitchen: off, bedroom: on, bathroom: on```
+
+- **Parameter** `dict_siteIds`:<br/>
   Important if you have a multi-room setup of Snips! These are pairs of room names and siteIds of these rooms.
-
+  
+  Scheme: ```room1: siteId1, room2: siteId2, room3: siteId3, [...]```<br/>
   Default: `Schlafzimmer:default`
 
 - **Parameter** `default_room`:<br/>
   Important if you have a multi-room setup of Snips!<br/>
   Here must be the name of the room in which the alarm is to be set, if no room was said in the command.
-
+  
+  Scheme: ```roomname```<br/>
   Default: `Schlafzimmer`
 
 #### Examples of multi-room configurations
@@ -207,14 +230,12 @@ JSON Payload:
 
 ## VI. Coming :soon:
 
-- Clean past alarms at start of app
 - Ask for missed alarms [############_]
 - New setting: snooze en/disabled (then don't end session)
 - Captcha exercises against oversleeping [______________________]
-- Internationalisation [###########____]
-- Nice README [###_________________]
+- Internationalisation [############__]
+- Nice README [#######__________]
 - Send alarm data over MQTT [###_________________]
-- Ability to change the ringtone sound [########__________]
 - Maybe: periodical alarms (daily, weekly); before: change clock thread to schedule module
 
 

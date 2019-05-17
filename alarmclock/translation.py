@@ -32,8 +32,8 @@ TRANSLATIONS_DE = {
         "Es gibt {room_part} {future_part} {time_part} {num_part}{end}",
     "{future_part} {time_part} {room_part}":
         "{future_part} {time_part} {room_part}",
-    "The {only_part} alarm {future_part} {time_part} {room_part} has been deleted.":
-        "Der {only_part} Alarm {future_part} {time_part} {room_part} wurde gelöscht.",
+    "Are you sure you want to delete the only alarm {future_part} {time_part} {room_part}?":
+        "Möchtest du den einzigen Alarm {future_part} {time_part} {room_part} wirklich löschen?",
     "Alarm is now ended.":
         "Alarm beendet.",
     "It's {h}:{min} .":
@@ -44,6 +44,8 @@ TRANSLATIONS_DE = {
         "Es gibt {room_part} {future_part} {time_part} keinen Alarm.",
     "You missed {room_part} {future_part} {time_part} {num_part}{end}":
         "Du hast {room_part} {future_part} {time_part} {num_part} verpasst{end}",
+    "{delta_hours} hours ago":
+        "vor {delta_hours} Stunden",
     "This time is in the past.":
         "Diese Zeit liegt in der Vergangenheit.",
     "Please set another alarm.":
@@ -78,6 +80,10 @@ TRANSLATIONS_DE = {
         "heute",
     "tomorrow":
         "morgen",
+    "yesterday":
+        "gestern",
+    "{delta_days} days ago":
+        "vor {delta_days} Tagen",
     "the day after tomorrow":
         "übermorgen",
     "one hour":
@@ -103,7 +109,11 @@ TRANSLATIONS_DE = {
     "only":
         "einzige",
     "Repeat the following sentence.":
-        "Wiederhole den folgenden Satz."
+        "Wiederhole den folgenden Satz.",
+    "Sorry, I did not understand you.":
+        "Ich habe dich leider nicht verstanden.",
+    "The next alarm {room_slot} starts {future_part} at {h}:{min} {room_part}.":
+        "Der nächste Alarm {room_slot} startet {future_part} um {h} Uhr {min} {room_part}."
 }
 
 
@@ -166,7 +176,10 @@ class Translation:
         if not data:
             data = {}
         if self.language == "de-DE":
-            return TRANSLATIONS_DE[description].format(**data)
+            if description in TRANSLATIONS_DE.keys():
+                return TRANSLATIONS_DE[description].format(**data)
+            else:
+                return description.format(**data)
         elif self.language == "en-US":
             return description.format(**data)
 
