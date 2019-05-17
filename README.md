@@ -139,6 +139,17 @@ Parameters values in the [Snips console](https://console.snips.ai/) in this app:
 - *Ich will alle Alarme wissen, die `heute` in `diesem Zimmer` klingeln.*
 - *Welche Alarme werden `am Mittwoch in zwei Wochen` klingeln?*
 
+**Get next alarm:**
+
+- *Wann klingelt in der `Küche` der nächste Alarm?*
+- *Was ist der nächste Alarm?*
+- *Kannst du mir sagen wann der nächste Alarm klingelt?*
+- *In wie vielen Stunden klingelt `hier` der nächste Alarm?*
+- *Sage mir wann der nächste Alarm klingelt.*
+- *Wann ist der nächste Wecker gestellt?*
+- *Wann klingelt der nächste Alarm im `Bad`?*
+- *Ich will wissen wann im `Schlafzimmer` der nächste Alarm los geht.*
+
 **Delete alarms:**
 
 Todo
