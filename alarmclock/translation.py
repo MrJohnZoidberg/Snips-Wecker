@@ -32,8 +32,8 @@ TRANSLATIONS_DE = {
         "Es gibt {room_part} {future_part} {time_part} {num_part}{end}",
     "{future_part} {time_part} {room_part}":
         "{future_part} {time_part} {room_part}",
-    "Are you sure you want to delete the only alarm {future_part} {time_part} {room_part}?":
-        "Möchtest du den einzigen Alarm {future_part} {time_part} {room_part} wirklich löschen?",
+    "Are you sure you want to delete the only alarm {room_slot} {future_part} at {h}:{min} {room_part}?":
+        "Möchtest du {room_slot} den einzigen Alarm {future_part} um {h} Uhr {min} {room_part} wirklich löschen?",
     "Alarm is now ended.":
         "Alarm beendet.",
     "It's {h}:{min} .":
