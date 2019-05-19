@@ -159,7 +159,7 @@ class AlarmClock:
             if words_dict['room_part']:
                 room_part = ""
             else:
-                room_part = self.get_roomstr([next_alarm.site], siteid)
+                room_part = self.get_roomstr([next_alarm.site.siteid], siteid)
             response = self.translation.get("The next alarm {room_slot} starts {future_part} at {h}:{min} {room_part}.",
                                             {'room_slot': words_dict['room_part'],
                                              'future_part': self.get_time_description(next_alarm.datetime),
