@@ -152,11 +152,25 @@ Parameters values in the [Snips console](https://console.snips.ai/) in this app:
 
 **Delete alarms:**
 
-Todo
+- *Lösche alle Alarme `morgen um neun Uhr` im `Foyer`.*
+- *Kannst du bitte den Wecker `morgen um neun Uhr` im `Foyer` entfernen.*
+- *Kannst du den Wecker `in zwei Tagen um achtzehn Uhr` im `Eingangsbereich` löschen.*
+- *Alarm `um neun Uhr zehn` im `Esszimmer` löschen.*
+- *Bitte den Alarm im `Wohnzimmer` `um 8 Uhr zwanzig` entfernen.*
+- *Entferne den Alarm `heute um zehn Uhr` auf dem `Dachboden`.*
+- *Lösche den Alarm `heute um drei Uhr` in `diesem Raum`.*
+- *Entferne den Wecker im `Klo` `um acht Uhr`.*
 
 **Get missed alarms:**
 
-Todo
+- *Habe ich Alarme `heute` `hier` verpasst?*
+- *Habe ich in der Vergangenheit `hier` Alarme verpasst?*
+- *Sage bitte die nicht gehörten Wecker vom `Eingang`.*
+- *Kannst du die nicht gehörten Alarme sagen.*
+- *Bitte lese alle verpassten Alarme von `gestern` vor.*
+- *Kannst du alle verpassten Wecker von der `Küche` sagen.*
+- *Sage alle verpassten Alarme von `diesem Mittwoch`.*
+- *Habe ich `letzte Woche` im `Kinderzimmer` einen Alarm verpasst?*
 
 
 ### 2. While ringing
