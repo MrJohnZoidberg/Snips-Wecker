@@ -83,7 +83,7 @@ celerybeat-schedule
 .env
 
 # virtualenv
-.venv
+.venv*
 venv/
 ENV/
 
@@ -105,3 +105,8 @@ ENV/
 .idea/
 
 .directory
+
+# Snips-Wecker
+.saved_alarms.json
+.temporary_ringtone
+config.ini

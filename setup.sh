@@ -1,4 +1,6 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
+
+set -e
 
 # Copy config.ini.default if config.ini doesn't exist.
 if [ ! -e config.ini ]
@@ -36,10 +38,8 @@ fi
 
 if [ ! -e ./.saved_alarms.json ]; then
     touch .saved_alarms.json
-    sudo chown _snips-skills .saved_alarms.json
 fi
 
 if [ ! -e ./.temporary_ringtone ]; then
     touch .temporary_ringtone
-    sudo chown _snips-skills .temporary_ringtone
 fi
