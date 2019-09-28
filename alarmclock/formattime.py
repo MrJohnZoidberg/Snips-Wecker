@@ -9,20 +9,13 @@ def alarm_time_str(slots_time):
     return "{}:{}".format(slots_time.split(":")[0], slots_time.split(":")[1])
 
 
-def get_now_time(only_date=False):
+def get_now_time():
     now = datetime.datetime.now()
-    if only_date:
-        now_time_str = "{0}-{1}-{2}".format(now.year, now.month, now.day)
-        now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d")
-    else:
-        now_time_str = "{0}-{1}-{2} {3}:{4}".format(now.year, now.month, now.day, now.hour, now.minute)
-        now_time = datetime.datetime.strptime(now_time_str, "%Y-%m-%d %H:%M")
-    return now_time
+    return datetime.datetime( now.year, now.month, now.day, now.hour, now.minute)
 
 
-def get_delta_obj(alarm_time, only_date=False):
-    delta_obj = (alarm_time - get_now_time(only_date))  # calculate the days between alarm and now
-    return delta_obj
+def get_delta_obj(alarm_time):
+    return (alarm_time - get_now_time())  # calculate the days between alarm and now
 
 
 def get_alarm_hour(alarm_time):

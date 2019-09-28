@@ -257,7 +257,6 @@ JSON Payload:
 
 - Ask for missed alarms [############_]
 - New setting: snooze en/disabled (then don't end session)
-- Captcha exercises against oversleeping [______________________]
 - Internationalisation [############__]
 - Nice README [#######__________]
 - Send alarm data over MQTT [###_________________]

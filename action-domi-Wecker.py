@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import paho.mqtt.client as mqtt
 import json
@@ -21,10 +20,10 @@ def get_slots(data):
     slot_dict = {}
     try:
         for slot in data['slots']:
-            if slot['value']['kind'] in ["InstantTime", "TimeInterval", "Duration"]:
-                slot_dict[slot['slotName']] = slot['value']
+            if slot['value']['kind'] in ("InstantTime", "TimeInterval", "Duration"):
+                slot_dict[ slot['slotName']] = slot['value']
             elif slot['value']['kind'] == "Custom":
-                slot_dict[slot['slotName']] = slot['value']['value']
+                slot_dict[ slot['slotName']] = slot['value']['value']
     except (KeyError, TypeError, ValueError) as e:
         print("Error: ", e)
         slot_dict = {}
@@ -36,6 +35,7 @@ def on_message_intent(client, userdata, msg):
     session_id = data['sessionId']
     intent_id = data['intent']['intentName']
 
+    print( "Got:", intent_id, data)
     if intent_id == add_prefix('newAlarm'):
         # create new alarm with the given properties
         slots = get_slots(data)
@@ -78,12 +78,14 @@ def on_message_intent(client, userdata, msg):
                 response = alarmclock.delete_alarms(custom_data['slots'], custom_data['siteId'])
                 say(session_id, response)
             else:
-                end_session(session_id)
+                mqtt_client.publish('hermes/dialogueManager/endSession',
+                    json.dumps({'sessionId': session_id}))
             alarmclock.temp_memory[data['siteId']] = None
 
     elif intent_id == add_prefix('answerAlarm'):
         slots = get_slots(data)
         say(session_id, alarmclock.answer_alarm(slots, data['siteId']))
+    print( "End:", intent_id, data)
 
 
 def on_session_ended(client, userdata, msg):
@@ -93,23 +95,9 @@ def on_session_ended(client, userdata, msg):
         alarmclock.temp_memory[data['siteId']] = None
         
 
-def on_message_nlu_error(self, client, userdata, msg):
-    # TODO
-    self.mqtt_client.unsubscribe('hermes/nlu/intentNotRecognized')
-    session_id = json.loads(msg.payload.decode("utf-8"))['sessionId']
-    # TODO: siteId
-    response = alarmclock.answer_alarm({"answer": "snooze"}, "default")
-    payload = json.dumps({"text": response, "sessionId": session_id})
-    self.mqtt_client.publish('hermes/dialogueManager/endSession', payload)
-
-
 def say(session_id, text):
-    mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({'text': text,
-                                                                         'sessionId': session_id}))
-
-
-def end_session(session_id):
-    mqtt_client.publish('hermes/dialogueManager/endSession', json.dumps({'sessionId': session_id}))
+    mqtt_client.publish('hermes/dialogueManager/endSession',
+        json.dumps({'text': text, 'sessionId': session_id}))
 
 
 def dialogue(session_id, text, intent_filter, custom_data=None):
@@ -117,7 +105,7 @@ def dialogue(session_id, text, intent_filter, custom_data=None):
             'sessionId': session_id,
             'intentFilter': intent_filter}
     if custom_data:
-        data['customData'] = json.dumps(custom_data)
+        data['customData'] = json.dumps( custom_data)
     mqtt_client.publish('hermes/dialogueManager/continueSession', json.dumps(data))
 
 
@@ -130,12 +118,12 @@ if __name__ == "__main__":
     if 'mqtt_password' in snips_config['snips-common'].keys():
         MQTT_PASSWORD = snips_config['snips-common']['mqtt_password']
 
-    alarmclock = AlarmClock()
     mqtt_client = mqtt.Client()
-    mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
-    mqtt_client.message_callback_add('hermes/dialogueManager/sessionEnded', on_session_ended)
     mqtt_client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
     mqtt_client.connect(MQTT_BROKER_ADDRESS.split(":")[0], int(MQTT_BROKER_ADDRESS.split(":")[1]))
     mqtt_client.subscribe('hermes/intent/#')
+    mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
     mqtt_client.subscribe('hermes/dialogueManager/sessionEnded')
+    mqtt_client.message_callback_add('hermes/dialogueManager/sessionEnded', on_session_ended)
+    alarmclock = AlarmClock( mqtt_client)
     mqtt_client.loop_forever()

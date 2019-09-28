@@ -13,11 +13,8 @@ class AlarmClock:
     
     def __init__( self, mqtt_client):
         self.config = utils.get_config("config.ini")
-        # self.dict_siteids -> { key=RoomName: value=siteId }
-        self.dict_siteids = self.config['dict_siteids']
-        self.default_room = self.config['default_room']
         self.remembered_slots = {}
-        self.temp_memory = {self.dict_siteids[room]: None for room in self.dict_siteids}
+        self.temp_memory = {room: None for room in self.config['dict_siteids'].values()}
         # Language
         self.language = "de-DE"
         self.translation = Translation(self.language)
@@ -53,13 +50,13 @@ class AlarmClock:
         """
 
         if not slots:
-            return self.error_understanding()
+            return self.translation.get("Sorry, I did not understand you.")
 
         if len(self.alarmctl.sites_dict) > 1:
             if 'room' in slots.keys():
                 room_slot = slots['room']
                 if room_slot == self.translation.get("here"):
-                    if siteid in self.dict_siteids.values():
+                    if siteid in self.config['dict_siteids'].values():
                         alarm_site_id = siteid
                         room_part = self.translation.get("here")
                     else:
@@ -67,9 +64,9 @@ class AlarmClock:
                                               self.translation.get("Please see the instructions for this alarm clock "
                                                                    "app for how to add rooms."))
                 else:
-                    if room_slot in self.dict_siteids.keys():
-                        alarm_site_id = self.dict_siteids[room_slot]
-                        if siteid == self.dict_siteids[room_slot]:
+                    if room_slot in self.config['dict_siteids']:
+                        alarm_site_id = self.config['dict_siteids'][room_slot]
+                        if siteid == self.config['dict_siteids'][room_slot]:
                             room_part = self.translation.get("here")
                         else:
                             room_part = self.translation.get_prepos(room_slot) + " " + room_slot
@@ -79,14 +76,14 @@ class AlarmClock:
                                               self.translation.get("Please see the instructions for this alarm clock "
                                                                    "app for how to add rooms."))
             else:
-                alarm_site_id = self.dict_siteids[self.default_room]
-                if siteid == self.dict_siteids[self.default_room]:
+                alarm_site_id = self.config['dict_siteids'][self.config['default_room']]
+                if siteid == self.config['dict_siteids'][self.config['default_room']]:
                     room_part = self.translation.get("here")
                 else:
-                    room_part = "{} {}".format(self.translation.get_prepos(self.default_room),
-                                               self.default_room)
+                    room_part = "{} {}".format(self.translation.get_prepos(self.config['default_room']),
+                                               self.config['default_room'])
         else:
-            alarm_site_id = self.dict_siteids[self.default_room]
+            alarm_site_id = self.config['dict_siteids'][self.config['default_room']]
             room_part = ""
         # remove the timezone and some numbers from time string
         if slots['time']['kind'] == "InstantTime":
@@ -112,7 +109,8 @@ class AlarmClock:
                 'h': ftime.get_alarm_hour(alarm_time),
                 'min': ftime.get_alarm_minute(alarm_time),
                 'room_part': room_part})
-            return self.del_multi_spaces(response)
+            return " ".join(response.split())
+
 
     def get_alarms(self, slots, siteid):
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_alarms(), slots, siteid)
@@ -146,7 +144,8 @@ class AlarmClock:
             filtered_alarms = filtered_alarms[:5]
 
         response = self.add_alarms_part(response, siteid, filtered_alarms, words_dict, alarm_count)
-        return self.del_multi_spaces(response)
+        return " ".join(response.split())
+
 
     def get_next_alarm(self, slots, siteid):
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_alarms(), slots, siteid)
@@ -174,7 +173,8 @@ class AlarmClock:
                                              'time_part': words_dict['time_part'],
                                              'num_part': self.translation.get("no alarm"),
                                              'end': "."})
-        return self.del_multi_spaces(response)
+        return " ".join(response.split())
+
 
     def get_missed_alarms(self, slots, siteid):
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_missed_alarms(),
@@ -200,8 +200,9 @@ class AlarmClock:
                                          'time_part': words_dict['time_part'],
                                          'num_part': count_part, 'end': end_part})
         response = self.add_alarms_part(response, siteid, filtered_alarms, words_dict, alarm_count)
-        self.alarmctl.delete_multi(filtered_alarms)  # Like a mailbox: Say missed messages and delete them after that.
-        return self.del_multi_spaces(response)
+        self.alarmctl.delete_alarms(filtered_alarms)  # Like a mailbox: Say missed messages and delete them after that.
+        return " ".join(response.split())
+
 
     def add_alarms_part(self, response, siteid, filtered_alarms, words_dict, alarm_count):
         for alarm in filtered_alarms:
@@ -231,6 +232,7 @@ class AlarmClock:
             if alarm_count > 1 and dtobj == filtered_alarms[-2].datetime:
                 response += " {} ".format(self.translation.get("and"))
         return response
+
 
     def delete_alarms_try(self, slots, siteid):
         """
@@ -281,7 +283,8 @@ class AlarmClock:
                                              'time_part': words_dict['time_part'],
                                              'room_part': words_dict['room_part'],
                                              'num': alarm_count})
-        return filtered_alarms, self.del_multi_spaces(response)
+        return filtered_alarms, " ".join(response.split())
+
 
     def delete_alarms(self, slots, siteid):
 
@@ -290,8 +293,9 @@ class AlarmClock:
         :return: String "Done."
         """
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_alarms(), slots, siteid)
-        self.alarmctl.delete_multi(filtered_alarms)
+        self.alarmctl.delete_alarms(filtered_alarms)
         return self.translation.get("Done.")
+
 
     def answer_alarm(self, slots, siteid):
         # TODO: translation
@@ -324,6 +328,7 @@ class AlarmClock:
         else:
             return "Ich wecke dich in 5 Minuten."
 
+
     def filter_alarms(self, alarms, slots, siteid, timeslot_with_past=False):
 
         """Helper function which filters alarms with datetime and rooms"""
@@ -339,7 +344,7 @@ class AlarmClock:
                 alarm_time = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['value']), dt_format)
                 future_part = self.get_time_description(alarm_time, only_days=True)
                 if slots['time']['grain'] == "Hour" or slots['time']['grain'] == "Minute":
-                    if not timeslot_with_past and ftime.get_delta_obj(alarm_time, only_date=False).days < 0:
+                    if not timeslot_with_past and ftime.get_delta_obj(alarm_time).days < 0:
                         return 1, None, None
                     filtered_alarms = [alarm for alarm in filtered_alarms
                                        if alarm.datetime == alarm_time]
@@ -370,13 +375,13 @@ class AlarmClock:
         if 'room' in slots.keys():
             room_slot = slots['room']
             if room_slot == self.translation.get("here"):
-                if siteid in self.dict_siteids.values():
+                if siteid in self.config['dict_siteids'].values():
                     context_siteid = siteid
                 else:
                     return 3, None, None
             else:
-                if room_slot in self.dict_siteids.keys():
-                    context_siteid = self.dict_siteids[room_slot]
+                if room_slot in self.config['dict_siteids']:
+                    context_siteid = self.config['dict_siteids'][room_slot]
                 else:
                     return 4, None, {'room': room_slot}
             filtered_alarms = [alarm for alarm in filtered_alarms if alarm.get_siteid() == context_siteid]
@@ -389,6 +394,7 @@ class AlarmClock:
             for alarm in alarms:
                 filtered_alarms_sorted.append(alarm)
         return 0, filtered_alarms_sorted, {'future_part': future_part, 'time_part': time_part, 'room_part': room_part}
+
 
     def error_sentence(self, rc, words_dict=None):
         if rc == 1:
@@ -424,6 +430,7 @@ class AlarmClock:
                     if iter_siteid == alarm_siteids[-2]:
                         room_str += " {and_word} ".format(and_word=self.translation.get("and"))
         return room_str
+
 
     def get_time_description(self, alarm_time, only_days=False):
         weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -469,6 +476,7 @@ class AlarmClock:
                                         {'delta_days': delta_days, 'weekday': alarm_weekday,
                                          'day': int(alarm_time.day), 'month': int(alarm_time.month)})
 
+
     def get_interval_part(self, from_time, to_time):
         if to_time:
             if to_time.date() != ftime.get_now_time().date():
@@ -496,10 +504,3 @@ class AlarmClock:
         else:
             from_part = ""
         return "{} {}".format(from_part, to_part)
-
-    def error_understanding(self):
-        return self.translation.get("Sorry, I did not understand you.")
-
-    @staticmethod
-    def del_multi_spaces(sentence):
-        return " ".join(sentence.split())

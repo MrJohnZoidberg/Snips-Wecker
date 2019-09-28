@@ -28,14 +28,14 @@ def get_config(configuration_file):
     output_dict = dict()
     output_dict['dict_siteids'] = _get_dict_siteids(config)
     del config['global']['dict_siteids']
-    for param in config['global'].keys():
+    for param in config['global']:
         user_value = config['global'][param].replace(" ", "")
-        pairs = user_value.split(",")
+        print( param, user_value)
         output_dict[param] = {}
-        for pair in pairs:
+        for pair in user_value.split(","):
             fvalue = _format_value(param, pair.split(":")[1])
             output_dict[param][pair.split(":")[0]] = fvalue
-        elif param in ()'ringing_volume', 'ringing_timeout', 'ringtone_status'):
+        if param in ('ringing_volume', 'ringing_timeout', 'ringtone_status'):
             output_dict[param] = {
                 output_dict['dict_siteids'][room]: _format_value(param, user_value)
                 for room in output_dict['dict_siteids'] }

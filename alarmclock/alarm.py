@@ -1,16 +1,17 @@
 import io
 import json
-import datetime
+from datetime import datetime as dt
 from . import formattime as ftime
 import threading
 import time
 import uuid
-import functools                     # functools.partial for threading.Timeout callback with parameter
+import functools # functools.partial for threading.Timeout callback with parameter
 from . import utils
 from . translation import Translation
 
 
-class Site(object):
+class Site:
+    
     def __init__(self, siteid, room, ringtone_status, ringing_timeout, ringtone_wav):
         self.siteid = siteid
         self.room = room
@@ -24,33 +25,33 @@ class Site(object):
 
 
 class Alarm:
-    def __init__(self, datetime_obj=None, site=None, repetition=None, missed=False):
-        self.datetime = datetime_obj
+    
+    FORMAT = "%Y-%m-%d %H:%M"
+    
+    def __init__(self, datetime=None, site=None, repetition=None, **kwargs):
+        if type( datetime) is str:
+            self.datetime = dt.strptime( datetime, self.FORMAT)
+        else:
+            self.datetime = datetime
         self.repetition = repetition
         self.site = site
-        self.missed = missed
         self.passed = False
-        self.ringing = False
-
-    def set_datetime_str(self, datetime_str, str_format="%Y-%m-%d %H:%M"):
-        self.datetime = datetime.datetime.strptime(datetime_str, str_format)
-
-    def get_datetime_str(self, str_format="%Y-%m-%d %H:%M"):
-        return datetime.datetime.strftime(self.datetime, str_format)
 
     def get_data_dict(self):
-        return {'datetime': self.get_datetime_str(),
-                'siteid': self.site.siteid,
-                'room': self.site.room,
-                'repetition': self.repetition,
-                'missed': self.missed}
+        return {
+            'datetime': dt.strftime( self.datetime, self.FORMAT),
+            'siteid': self.site.siteid,
+            'room': self.site.room,
+            'repetition': self.repetition
+        }
 
-    def check_missed(self):
-        return (self.datetime - datetime.datetime.now()).days < 0
+    def missed( self):
+        return (self.datetime - dt.now()).days < 0
 
 
 class AlarmControl:
-    def __init__(self, config, language, mqtt_client, temp_memory, alarms=None):
+    
+    def __init__(self, config, language, mqtt_client, temp_memory):
         self.config = config
         self.saved_alarms_path = ".saved_alarms.json"
         self.sites_dict = {}
@@ -60,15 +61,12 @@ class AlarmControl:
             ringing_volume = self.config['ringing_volume'][siteid]
             ringtone_wav = utils.edit_volume("alarm-sound.wav", ringing_volume)
             self.sites_dict[siteid] = Site(siteid, room, ringtone_status, ringing_timeout, ringtone_wav)
-        if alarms:
-            self.alarms = alarms
-        elif config['restore_alarms']:
+        if config['restore_alarms']:
             self.alarms = self.restore()
         else:
             self.alarms = []
-        self.check_set_missed()
-        self.save()
-        self.clock_thread = threading.Thread(target=self.clock)
+            self.save()
+        self.clock_thread = threading.Thread( target=self.clock)
         self.clock_thread.start()
         self.translation = Translation(language)
         self.temp_memory = temp_memory
@@ -88,13 +86,14 @@ class AlarmControl:
 
         while True:
             now_time = ftime.get_now_time()
-            if now_time in [alarm.datetime for alarm in self.get_alarms()]:
-                pending_alarms = [alarm for alarm in self.get_alarms(now_time) if not alarm.passed]
-                for alarm in pending_alarms:
-                    alarm.passed = True
-                    self.mqtt_client.publish('external/alarmclock/ringingStarted', json.dumps(alarm.get_data_dict()))
-                    self.start_ringing(alarm, now_time)
-            time.sleep(3)
+            for alarm in self.get_alarms( now_time):
+                if alarm.passed: continue
+                alarm.passed = True
+                self.mqtt_client.publish('external/alarmclock/ringingStarted',
+                    json.dumps(alarm.get_data_dict()))
+                self.start_ringing(alarm, now_time)
+            time.sleep(1)
+
 
     def start_ringing(self, alarm, now_time):
         site = alarm.site
@@ -105,10 +104,12 @@ class AlarmControl:
             self.ring(site)
             site.ringing_alarm = alarm
             site.timeout_thread = threading.Timer(site.ringing_timeout,
-                                                  functools.partial(self.timeout_reached, site))
+                                                  functools.partial(self.stop_ringing, site))
             site.timeout_thread.start()
         else:
-            self.mqtt_client.publish('external/alarmclock/ringingStopped', json.dumps(alarm.get_data_dict()))
+            self.mqtt_client.publish('external/alarmclock/ringingStopped',
+                json.dumps(alarm.get_data_dict()))
+
 
     def ring(self, site):
 
@@ -139,10 +140,6 @@ class AlarmControl:
         site.timeout_thread = None
         self.mqtt_client.message_callback_remove('hermes/audioServer/{site_id}/playFinished'.format(
             site_id=site.siteid))
-
-    def timeout_reached(self, site):
-        site.ringing_alarm.missed = True
-        self.stop_ringing(site)
 
     def on_message_playfinished(self, client, userdata, msg):
 
@@ -206,7 +203,7 @@ class AlarmControl:
         if not self.config['snooze_config']['state'] and self.sites_dict[data['siteId']].session_pending:
             self.sites_dict[data['siteId']].session_pending = False
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
-            now_time = datetime.datetime.now()
+            now_time = dt.now()
             text = self.translation.get("Alarm is now ended.") + " " + self.translation.get("It's {h}:{min} .", {
                 'h': ftime.get_alarm_hour(now_time), 'min': ftime.get_alarm_minute(now_time)})
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
@@ -217,8 +214,6 @@ class AlarmControl:
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
                                      json.dumps({"sessionId": data['sessionId']}))
-            # self.mqtt_client.subscribe('hermes/nlu/intentNotRecognized')
-            # self.mqtt_client.message_callback_add('hermes/nlu/intentNotRecognized', self.on_message_nlu_error)
             self.mqtt_client.publish('hermes/dialogueManager/startSession',
                                      json.dumps({'siteId': data['siteId'],
                                                  'init': {'type': "action", 'text': "Was soll der Alarm tun?",
@@ -231,39 +226,16 @@ class AlarmControl:
         self.save()
 
     def save(self):
-        with io.open(self.saved_alarms_path, "w") as f:
-            f.write(json.dumps(self.get_unpacked_objects_list()))
+        with io.open( self.saved_alarms_path, "w") as f:
+            f.write( json.dumps( [ alarm.get_data_dict() for alarm in self.alarms ]))
 
     def restore(self):
         with io.open(self.saved_alarms_path, "r") as f:
-            try:
-                alarms = []
-                alarms_list = json.load(f)
-                for alarm_dict in alarms_list:
-                    alarm = Alarm(site=self.sites_dict[alarm_dict['siteid']],
-                                  repetition=alarm_dict['repetition'],
-                                  missed=alarm_dict['missed'])
-                    alarm.set_datetime_str(alarm_dict['datetime'])
-                    alarms.append(alarm)
-                return alarms
-            except (ValueError, TypeError):
-                return []
+            return [ Alarm( **alarm_dict) for alarm_dict in json.load( f) ]
 
-    def check_set_missed(self):
-        for alarm in self.alarms:
-            alarm.missed = alarm.check_missed()
-
-    def get_unpacked_objects_list(self):
-        alarms_list = []
-        for alarm in self.alarms:
-            alarms_list.append(alarm.get_data_dict())
-        return alarms_list
-
-    def get_alarms(self, dtobject=None, siteid=None, only_ringing=False):
-        if only_ringing:
-            filtered_alarms = [alarm for alarm in self.alarms if alarm.ringing and not alarm.missed]
-        else:
-            filtered_alarms = [alarm for alarm in self.alarms if not alarm.missed]
+    def get_alarms(self, dtobject=None, siteid=None):
+        filtered_alarms = [alarm for alarm in self.alarms if not alarm.missed()]
+            
         if dtobject:
             filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime == dtobject]
         if siteid:
@@ -271,18 +243,15 @@ class AlarmControl:
         return filtered_alarms
 
     def get_missed_alarms(self, dtobject=None, siteid=None):
-        filtered_alarms = [alarm for alarm in self.alarms if alarm.missed]
+        filtered_alarms = [alarm for alarm in self.alarms if alarm.missed()]
+        
         if dtobject:
             filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime == dtobject]
         if siteid:
             filtered_alarms = [alarm for alarm in filtered_alarms if alarm.site.siteid == siteid]
         return filtered_alarms
 
-    def delete_single(self, alarm):
-        self.alarms.remove(alarm)
-        self.save()
-
-    def delete_multi(self, alarms):
+    def delete_alarms(self, alarms):
         for alarm in alarms:
             self.alarms.remove(alarm)
         self.save()
