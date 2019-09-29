@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2019-09-29 21:20+0200\n"
+"POT-Creation-Date: 2019-09-29 22:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,232 +15,232 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: alarmclock/alarm.py:215
+#: alarmclock/alarm.py:216
 msgid "Alarm is now ended."
 msgstr ""
 
-#: alarmclock/alarm.py:215
+#: alarmclock/alarm.py:216
 msgid "It's {h}:{min} ."
 msgstr ""
 
-#: alarmclock/alarmclock.py:17
+#: alarmclock/alarmclock.py:18
 msgid "monday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:17
+#: alarmclock/alarmclock.py:18
 msgid "tuesday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:17
+#: alarmclock/alarmclock.py:18
 msgid "wednesday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:18
+#: alarmclock/alarmclock.py:19
 msgid "friday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:18
+#: alarmclock/alarmclock.py:19
 msgid "saturday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:18
+#: alarmclock/alarmclock.py:19
 msgid "sunday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:18
+#: alarmclock/alarmclock.py:19
 msgid "thursday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:61
+#: alarmclock/alarmclock.py:62
 msgid "Sorry, I did not understand you."
 msgstr ""
 
-#: alarmclock/alarmclock.py:66 alarmclock/alarmclock.py:69
-#: alarmclock/alarmclock.py:78 alarmclock/alarmclock.py:89
-#: alarmclock/alarmclock.py:389 alarmclock/alarmclock.py:433
+#: alarmclock/alarmclock.py:67 alarmclock/alarmclock.py:70
+#: alarmclock/alarmclock.py:79 alarmclock/alarmclock.py:90
+#: alarmclock/alarmclock.py:390 alarmclock/alarmclock.py:434
 msgid "here"
 msgstr ""
 
-#: alarmclock/alarmclock.py:71 alarmclock/alarmclock.py:417
+#: alarmclock/alarmclock.py:72 alarmclock/alarmclock.py:418
 msgid "This room here hasn't been configured yet."
 msgstr ""
 
-#: alarmclock/alarmclock.py:72 alarmclock/alarmclock.py:84
-#: alarmclock/alarmclock.py:418 alarmclock/alarmclock.py:425
+#: alarmclock/alarmclock.py:73 alarmclock/alarmclock.py:85
+#: alarmclock/alarmclock.py:419 alarmclock/alarmclock.py:426
 msgid "Please see the instructions for this alarm clock app for how to add rooms."
 msgstr ""
 
-#: alarmclock/alarmclock.py:82 alarmclock/alarmclock.py:423
+#: alarmclock/alarmclock.py:83 alarmclock/alarmclock.py:424
 msgid "The room {room} has not been configured yet."
 msgstr ""
 
-#: alarmclock/alarmclock.py:100 alarmclock/alarmclock.py:318
-#: alarmclock/alarmclock.py:415
+#: alarmclock/alarmclock.py:101 alarmclock/alarmclock.py:319
+#: alarmclock/alarmclock.py:416
 msgid "I'm afraid I didn't understand you."
 msgstr ""
 
-#: alarmclock/alarmclock.py:103 alarmclock/alarmclock.py:413
+#: alarmclock/alarmclock.py:104 alarmclock/alarmclock.py:414
 msgid "This time is in the past."
 msgstr ""
 
-#: alarmclock/alarmclock.py:104 alarmclock/alarmclock.py:107
+#: alarmclock/alarmclock.py:105 alarmclock/alarmclock.py:108
 msgid "Please set another alarm."
 msgstr ""
 
-#: alarmclock/alarmclock.py:106
+#: alarmclock/alarmclock.py:107
 msgid "This alarm would ring now."
 msgstr ""
 
-#: alarmclock/alarmclock.py:115
+#: alarmclock/alarmclock.py:116
 msgid "The alarm will ring {room_part} {future_part} at {h}:{min} ."
 msgstr ""
 
-#: alarmclock/alarmclock.py:132 alarmclock/alarmclock.py:184
-#: alarmclock/alarmclock.py:198
+#: alarmclock/alarmclock.py:133 alarmclock/alarmclock.py:185
+#: alarmclock/alarmclock.py:199
 msgid "no alarm"
 msgstr ""
 
-#: alarmclock/alarmclock.py:135 alarmclock/alarmclock.py:201
+#: alarmclock/alarmclock.py:136 alarmclock/alarmclock.py:202
 msgid "one alarm"
 msgstr ""
 
-#: alarmclock/alarmclock.py:137
+#: alarmclock/alarmclock.py:138
 msgid "There is {room_part} {future_part} {time_part} {num_part}{end}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:144 alarmclock/alarmclock.py:204
+#: alarmclock/alarmclock.py:145 alarmclock/alarmclock.py:205
 msgid "{num} alarms"
 msgstr ""
 
-#: alarmclock/alarmclock.py:146
+#: alarmclock/alarmclock.py:147
 msgid "There are {room_part} {future_part} {time_part} {num_part}{end}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:153
+#: alarmclock/alarmclock.py:154
 msgid "The next five are: "
 msgstr ""
 
-#: alarmclock/alarmclock.py:173
+#: alarmclock/alarmclock.py:174
 msgid "The next alarm {room_slot} starts {future_part} at {h}:{min} {room_part}."
 msgstr ""
 
-#: alarmclock/alarmclock.py:180
+#: alarmclock/alarmclock.py:181
 msgid "There is {room_part} {future_part} {time_part} {num_part}."
 msgstr ""
 
-#: alarmclock/alarmclock.py:206
+#: alarmclock/alarmclock.py:207
 msgid "You missed {room_part} {future_part} {time_part} {num_part}{end}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:229 alarmclock/alarmclock.py:363
+#: alarmclock/alarmclock.py:230 alarmclock/alarmclock.py:364
 msgid "at {h}:{min}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:236
+#: alarmclock/alarmclock.py:237
 msgid "{future_part} {time_part} {room_part}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:245
+#: alarmclock/alarmclock.py:246
 msgid "and"
 msgstr ""
 
-#: alarmclock/alarmclock.py:274
+#: alarmclock/alarmclock.py:275
 msgid "There is no alarm {room_part} {future_part} {time_part}."
 msgstr ""
 
-#: alarmclock/alarmclock.py:284
+#: alarmclock/alarmclock.py:285
 msgid "Are you sure you want to delete the only alarm {room_slot} {future_part} at {h}:{min} {room_part}?"
 msgstr ""
 
-#: alarmclock/alarmclock.py:292
+#: alarmclock/alarmclock.py:293
 msgid "There are {future_part} {time_part} {room_part} {num} alarms. Are you sure?"
 msgstr ""
 
-#: alarmclock/alarmclock.py:309
+#: alarmclock/alarmclock.py:310
 msgid "Done."
 msgstr ""
 
-#: alarmclock/alarmclock.py:443
+#: alarmclock/alarmclock.py:444
 msgid " and "
 msgstr ""
 
-#: alarmclock/alarmclock.py:454
+#: alarmclock/alarmclock.py:455
 msgid "one hour"
 msgstr ""
 
-#: alarmclock/alarmclock.py:456
+#: alarmclock/alarmclock.py:457
 msgid "{delta_hours} hours"
 msgstr ""
 
-#: alarmclock/alarmclock.py:458
+#: alarmclock/alarmclock.py:459
 msgid "one minute"
 msgstr ""
 
-#: alarmclock/alarmclock.py:460
+#: alarmclock/alarmclock.py:461
 msgid "{delta_minutes} minutes"
 msgstr ""
 
-#: alarmclock/alarmclock.py:462
+#: alarmclock/alarmclock.py:463
 msgid "in {hour_part}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:464
+#: alarmclock/alarmclock.py:465
 msgid "in {hour_part} and {minute_part}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:468
+#: alarmclock/alarmclock.py:469
 msgid "in {minute_part}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:470
+#: alarmclock/alarmclock.py:471
 msgid "today"
 msgstr ""
 
-#: alarmclock/alarmclock.py:472
+#: alarmclock/alarmclock.py:473
 msgid "tomorrow"
 msgstr ""
 
-#: alarmclock/alarmclock.py:475
+#: alarmclock/alarmclock.py:476
 msgid "{delta_hours} hours ago"
 msgstr ""
 
-#: alarmclock/alarmclock.py:477
+#: alarmclock/alarmclock.py:478
 msgid "yesterday"
 msgstr ""
 
-#: alarmclock/alarmclock.py:479
+#: alarmclock/alarmclock.py:480
 msgid "the day after tomorrow"
 msgstr ""
 
-#: alarmclock/alarmclock.py:481
+#: alarmclock/alarmclock.py:482
 msgid "on {weekday}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:483
+#: alarmclock/alarmclock.py:484
 msgid "on {weekday} in exactly one week"
 msgstr ""
 
-#: alarmclock/alarmclock.py:485
+#: alarmclock/alarmclock.py:486
 msgid "{delta_days} days ago"
 msgstr ""
 
-#: alarmclock/alarmclock.py:487
+#: alarmclock/alarmclock.py:488
 msgid "in {delta_days} days, on {weekday}, the {day}.{month}."
 msgstr ""
 
-#: alarmclock/alarmclock.py:502
+#: alarmclock/alarmclock.py:503
 msgid "from"
 msgstr ""
 
-#: alarmclock/alarmclock.py:503
+#: alarmclock/alarmclock.py:504
 msgid "to {future_part_to} {h_to}:{min_to}"
 msgstr ""
 
-#: alarmclock/alarmclock.py:508
+#: alarmclock/alarmclock.py:509
 msgid "as of"
 msgstr ""
 
-#: alarmclock/alarmclock.py:517
+#: alarmclock/alarmclock.py:518
 msgid "{from_word} {future_part_from} {h_from}:{min_from}"
 msgstr ""
 
