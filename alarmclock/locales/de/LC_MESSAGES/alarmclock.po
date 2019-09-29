@@ -1,0 +1,251 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2019-09-29 21:20+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+#: alarmclock/alarm.py:215
+msgid "Alarm is now ended."
+msgstr "Alarm beendet."
+
+#: alarmclock/alarm.py:215
+msgid "It's {h}:{min} ."
+msgstr "Es ist jetzt {h} Uhr {min} ."
+
+#: alarmclock/alarmclock.py:17
+msgid "monday"
+msgstr "Montag"
+
+#: alarmclock/alarmclock.py:17
+msgid "tuesday"
+msgstr "Dienstag"
+
+#: alarmclock/alarmclock.py:17
+msgid "wednesday"
+msgstr "Mittwoch"
+
+#: alarmclock/alarmclock.py:18
+msgid "friday"
+msgstr "Freitag"
+
+#: alarmclock/alarmclock.py:18
+msgid "saturday"
+msgstr "Samstag"
+
+#: alarmclock/alarmclock.py:18
+msgid "sunday"
+msgstr "Sonntag"
+
+#: alarmclock/alarmclock.py:18
+msgid "thursday"
+msgstr "Donnerstag"
+
+#: alarmclock/alarmclock.py:61
+msgid "Sorry, I did not understand you."
+msgstr "Ich habe dich leider nicht verstanden."
+
+#: alarmclock/alarmclock.py:66 alarmclock/alarmclock.py:69
+#: alarmclock/alarmclock.py:78 alarmclock/alarmclock.py:89
+#: alarmclock/alarmclock.py:389 alarmclock/alarmclock.py:433
+msgid "here"
+msgstr "hier"
+
+#: alarmclock/alarmclock.py:71 alarmclock/alarmclock.py:417
+msgid "This room here hasn't been configured yet."
+msgstr "Dieser Raum wurde noch nicht eingestellt."
+
+#: alarmclock/alarmclock.py:72 alarmclock/alarmclock.py:84
+#: alarmclock/alarmclock.py:418 alarmclock/alarmclock.py:425
+msgid "Please see the instructions for this alarm clock app for how to add rooms."
+msgstr "Bitte schaue in der Anleitung von dieser Wecker-Äpp nach, wie man Räume "
+"hinzufügen kann."
+
+#: alarmclock/alarmclock.py:82 alarmclock/alarmclock.py:423
+msgid "The room {room} has not been configured yet."
+msgstr "Der Raum {room} wurde noch nicht eingestellt."
+
+#: alarmclock/alarmclock.py:100 alarmclock/alarmclock.py:318
+#: alarmclock/alarmclock.py:415
+msgid "I'm afraid I didn't understand you."
+msgstr "Ich habe dich leider nicht verstanden."
+
+#: alarmclock/alarmclock.py:103 alarmclock/alarmclock.py:413
+msgid "This time is in the past."
+msgstr "Diese Zeit liegt in der Vergangenheit."
+
+#: alarmclock/alarmclock.py:104 alarmclock/alarmclock.py:107
+msgid "Please set another alarm."
+msgstr "Bitte stelle einen anderen Alarm."
+
+#: alarmclock/alarmclock.py:106
+msgid "This alarm would ring now."
+msgstr "Dieser Alarm würde jetzt klingeln."
+
+#: alarmclock/alarmclock.py:115
+msgid "The alarm will ring {room_part} {future_part} at {h}:{min} ."
+msgstr "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln."
+
+#: alarmclock/alarmclock.py:132 alarmclock/alarmclock.py:184
+#: alarmclock/alarmclock.py:198
+msgid "no alarm"
+msgstr "keinen Alarm"
+
+#: alarmclock/alarmclock.py:135 alarmclock/alarmclock.py:201
+msgid "one alarm"
+msgstr "einen Alarm"
+
+#: alarmclock/alarmclock.py:137
+msgid "There is {room_part} {future_part} {time_part} {num_part}{end}"
+msgstr "Es gibt {room_part} {future_part} {time_part} {num_part}{end}"
+
+#: alarmclock/alarmclock.py:144 alarmclock/alarmclock.py:204
+msgid "{num} alarms"
+msgstr "{num} Alarme"
+
+#: alarmclock/alarmclock.py:146
+msgid "There are {room_part} {future_part} {time_part} {num_part}{end}"
+msgstr "Es gibt {room_part} {future_part} {time_part} {num_part}{end}"
+
+#: alarmclock/alarmclock.py:153
+msgid "The next five are: "
+msgstr "Die nächsten fünf sind: "
+
+#: alarmclock/alarmclock.py:173
+msgid ""
+"The next alarm {room_slot} starts {future_part} at {h}:{min} {room_part}."
+msgstr ""
+"Der nächste Alarm {room_slot} startet {future_part} um {h} Uhr {min} "
+"{room_part}."
+
+#: alarmclock/alarmclock.py:180
+msgid "There is {room_part} {future_part} {time_part} {num_part}."
+msgstr ""
+
+#: alarmclock/alarmclock.py:206
+msgid "You missed {room_part} {future_part} {time_part} {num_part}{end}"
+msgstr "Du hast {room_part} {future_part} {time_part} {num_part} verpasst{end}"
+
+#: alarmclock/alarmclock.py:229 alarmclock/alarmclock.py:363
+msgid "at {h}:{min}"
+msgstr "um {h} Uhr {min}"
+
+#: alarmclock/alarmclock.py:236
+msgid "{future_part} {time_part} {room_part}"
+msgstr "{future_part} {time_part} {room_part}"
+
+#: alarmclock/alarmclock.py:245
+msgid "and"
+msgstr "und"
+
+#: alarmclock/alarmclock.py:274
+msgid "There is no alarm {room_part} {future_part} {time_part}."
+msgstr "Es gibt {room_part} {future_part} {time_part} keinen Alarm."
+
+#: alarmclock/alarmclock.py:284
+msgid "Are you sure you want to delete the only alarm {room_slot} {future_part} at "
+"{h}:{min} {room_part}?"
+msgstr "Möchtest du {room_slot} den einzigen Alarm {future_part} um {h} Uhr {min} "
+"{room_part} wirklich löschen?"
+
+#: alarmclock/alarmclock.py:292
+msgid "There are {future_part} {time_part} {room_part} {num} alarms. Are you sure?"
+msgstr "Es gibt {future_part} {time_part} {room_part} {num} Alarme. Bist du dir "
+"sicher?"
+
+#: alarmclock/alarmclock.py:309
+msgid "Done."
+msgstr "Erledigt."
+
+#: alarmclock/alarmclock.py:443
+msgid " and "
+msgstr " und "
+
+#: alarmclock/alarmclock.py:454
+msgid "one hour"
+msgstr "einer Stunde"
+
+#: alarmclock/alarmclock.py:456
+msgid "{delta_hours} hours"
+msgstr "{delta_hours} Stunden"
+
+#: alarmclock/alarmclock.py:458
+msgid "one minute"
+msgstr "einer Minute"
+
+#: alarmclock/alarmclock.py:460
+msgid "{delta_minutes} minutes"
+msgstr "{delta_minutes} Minuten"
+
+#: alarmclock/alarmclock.py:462
+msgid "in {hour_part}"
+msgstr "in {hour_part}"
+
+#: alarmclock/alarmclock.py:464
+msgid "in {hour_part} and {minute_part}"
+msgstr "in {hour_part} und {minute_part}"
+
+#: alarmclock/alarmclock.py:468
+msgid "in {minute_part}"
+msgstr "in {minute_part}"
+
+#: alarmclock/alarmclock.py:470
+msgid "today"
+msgstr "heute"
+
+#: alarmclock/alarmclock.py:472
+msgid "tomorrow"
+msgstr "morgen"
+
+#: alarmclock/alarmclock.py:475
+msgid "{delta_hours} hours ago"
+msgstr "vor {delta_hours} Stunden"
+
+#: alarmclock/alarmclock.py:477
+msgid "yesterday"
+msgstr "gestern"
+
+#: alarmclock/alarmclock.py:479
+msgid "the day after tomorrow"
+msgstr "übermorgen"
+
+#: alarmclock/alarmclock.py:481
+msgid "on {weekday}"
+msgstr "am {weekday}"
+
+#: alarmclock/alarmclock.py:483
+msgid "on {weekday} in exactly one week"
+msgstr "am {weekday} in genau einer Woche"
+
+#: alarmclock/alarmclock.py:485
+msgid "{delta_days} days ago"
+msgstr "vor {delta_days} Tagen"
+
+#: alarmclock/alarmclock.py:487
+msgid "in {delta_days} days, on {weekday}, the {day}.{month}."
+msgstr "in {delta_days} Tagen, am {weekday}, dem {day}.{month}."
+
+#: alarmclock/alarmclock.py:502
+msgid "from"
+msgstr "von"
+
+#: alarmclock/alarmclock.py:503
+msgid "to {future_part_to} {h_to}:{min_to}"
+msgstr "bis {future_part_to} {h_to} Uhr {min_to}"
+
+#: alarmclock/alarmclock.py:508
+msgid "as of"
+msgstr "ab"
+
+#: alarmclock/alarmclock.py:517
+msgid "{from_word} {future_part_from} {h_from}:{min_from}"
+msgstr "{from_word} {future_part_from} {h_from} Uhr {min_from}"
