@@ -30,18 +30,17 @@ def get_config(configuration_file):
     del config['global']['dict_siteids']
     for param in config['global']:
         user_value = config['global'][param].replace(" ", "")
-        print( param, user_value)
-        output_dict[param] = {}
-        for pair in user_value.split(","):
-            fvalue = _format_value(param, pair.split(":")[1])
-            output_dict[param][pair.split(":")[0]] = fvalue
-        if param in ('ringing_volume', 'ringing_timeout', 'ringtone_status'):
+        if ":" in user_value:
+            output_dict[param] = {}
+            for pair in user_value.split(","):
+                fvalue = _format_value(param, pair.split(":")[1])
+                output_dict[param][pair.split(":")[0]] = fvalue
+        elif param in ('ringing_volume', 'ringing_timeout', 'ringtone_status'):
             output_dict[param] = {
                 output_dict['dict_siteids'][room]: _format_value(param, user_value)
                 for room in output_dict['dict_siteids'] }
         else:
             output_dict[param] = _format_value(param, user_value)
-    print( output_dict)
     return output_dict
 
 
@@ -54,7 +53,7 @@ def _get_dict_siteids(config):
 def _format_value( param, user_value):
     
     if param == 'ringing_volume' or param == 'ringing_timeout':
-        return int(user_value)
+        return int( user_value)
 
     elif param == 'default_room':
         # TODO: Make room names with spaces valid.
@@ -64,8 +63,7 @@ def _format_value( param, user_value):
         return bool( re.findall("^(yes|on|true)$", user_value.lower()))
 
     elif param == 'snooze_config':
-        return { option : ON_OFF.get( value, value) if option == 'state' else value
-            for option, value in map( lambda pair: pair.split(":"), pairs) }
+        return ON_OFF[ user_value]
 
 
 def edit_volume( wav_path, volume):
