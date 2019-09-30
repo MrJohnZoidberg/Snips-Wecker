@@ -33,6 +33,7 @@ def on( intent, handler):
     'Register an intent handler'
     
     def wrapper( client, userdata, msg):
+        print( msg.topic)
         reply = handler( get_slots( msg.payload), msg.payload['siteId'])
         client.end_session( msg.payload['sessionId'], reply)
 
@@ -73,3 +74,7 @@ def delete_alarms( client, userdata, msg):
         else:
             client.end_session( msg.payload['sessionId'])
         del alarmclock.alarmctl.temp_memory[msg.payload['siteId']]
+
+
+if __name__ == '__main__':
+    mqtt_client.run()

@@ -85,11 +85,11 @@ class AlarmClock:
         alarm_time = parse(slots['time']['value'])
 
         if (alarm_time - get_now_time()).days < 0:  # if date is in the past
-            return concat(_("This time is in the past."),
-                          _("Please set another alarm."))
+            return concat( _("This time is in the past."),
+                           _("Please set another alarm."))
         elif (alarm_time - get_now_time()).seconds < 120:
-            return concat(_("This alarm would ring now."),
-                          _("Please set another alarm."))
+            return concat( _("This alarm would ring now."),
+                           _("Please set another alarm."))
 
         alarm = Alarm(alarm_time, self.alarmctl.sites_dict[alarm_site_id], repetition=None)
         self.alarmctl.add(alarm)
@@ -113,18 +113,16 @@ class AlarmClock:
                 "There is one alarm {room_part} {future_part} {time_part}.",
                 "There are {num_part} alarms {room_part} {future_part} {time_part}.", alarm_count)
         
-        response = response.format(
+        response = response.format( num_part=alarm_count,
             room_part=words_dict['room_part'],
             future_part=words_dict['future_part'],
-            time_part=words_dict['time_part'],
-            num_part=alarm_count)
+            time_part=words_dict['time_part'])
 
         if alarm_count > 5:
             response += _(" The next five are: ")
             alarms = alarms[:5]
 
-        response = self.add_alarms_part(response, siteid, alarms, words_dict, alarm_count)
-        return " ".join(response.split())
+        return response + self.add_alarms_part( siteid, alarms, words_dict, alarm_count)
 
 
     def get_next_alarm( self, slots, siteid):
@@ -163,19 +161,19 @@ class AlarmClock:
                 "You missed one alarm {room_part} {future_part} {time_part}",
                 "You missed {num} alarms {room_part} {future_part} {time_part}.")
         
-        response = response.format(
+        response = response.format( num=alarm_count,
                 room_part=words_dict['room_part'],
                 future_part=words_dict['future_part'],
-                time_part=words_dict['time_part'],
-                num=alarm_count)
+                time_part=words_dict['time_part'])
                 
         alarms = alarms.sorted( reverse=True)  # sort from old to new (say oldest alarms first)
-        response = self.add_alarms_part( response, siteid, alarms, words_dict, alarm_count)
+        response += self.add_alarms_part( siteid, alarms, words_dict, alarm_count)
         self.alarmctl.delete_alarms( alarms)
         return response
 
 
-    def add_alarms_part( self, response, siteid, alarms, words_dict, alarm_count):
+    def add_alarms_part( self, siteid, alarms, words_dict, alarm_count):
+        response = " "
         for alarm in alarms:
 
             # If room and/or time not said in speech command, the alarms were not filtered with that.
@@ -188,7 +186,7 @@ class AlarmClock:
             if not time_part:
                 time_part = _("at {time}").format( time=spoken_time(alarm.datetime))
                 
-            room_part = words_dict( 'room_part')
+            room_part = words_dict.get( 'room_part')
             if not room_part:
                 room_part = self.get_roomstr( [
                     alarm.site.siteid for alarm in
@@ -198,26 +196,26 @@ class AlarmClock:
             response += ", " if alarm.datetime != alarms[-1].datetime else "."
             if alarm_count > 1 and alarm.datetime == alarms[-2].datetime:
                 response += _(" and ")
-        return response
+        return response.strip()
 
 
     def delete_alarms_try( self, slots, siteid):
         """
-                Called when the user want to delete multiple alarms. If user said room and/or date the alarms with these
-                properties will be deleted. Otherwise all alarms will be deleted.
-                :param slots: The slots of the intent from Snips
-                :param siteid: The siteId where the user triggered the intent
-                :return: Dictionary with some keys:
-                    'rc' - Return code: Numbers representing normal or error message.
-                                0 - Everything good (other keys below are available)
-                                1 - This room is not configured (if slot 'room' is "hier")
-                                2 - Room 'room' is not configured (if slot 'room' is not "hier")
-                                3 - Date is in the past
-                    'matching_alarms' - List with datetime objects which will be deleted on confirmation
-                    'future_part' - Part of the sentence which describes the future
-                    'room_part' - Room name of the alarms (context-dependent)
-                    'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
-                                    one time, this means two alarms)
+        Called when the user want to delete multiple alarms. If user said room and/or date the alarms with these
+        properties will be deleted. Otherwise all alarms will be deleted.
+        :param slots: The slots of the intent from Snips
+        :param siteid: The siteId where the user triggered the intent
+        :return: Dictionary with some keys:
+            'rc' - Return code: Numbers representing normal or error message.
+                        0 - Everything good (other keys below are available)
+                        1 - This room is not configured (if slot 'room' is "hier")
+                        2 - Room 'room' is not configured (if slot 'room' is not "hier")
+                        3 - Date is in the past
+            'matching_alarms' - List with datetime objects which will be deleted on confirmation
+            'future_part' - Part of the sentence which describes the future
+            'room_part' - Room name of the alarms (context-dependent)
+            'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
+                            one time, this means two alarms)
         """
         error, alarms, words_dict = self.filter_alarms( self.alarmctl.get_alarms(), slots, siteid)
         if error: return [], error
@@ -281,9 +279,6 @@ class AlarmClock:
         if not answer_slot or answer_slot == "snooze":
             self.alarmctl.add( next_alarm)
             return _("I will wake you in {min} minutes.").format(min=duration)
-
-        if slots['answer'] == "stop" and not self.config("challenge"):
-            return _("I will wake you in {min} minutes.").format( min=4)
 
         return _("I will wake you in {min} minutes.").format( min=5)
 
@@ -360,8 +355,7 @@ class AlarmClock:
                 if iter_siteid == siteid:
                     room_str += _("here")
                 else:
-                    room = self.alarmctl.sites_dict[iter_siteid].room
-                    room_str += preposition( room)
+                    room_str += preposition( self.alarmctl.sites_dict[iter_siteid].room)
 
                 if len(siteids) > 1:
                     if iter_siteid == siteids[-2]: room_str += _(" and ")

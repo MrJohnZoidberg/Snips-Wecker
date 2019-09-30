@@ -72,7 +72,7 @@ def spoken_time( alarm_time):
     elif alarm_time.minute == 1: min = "eins"
     else: min = alarm_time.minute
     
-    return "{hour}:{min}".format( locals())
+    return _("{min} minutes past {hour}").format( **locals())
 
 
 def humanize( alarm_time, only_days=False):

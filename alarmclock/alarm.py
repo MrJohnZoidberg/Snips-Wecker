@@ -21,6 +21,10 @@ class Site:
         self.timeout_thread = None
         self.session_pending = False
 
+        
+    def __str__( self):
+        return '<Site %s in room "%s">' % (self.siteid, self.room)
+
 
 class Alarm:
     
@@ -47,6 +51,10 @@ class Alarm:
 
     def missed( self):
         return ( self.datetime - dt.now()).days < 0
+        
+        
+    def __str__( self):
+        return '<Alarm at %s on %s>' % (self.datetime, self.site)
 
 
 class AlarmControl:
@@ -58,7 +66,10 @@ class AlarmControl:
         self.alarms = []        
         self.saved_alarms_path = ".saved_alarms.json"
         
-        if config['restore_alarms']: self.alarms = self.restore()
+        if config['restore_alarms']:
+            try:
+                self.alarms = self.restore()
+            except: pass
         else: self.save()
             
         self.sites_dict = { siteid : Site( siteid, room, 
@@ -85,11 +96,10 @@ class AlarmControl:
             now = dt.now()
             now_time = dt( now.year, now.month, now.day, now.hour, now.minute)
             for alarm in self.get_alarms( now_time):
-                print( alarm)
                 if alarm.passed: continue
                 alarm.passed = True
                 self.start_ringing(alarm, now_time)
-            time.sleep(1)
+            time.sleep( 3)
 
 
     def start_ringing( self, alarm, now_time):
@@ -149,8 +159,7 @@ class AlarmControl:
         :return: Nothing
         """
 
-        payload = json.loads(msg.payload.decode())
-        site = self.sites_dict[payload['siteId']]
+        site = self.sites_dict[ msg.payload['siteId']]
         if site.ringing_alarm:
             self.stop_ringing(site)
             site.session_pending = True  # TODO
@@ -202,13 +211,16 @@ class AlarmControl:
 
 
     def save( self):
+        for alarm in self.alarms: print( alarm)
         with io.open( self.saved_alarms_path, "w") as f:
             f.write( json.dumps( [ alarm.get_data_dict() for alarm in self.alarms ]))
 
 
     def restore( self):
         with io.open( self.saved_alarms_path, "r") as f:
-            return [ Alarm( **alarm_dict) for alarm_dict in json.load( f) ]
+            return [ Alarm( **alarm_dict)
+                     for alarm_dict in json.load( f)
+                     if 'siteid' in alarm_dict and 'datetime' in alarm_dict]
 
 
     def get_alarms( self, dtobject=None, siteid=None):

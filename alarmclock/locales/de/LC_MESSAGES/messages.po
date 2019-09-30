@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-30 21:03+0200\n"
-"PO-Revision-Date: 2019-09-30 21:08+0200\n"
+"POT-Creation-Date: 2019-09-30 22:11+0200\n"
+"PO-Revision-Date: 2019-09-30 22:12+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de\n"
@@ -24,7 +24,7 @@ msgstr "Ich habe dich leider nicht verstanden."
 
 #: alarmclock/alarmclock.py:57 alarmclock/alarmclock.py:61
 #: alarmclock/alarmclock.py:68 alarmclock/alarmclock.py:75
-#: alarmclock/alarmclock.py:335 alarmclock/alarmclock.py:361
+#: alarmclock/alarmclock.py:330 alarmclock/alarmclock.py:356
 msgid "here"
 msgstr "hier"
 
@@ -32,17 +32,17 @@ msgstr "hier"
 msgid "This room here hasn't been configured yet."
 msgstr "Dieser Raum wurde noch nicht eingestellt."
 
-#: alarmclock/alarmclock.py:65 alarmclock/alarmclock.py:342
+#: alarmclock/alarmclock.py:65 alarmclock/alarmclock.py:337
 #, python-brace-format
 msgid "The room {room} has not been configured yet."
 msgstr "Der Raum {room} wurde noch nicht eingestellt."
 
-#: alarmclock/alarmclock.py:84 alarmclock/alarmclock.py:268
-#: alarmclock/alarmclock.py:331
+#: alarmclock/alarmclock.py:84 alarmclock/alarmclock.py:266
+#: alarmclock/alarmclock.py:326
 msgid "I'm afraid I did not understand you."
 msgstr "Ich habe dich leider nicht verstanden."
 
-#: alarmclock/alarmclock.py:88 alarmclock/alarmclock.py:312
+#: alarmclock/alarmclock.py:88 alarmclock/alarmclock.py:307
 msgid "This time is in the past."
 msgstr "Diese Zeit liegt in der Vergangenheit."
 
@@ -72,27 +72,27 @@ msgid_plural ""
 msgstr[0] "Es gibt einen Alarm {room_part} {future_part} {time_part}."
 msgstr[1] "Es gibt {num_part} Alarme {room_part} {future_part} {time_part}."
 
-#: alarmclock/alarmclock.py:123
+#: alarmclock/alarmclock.py:122
 msgid " The next five are: "
 msgstr " Die nächsten fünf sind: "
 
-#: alarmclock/alarmclock.py:135
+#: alarmclock/alarmclock.py:133
 #, python-brace-format
 msgid "There is no alarm {room_part} {future_part} {time_part}"
 msgstr "Es gibt keinen Wecker {room_part} {future_part} {time_part}."
 
-#: alarmclock/alarmclock.py:146
+#: alarmclock/alarmclock.py:144
 #, python-brace-format
 msgid "The next alarm {room_slot} starts {future_part} at {time} {room_part}."
 msgstr ""
 "Der nächste Alarm {room_slot} startet {future_part} um {time} {room_part}."
 
-#: alarmclock/alarmclock.py:160
+#: alarmclock/alarmclock.py:158
 #, python-brace-format
 msgid "You missed no alarm {room_part} {future_part} {time_part}"
 msgstr "Es hast {room_part} {future_part} {time_part} keinen Alarm verpasst."
 
-#: alarmclock/alarmclock.py:163
+#: alarmclock/alarmclock.py:161
 #, python-brace-format
 msgid "You missed one alarm {room_part} {future_part} {time_part}"
 msgid_plural "You missed {num} alarms {room_part} {future_part} {time_part}."
@@ -100,26 +100,26 @@ msgstr[0] "Du hast einen Alarm {room_part} {future_part} {time_part}."
 msgstr[1] ""
 "Du hast {num} Alarme {room_part} {future_part} {time_part} verpasst."
 
-#: alarmclock/alarmclock.py:189 alarmclock/alarmclock.py:307
+#: alarmclock/alarmclock.py:187 alarmclock/alarmclock.py:302
 #, python-brace-format
 msgid "at {time}"
 msgstr "um {time}"
 
-#: alarmclock/alarmclock.py:197
+#: alarmclock/alarmclock.py:195
 #, python-brace-format
 msgid "{future_part} {time_part} {room_part}"
 msgstr "{future_part} {time_part} {room_part}"
 
-#: alarmclock/alarmclock.py:200 alarmclock/alarmclock.py:370
+#: alarmclock/alarmclock.py:198 alarmclock/alarmclock.py:361
 msgid " and "
 msgstr " und "
 
-#: alarmclock/alarmclock.py:226
+#: alarmclock/alarmclock.py:224
 #, python-brace-format
 msgid "There is no alarm {room_part} {future_part} {time_part}."
 msgstr "Es gibt {room_part} {future_part} {time_part} keinen Alarm."
 
-#: alarmclock/alarmclock.py:238
+#: alarmclock/alarmclock.py:236
 #, python-brace-format
 msgid ""
 "Are you sure you want to delete the only alarm {room_slot} {future_part} at "
@@ -128,7 +128,7 @@ msgstr ""
 "Möchtest du {room_slot} den einzigen Alarm {future_part} um {time} "
 "{room_part} wirklich löschen?"
 
-#: alarmclock/alarmclock.py:245
+#: alarmclock/alarmclock.py:243
 #, python-brace-format
 msgid ""
 "There are {future_part} {time_part} {room_part} {num} alarms. Are you sure?"
@@ -136,25 +136,24 @@ msgstr ""
 "Es gibt {future_part} {time_part} {room_part} {num} Alarme. Bist du dir "
 "sicher?"
 
-#: alarmclock/alarmclock.py:261
+#: alarmclock/alarmclock.py:259
 msgid "Done."
 msgstr "Erledigt."
 
-#: alarmclock/alarmclock.py:283 alarmclock/alarmclock.py:286
-#: alarmclock/alarmclock.py:288
+#: alarmclock/alarmclock.py:281 alarmclock/alarmclock.py:283
 #, python-brace-format
 msgid "I will wake you in {min} minutes."
 msgstr "Ich wecke Dich in {min} Minuten."
 
-#: alarmclock/alarmclock.py:337
+#: alarmclock/alarmclock.py:332
 msgid "This room has not been configured yet."
 msgstr "Dieser Raum wurde noch nicht eingestellt."
 
-#: alarmclock/alarm.py:183
+#: alarmclock/alarm.py:193
 msgid "What should the alarm do?"
 msgstr "Was soll der Alarm tun?"
 
-#: alarmclock/alarm.py:187
+#: alarmclock/alarm.py:197
 #, python-brace-format
 msgid "Alarm is now ended. It is {time} ."
 msgstr "Alarm beendet. Es ist {time}."
@@ -186,6 +185,11 @@ msgstr "Samstag"
 #: alarmclock/translation.py:16
 msgid "sunday"
 msgstr "Sonntag"
+
+#: alarmclock/translation.py:75
+#, python-brace-format
+msgid "{min} minutes past {hour}"
+msgstr "{hour} Uhr und {min} Minuten"
 
 #: alarmclock/translation.py:87
 msgid "in one hour"
@@ -273,6 +277,11 @@ msgstr "bis {future_part_to} {time}"
 #, python-brace-format
 msgid "{from_word} {future_part_from} {time}"
 msgstr "{from_word} {future_part_from} {time}"
+
+#, fuzzy, python-brace-format
+#~| msgid "I will wake you in {min} minutes."
+#~ msgid "I shall wake you in {min} minutes."
+#~ msgstr "Ich wecke Dich in {min} Minuten."
 
 #, python-brace-format
 #~ msgid "There is {room_part} {future_part} {time_part} no alarm."
