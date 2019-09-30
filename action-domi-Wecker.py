@@ -36,7 +36,7 @@ def on( intent, handler):
         reply = handler( get_slots( msg.payload), msg.payload['siteId'])
         client.end_session( msg.payload['sessionId'], reply)
 
-    mqtt_client.intent( PREFIX + intent)( wrapper)
+    mqtt_client.on_intent( PREFIX + intent)( wrapper)
 
 
 on( 'newAlarm', alarmclock.new_alarm)
@@ -46,7 +46,7 @@ on( 'getMissedAlarms', alarmclock.get_missed_alarms)
 on( 'answerAlarm', alarmclock.answer_alarm)
 
 
-@mqtt_client.intent( PREFIX + 'deleteAlarms')
+@mqtt_client.on_intent( PREFIX + 'deleteAlarms')
 def delete_alarms_try( client, userdata, msg):
     # delete alarms with the given properties
     slots = get_slots( msg.payload)
@@ -61,7 +61,7 @@ def delete_alarms_try( client, userdata, msg):
         client.end_session( msg.payload['sessionId'], response)
 
 
-@mqtt_client.intent( PREFIX + 'confirmAlarm')
+@mqtt_client.on_intent( PREFIX + 'confirmAlarm')
 def delete_alarms( client, userdata, msg):
     custom_data = json.loads( msg.payload['customData'])
     if custom_data and 'past_intent' in custom_data.keys():
@@ -73,11 +73,3 @@ def delete_alarms( client, userdata, msg):
         else:
             client.end_session( msg.payload['sessionId'])
         del alarmclock.alarmctl.temp_memory[msg.payload['siteId']]
-
-
-@mqtt_client.session_ended
-def on_session_ended( client, userdata, msg):
-    if alarmclock.alarmctl.temp_memory.get( msg.payload['siteId']) \
-    and msg.payload['termination']['reason'] != "nominal":
-        # if session was ended while confirmation process clean the past intent memory
-        del alarmclock.alarmctl.temp_memory[ msg.payload['siteId']]

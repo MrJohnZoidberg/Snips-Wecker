@@ -1,10 +1,10 @@
 BIN = $(PWD)/.venv3/bin
 GETTEXT = /usr/local/opt/gettext
-export PATH := $(PATH):$(GETTEXT)/bin
 
-LOCALE = alarmclock/locales/de/LC_MESSAGES/alarmclock.mo
+POT = alarmclock/locales/messages.pot
+LOCALE = alarmclock/locales/de/LC_MESSAGES/messages.po
 
-run: .venv3
+run: .venv3 $(LOCALE:.po=.mo)
 	PYTHONPATH=$(PWD)/../snipsclient $(BIN)/python3 action-domi-Wecker.py
 
 .venv3: requirements.txt
@@ -12,12 +12,10 @@ run: .venv3
 	$(BIN)/pip3 install -r $<
 	touch $@
 
-messages: alarmclock/locales/messages.pot
-	
-alarmclock/locales/messages.pot: alarmclock/alarmclock.py alarmclock/alarm.py
-	pygettext.py -d messages -o $@ alarmclock/alarm.py alarmclock/alarmclock.py
+messages: $(POT)
 
-locale: $(LOCALE)
+$(POT): alarmclock/alarmclock.py alarmclock/alarm.py alarmclock/translation.py
+	$(GETTEXT)/bin/xgettext -L python -o $@ $^
 
 %.mo: %.po
-	msgfmt -o $@ $<
+	$(GETTEXT)/bin/msgfmt -o $@ $<
