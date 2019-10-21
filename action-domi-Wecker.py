@@ -88,7 +88,9 @@ def on_message_intent(client, userdata, msg):
 
 def on_session_ended(client, userdata, msg):
     data = json.loads(msg.payload.decode("utf-8"))
-    if alarmclock.temp_memory[data['siteId']] and data['termination']['reason'] != "nominal":
+    site_id = data['siteId']
+    if site_id in alarmclock.temp_memory and alarmclock.temp_memory[site_id] and \
+            data['termination']['reason'] != "nominal":
         # if session was ended while confirmation process clean the past intent memory
         alarmclock.temp_memory[data['siteId']] = None
         
