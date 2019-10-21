@@ -139,5 +139,5 @@ if __name__ == "__main__":
     mqtt_client.connect(MQTT_BROKER_ADDRESS.split(":")[0], int(MQTT_BROKER_ADDRESS.split(":")[1]))
     mqtt_client.subscribe('hermes/intent/#')
     mqtt_client.subscribe('hermes/dialogueManager/sessionEnded')
-    alarmclock = AlarmClock(mqtt_client=mqtt_client)
+    alarmclock = AlarmClock(mqtt_client)
     mqtt_client.loop_forever()

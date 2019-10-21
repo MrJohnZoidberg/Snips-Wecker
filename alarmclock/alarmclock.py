@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #                                    Explanations:
 import datetime                      # date and time
-import paho.mqtt.client as mqtt      # sending mqtt messages
 import json                          # payload in mqtt messages
 from . import utils                         # utils.py
 from . import formattime as ftime           # ftime.py
@@ -10,7 +9,7 @@ from . translation import Translation  # translation.py
 
 
 class AlarmClock:
-    def __init__(self, mqtt_client=None):
+    def __init__(self, mqtt_client):
         self.config = utils.get_config("config.ini", "config.ini.default")
         # self.dict_siteids -> { key=RoomName: value=siteId }
         self.dict_siteids = self.config['dict_siteids']
@@ -21,18 +20,12 @@ class AlarmClock:
         self.language = "de-DE"
         self.translation = Translation(self.language)
         # Connect to MQTT broker
-        if not mqtt_client:
-            self.mqtt_client = mqtt.Client()
-            self.mqtt_client.connect(host="localhost", port=1883)
-        else:
-            self.mqtt_client = mqtt_client
+        self.mqtt_client = mqtt_client
         # TODO: Publish other messages over mqtt
         self.mqtt_client.subscribe([('external/alarmclock/#', 0), ('hermes/dialogueManager/#', 0),
                                     ('hermes/hotword/#', 0), ('hermes/audioServer/#', 0)])
         # Create alarmcontrol instance
         self.alarmctl = AlarmControl(self.config, self.language, self.mqtt_client, self.temp_memory)
-        # Start MQTT-Loop
-        self.mqtt_client.loop_start()
 
     def new_alarm(self, slots, siteid):
 
