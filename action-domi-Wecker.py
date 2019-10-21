@@ -130,7 +130,6 @@ if __name__ == "__main__":
     if 'mqtt_password' in snips_config['snips-common'].keys():
         MQTT_PASSWORD = snips_config['snips-common']['mqtt_password']
 
-    alarmclock = AlarmClock()
     mqtt_client = mqtt.Client()
     mqtt_client.message_callback_add('hermes/intent/#', on_message_intent)
     mqtt_client.message_callback_add('hermes/dialogueManager/sessionEnded', on_session_ended)
@@ -138,4 +137,5 @@ if __name__ == "__main__":
     mqtt_client.connect(MQTT_BROKER_ADDRESS.split(":")[0], int(MQTT_BROKER_ADDRESS.split(":")[1]))
     mqtt_client.subscribe('hermes/intent/#')
     mqtt_client.subscribe('hermes/dialogueManager/sessionEnded')
+    alarmclock = AlarmClock(mqtt_client=mqtt_client)
     mqtt_client.loop_forever()
