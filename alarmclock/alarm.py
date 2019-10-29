@@ -169,9 +169,9 @@ class AlarmControl:
         :param msg: MQTT message object (from paho)
         :return: Nothing
         """
-
-        site = self.sites_dict[json.loads(msg.payload.decode("utf-8"))['siteId']]
-        if site.ringing_alarm:
+        data = json.loads(msg.payload.decode())
+        site = self.sites_dict.get(data['siteId'])
+        if site and site.ringing_alarm:
             self.stop_ringing(site)
             site.session_pending = True  # TODO
             self.mqtt_client.message_callback_add('hermes/dialogueManager/sessionStarted',
@@ -187,8 +187,9 @@ class AlarmControl:
         :return: Nothing
         """
 
-        site = self.sites_dict[json.loads(msg.payload.decode("utf-8"))['siteId']]
-        if site.ringing_alarm:
+        data = json.loads(msg.payload.decode())
+        site = self.sites_dict.get(data['siteId'])
+        if site and site.ringing_alarm:
             self.stop_ringing(site)
 
     def on_message_sessionstarted(self, client, userdata, msg):
@@ -201,10 +202,14 @@ class AlarmControl:
         :param msg: MQTT message object (from paho)
         :return: Nothing
         """
-        data = json.loads(msg.payload.decode("utf-8"))
+        data = json.loads(msg.payload.decode())
+        site = self.sites_dict.get(data['siteId'])
+        if not site:
+            return
+
         # self.mqtt_client.publish('hermes/asr/toggleOn')
-        if not self.config['snooze_config']['state'] and self.sites_dict[data['siteId']].session_pending:
-            self.sites_dict[data['siteId']].session_pending = False
+        if not self.config['snooze_config']['state'] and site.session_pending:
+            site.session_pending = False
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             now_time = datetime.datetime.now()
             text = self.translation.get("Alarm is now ended.") + " " + self.translation.get("It's {h}:{min} .", {
@@ -212,8 +217,8 @@ class AlarmControl:
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
                                      json.dumps({"text": text, "sessionId": data['sessionId']}))
 
-        elif self.config['snooze_config']['state'] and self.sites_dict[data['siteId']].session_pending:
-            self.sites_dict[data['siteId']].session_pending = False
+        elif self.config['snooze_config']['state'] and site.session_pending:
+            site.session_pending = False
             self.mqtt_client.message_callback_remove('hermes/dialogueManager/sessionStarted')
             self.mqtt_client.publish('hermes/dialogueManager/endSession',
                                      json.dumps({"sessionId": data['sessionId']}))
