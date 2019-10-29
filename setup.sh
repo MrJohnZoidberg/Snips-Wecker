@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 
 # Copy config.ini.default if config.ini doesn't exist.
 if [ ! -e config.ini ]
@@ -6,7 +6,7 @@ then
     cp config.ini.default config.ini
 fi
 
-PYTHON=`which python3`
+PYTHON=$(command -v python3)
 VENV=venv
 
 if [ -f "$PYTHON" ]
@@ -27,6 +27,7 @@ then
     fi
 
     # Activate the virtual environment and install requirements.
+    # shellcheck source=/dev/null
     . $VENV/bin/activate
     pip3 install -r requirements.txt
 
