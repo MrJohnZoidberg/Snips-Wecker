@@ -24,7 +24,7 @@ An app for [Snips.ai](https://snips.ai/) with a fully controllable alarm clock.
 already configured and running on your device (e.g. a Raspberry Pi 3 from the 
 [Snips Maker Kit](https://makers.snips.ai/kit/) with 
 [Raspbian](https://www.raspberrypi.org/downloads/raspbian/) Stretch Lite). 
-[SAM](https://snips.gitbook.io/getting-started/installation) should
+[SAM](https://docs.snips.ai/getting-started/quick-start-raspberry-pi) should
 also already be set up and connected to your device and your account.
 
 1. In the German [app store](https://console.snips.ai/) add the
