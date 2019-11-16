@@ -33,14 +33,8 @@ your *German* assistant.
 
 2. You want to have a more unique alarmclock? Take a look at the section [Configuration](#iii-configuration) below and
 see what you can change.
-
-3. In the console scroll down to the parameters section.
-
-    ![img](resources/ConsoleParameters.png)
-
-    Now you may change some parameter values of the alarmclock.
     
-4. If you already have the same assistant on your platform, update it with:
+3. If you already have the same assistant on your platform, update it with:
       ```bash
       sam update-assistant
       ```
@@ -50,6 +44,8 @@ see what you can change.
       ```bash
       sam install assistant
       ```
+   
+   You may change some parameter values of the alarmclock during installation.
     
 ## III. Configuration
 
