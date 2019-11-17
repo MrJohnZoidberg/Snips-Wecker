@@ -1,5 +1,5 @@
 [global]
-ringing_volume=50
+ringing_volume=70
 ringing_timeout=30
 dict_siteids=Schlafzimmer:default
 
