@@ -38,7 +38,7 @@ class AlarmControl:
         while True:
             now_time = ftime.get_now_time()
             alarms_sunrise = [alarm for alarm in self.get_alarms()
-                              if not alarm.site.sun_rising and
+                              if not alarm.passed and not alarm.site.sun_rising and
                               now_time + datetime.timedelta(minutes=30) > alarm.datetime]
             for alarm in alarms_sunrise:
                 minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() / 60)
