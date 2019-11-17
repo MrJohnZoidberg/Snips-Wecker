@@ -48,8 +48,9 @@ class AlarmControl:
                 if not alarm.passed and not alarm.site.sun_rising and \
                         now_time + datetime.timedelta(minutes=30) > alarm.datetime:
                     minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() / 60)
-                    self.mqtt_client.publish('external/alarmclock/sunriseStart',
-                                             json.dumps({'minutes': minutes_until_alarm}))
+                    self.mqtt_client.publish('external/alarmclock/sunriseStart', json.dumps(
+                        {'minutes': minutes_until_alarm, 'entity_id': 'light.bettbeleuchtung'}
+                    ))
                     alarm.site.sun_rising = True
             time.sleep(5)
 
