@@ -251,7 +251,7 @@ class AlarmClock:
             else:
                 room_part = self.get_roomstr([filtered_alarms[0].site], siteid)
             self.alarmctl.delete_multi(filtered_alarms)
-            return "Der einzige Alarm {room_slot} {future_part} at {h}:{min} {room_part} wurde gelöscht.".format(
+            return "Der einzige Alarm {room_slot} {future_part} um {h} Uhr {min} {room_part} wurde gelöscht.".format(
                 room_slot=words_dict['room_part'],
                 future_part=words_dict['future_part'],
                 h=ftime.get_alarm_hour(dtobj),
