@@ -8,3 +8,4 @@ class Site:
         self.ringtone_id = None
         self.timeout_thread = None
         self.session_active = False
+        self.sun_rising = False
