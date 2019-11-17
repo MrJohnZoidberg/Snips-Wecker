@@ -144,11 +144,12 @@ class AlarmControl:
                 alarms = []
                 alarms_list = json.load(f)
                 for alarm_dict in alarms_list:
-                    alarm = Alarm(site=self.sites_dict[alarm_dict['siteid']],
-                                  repetition=alarm_dict['repetition'],
-                                  missed=alarm_dict['missed'])
-                    alarm.set_datetime_str(alarm_dict['datetime'])
-                    alarms.append(alarm)
+                    if alarm_dict['siteid'] in self.sites_dict:
+                        alarm = Alarm(site=self.sites_dict[alarm_dict['siteid']],
+                                      repetition=alarm_dict['repetition'],
+                                      missed=alarm_dict['missed'])
+                        alarm.set_datetime_str(alarm_dict['datetime'])
+                        alarms.append(alarm)
                 return alarms
             except (ValueError, TypeError):
                 return []
