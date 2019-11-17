@@ -16,11 +16,10 @@ class AlarmControl:
         self.saved_alarms_path = ".saved_alarms.json"
         self.sites_dict = {}
         for room, siteid in config['dict_siteids'].items():
-            ringtone_status = self.config['ringtone_status'][siteid]
             ringing_timeout = self.config['ringing_timeout'][siteid]
             ringing_volume = self.config['ringing_volume'][siteid]
             ringtone_wav = utils.edit_volume("alarm-sound.wav", ringing_volume)
-            self.sites_dict[siteid] = Site(siteid, room, ringtone_status, ringing_timeout, ringtone_wav)
+            self.sites_dict[siteid] = Site(siteid, room, ringing_timeout, ringtone_wav)
         self.alarms = self.restore()
         self.check_set_missed()
         self.save()
