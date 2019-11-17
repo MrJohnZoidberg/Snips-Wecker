@@ -100,6 +100,7 @@ if __name__ == "__main__":
         MQTT_PASSWORD = snips_config['snips-common']['mqtt_password']
 
     mqtt_client = mqtt.Client()
+    mqtt_client.on_connect = on_connect
     mqtt_client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
     mqtt_client.connect(MQTT_BROKER_ADDRESS.split(":")[0], int(MQTT_BROKER_ADDRESS.split(":")[1]))
     alarmclock = alarm_clock.AlarmClock(mqtt_client)
