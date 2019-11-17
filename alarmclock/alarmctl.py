@@ -126,8 +126,8 @@ class AlarmControl:
             h=ftime.get_alarm_hour(now_time),
             min=ftime.get_alarm_minute(now_time)
         )
-        #self.mqtt_client.publish('hermes/dialogueManager/endSession',
-        #                         json.dumps({"text": text, "sessionId": data['sessionId']}))
+        self.mqtt_client.publish('hermes/dialogueManager/endSession',
+                                 json.dumps({"text": text, "sessionId": data['sessionId']}))
 
     def add(self, alarmobj):
         if alarmobj not in self.alarms:
