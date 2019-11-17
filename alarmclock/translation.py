@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 TRANSLATIONS_DE = {
 
     "Done.":
@@ -117,57 +115,6 @@ TRANSLATIONS_DE = {
 }
 
 
-PREPOSITIONS = {
-    "de-DE": {
-        "default":          "",
-        "Sauna":            "in der",
-        "Draußen":          "",
-        "Wartezimmer":      "im",
-        "Eingang":          "im",
-        "Gang":             "im",
-        "Toilette":         "in der",
-        "Abstellkammer":    "in der",
-        "Spielzimmer":      "im",
-        "Garage":           "in der",
-        "Garten":           "im",
-        "Atrium":           "im",
-        "Foyer":            "im",
-        "Vestibül":         "im",
-        "Büro":             "im",
-        "Atelier":          "im",
-        "Wintergarten":     "im",
-        "Waschküche":       "in der",
-        "Galerie":          "in der",
-        "Aula":             "in der",
-        "Dachboden":        "auf dem",
-        "Leitstand":        "im",
-        "Cella":            "in der",
-        "Kommandozentrale": "in der",
-        "Konferenzraum":    "im",
-        "Kesselhaus":       "im",
-        "Speisekammer":     "in der",
-        "Umkleideraum":     "im",
-        "Esszimmer":        "im",
-        "Monteurzimmer":    "im",
-        "Wartehalle":       "in der",
-        "Keller":           "im",
-        "Küche":            "in der",
-        "Arbeitszimmer":    "im",
-        "Badezimmer":       "im",
-        "Kinderzimmer":     "im",
-        "Wohnzimmer":       "im",
-        "Schlafzimmer":     "im",
-        "Balkon":           "auf dem"
-    },
-    "fr-FR": {
-        "default":          ""
-    },
-    "en-US": {
-        "default":          "in the"
-    }
-}
-
-
 class Translation:
     def __init__(self, language):
         self.language = language
@@ -182,14 +129,3 @@ class Translation:
                 return description.format(**data)
         elif self.language == "en-US":
             return description.format(**data)
-
-    def get_prepos(self, room):
-        if self.language not in PREPOSITIONS.keys():
-            return ""
-        if room in PREPOSITIONS[self.language].keys():
-            preposition = PREPOSITIONS[self.language][room]
-        elif "default" in PREPOSITIONS[self.language].keys():
-            preposition = PREPOSITIONS[self.language]["default"]
-        else:
-            preposition = ""
-        return preposition
