@@ -49,7 +49,7 @@ class AlarmControl:
                         now_time + datetime.timedelta(minutes=30) > alarm.datetime:
                     minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() / 60)
                     self.mqtt_client.publish('external/alarmclock/sunriseStart', json.dumps(
-                        {'minutes': minutes_until_alarm, 'entity_id': 'light.bettbeleuchtung'}
+                        {'minutes': minutes_until_alarm, 'room': alarm.site.room}
                     ))
                     alarm.site.sun_rising = True
             time.sleep(5)
