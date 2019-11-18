@@ -39,20 +39,18 @@ class AlarmControl:
             now_time = ftime.get_now_time()
 
             for alarm in self.get_alarms():
+                if not alarm.passed and alarm.site.sun_rising_alarm != alarm and \
+                        now_time + datetime.timedelta(minutes=30) >= alarm.datetime:
+                    minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() / 60)
+                    payload = {'minutes': minutes_until_alarm, 'room': alarm.site.room}
+                    self.mqtt_client.publish('external/alarmclock/sunriseStart', json.dumps(payload))
+                    alarm.site.sun_rising_alarm = alarm
                 if now_time == alarm.datetime and not alarm.passed:
                     alarm.passed = True
-                    alarm.site.sun_rising = False  # TODO: delete alarm -> ?
+                    if alarm == alarm.site.sun_rising_alarm:
+                        alarm.site.sun_rising_alarm = None
                     self.mqtt_client.publish('external/alarmclock/ringingStarted', json.dumps(alarm.get_data_dict()))
                     self.start_ringing(alarm)
-
-                print(alarm.passed, alarm.site.sun_rising, now_time + datetime.timedelta(minutes=30), alarm.datetime)
-                if not alarm.passed and not alarm.site.sun_rising and \
-                        now_time + datetime.timedelta(minutes=30) > alarm.datetime:
-                    minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() / 60)
-                    self.mqtt_client.publish('external/alarmclock/sunriseStart', json.dumps(
-                        {'minutes': minutes_until_alarm, 'room': alarm.site.room}
-                    ))
-                    alarm.site.sun_rising = True
             time.sleep(5)
 
     def start_ringing(self, alarm):
@@ -197,11 +195,9 @@ class AlarmControl:
             filtered_alarms = [alarm for alarm in filtered_alarms if alarm.site.siteid == siteid]
         return filtered_alarms
 
-    def delete_single(self, alarm):
-        self.alarms.remove(alarm)
-        self.save()
-
     def delete_multi(self, alarms):
         for alarm in alarms:
+            if alarm.site.sun_rising_alarm == alarm:
+                alarm.site.sun_rising_alarm = None
             self.alarms.remove(alarm)
         self.save()
