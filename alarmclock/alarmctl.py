@@ -45,6 +45,7 @@ class AlarmControl:
                     self.mqtt_client.publish('external/alarmclock/ringingStarted', json.dumps(alarm.get_data_dict()))
                     self.start_ringing(alarm)
 
+                print(alarm.passed, alarm.site.sun_rising, now_time + datetime.timedelta(minutes=30), alarm.datetime)
                 if not alarm.passed and not alarm.site.sun_rising and \
                         now_time + datetime.timedelta(minutes=30) > alarm.datetime:
                     minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() / 60)
