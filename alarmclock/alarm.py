@@ -22,7 +22,7 @@ class Alarm:
 
     @property
     def seconds_to(self):
-        return int((datetime.datetime.now() - self.datetime).total_seconds())
+        return int((self.datetime - datetime.datetime.now()).total_seconds())
 
     @property
     def data_dict(self):

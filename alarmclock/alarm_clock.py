@@ -84,7 +84,7 @@ class AlarmClock:
 
         if alarm.passed:
             return error_string(CLOCK_ERR_TIME_PAST)
-        if alarm.seconds_to < 120:
+        if alarm.seconds_to < 60:
             return error_string(CLOCK_ERR_TIME_EARLY)
 
         self.alarmctl.add(alarm)
