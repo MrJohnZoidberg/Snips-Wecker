@@ -387,7 +387,7 @@ class AlarmClock:
         delta_hours = delta_minutes // 60
         delta_days = (dtobj.date() - now_time.date()).days
         if not dtobj < now_time:
-            if not only_days and delta_days == 0:
+            if not only_days and delta_days == 0 or not only_days and delta_hours < 12:
                 minutes_remain = (delta_seconds % 3600) // 60
                 if delta_hours == 1:  # for word fix in German
                     hour_words = "einer Stunde"
