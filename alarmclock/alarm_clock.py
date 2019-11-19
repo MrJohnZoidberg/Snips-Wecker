@@ -418,7 +418,7 @@ class AlarmClock:
         delta_seconds = int(abs((dtobj - datetime.datetime.now()).total_seconds()))
         delta_minutes = delta_seconds // 60
         delta_hours = delta_minutes // 60
-        delta_days = (dtobj.date() - datetime.datetime.now().date()).days()
+        delta_days = (dtobj.date() - datetime.datetime.now().date()).days
         if not dtobj < datetime.datetime.now():
             if not only_days and delta_days == 0:
                 minutes_remain = (delta_seconds % 3600) // 60
