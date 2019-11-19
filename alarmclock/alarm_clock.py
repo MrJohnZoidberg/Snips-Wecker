@@ -279,7 +279,7 @@ class AlarmClock:
                 if not timeslot_with_past and dtobj < ftime.get_now_time():
                     return CLOCK_ERR_TIME_PAST, None, None
                 filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime == dtobj]
-                time_part = "um {h}:{min}".format(h=ftime.get_alarm_hour(dtobj), min=ftime.get_alarm_minute(dtobj))
+                time_part = "um {h} Uhr {min}".format(h=ftime.get_alarm_hour(dtobj), min=ftime.get_alarm_minute(dtobj))
             else:
                 if (dtobj.date() - ftime.get_now_time().date()).days < 0:
                     return CLOCK_ERR_TIME_PAST, None, None
