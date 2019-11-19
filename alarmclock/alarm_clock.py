@@ -189,7 +189,7 @@ class AlarmClock:
             # If room and/or time not said in speech command, the alarms were not filtered with that.
             # So these parts must be looked up for every datetime object.
             if not words_dict['future_part']:
-                future_part = alarm.delta_description(only_days=True)
+                future_part = self.get_delta_description(dtobj, only_days=True)
             else:
                 future_part = ""
             if words_dict['time_part']:
