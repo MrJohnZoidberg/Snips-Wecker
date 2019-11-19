@@ -1,27 +1,39 @@
 import datetime
+from . import formattime as ftime
 
 
 class Alarm:
-    def __init__(self, datetime_obj=None, site=None, repetition=None, missed=False):
+    def __init__(self, site, datetime_obj=None):
         self.datetime = datetime_obj
-        self.repetition = repetition
         self.site = site
-        self.missed = missed
-        self.passed = False
         self.ringing = False
 
-    def set_datetime_str(self, datetime_str, str_format="%Y-%m-%d %H:%M"):
-        self.datetime = datetime.datetime.strptime(datetime_str, str_format)
-
-    def get_datetime_str(self, str_format="%Y-%m-%d %H:%M"):
+    @property
+    def datetime_str(self, str_format="%Y-%m-%d %H:%M"):
         return datetime.datetime.strftime(self.datetime, str_format)
 
-    def get_data_dict(self):
-        return {'datetime': self.get_datetime_str(),
-                'siteid': self.site.siteid,
-                'room': self.site.room,
-                'repetition': self.repetition,
-                'missed': self.missed}
+    @datetime_str.setter
+    def datetime_str(self, datetime_str, str_format="%Y-%m-%d %H:%M"):
+        self.datetime = datetime.datetime.strptime(datetime_str, str_format)
 
-    def check_missed(self):
-        return (self.datetime - datetime.datetime.now()).days < 0
+    @property
+    def passed(self):
+        return self.datetime < datetime.datetime.now()
+
+    @property
+    def seconds_to(self):
+        return abs(datetime.datetime.now() - self.datetime).seconds
+
+    @property
+    def data_dict(self):
+        return {'datetime': self.datetime_str,
+                'siteid': self.site.siteid,
+                'room': self.site.room}
+
+    @property
+    def hour(self):
+        return ftime.get_alarm_hour(self.datetime)
+
+    @property
+    def minute(self):
+        return ftime.get_alarm_minute(self.datetime)

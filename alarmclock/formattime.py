@@ -7,6 +7,10 @@ def alarm_time_str(slots_time):
     return "{}:{}".format(slots_time.split(":")[0], slots_time.split(":")[1])
 
 
+def dtslot_to_dtobj(dtslot):
+    return datetime.datetime.strptime(alarm_time_str(dtslot), "%Y-%m-%d %H:%M")
+
+
 def get_now_time(only_date=False):
     now = datetime.datetime.now()
     if only_date:

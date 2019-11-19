@@ -86,7 +86,13 @@ def on_connect(*args):
     client.message_callback_add('hermes/intent/' + add_prefix('getNextAlarm'), msg_get_next_alarm)
     client.message_callback_add('hermes/intent/' + add_prefix('getMissedAlarms'), msg_get_missed_alarms)
     client.message_callback_add('hermes/intent/' + add_prefix('deleteAlarms'), msg_delete_alarms)
-    client.subscribe('hermes/intent/#')
+    client.subscribe([
+        ('hermes/intent/#', 0),
+        ('alarmclock/#', 0),
+        ('hermes/dialogueManager/#', 0),
+        ('hermes/hotword/#', 0),
+        ('hermes/audioServer/#', 0),
+    ])
 
 
 if __name__ == "__main__":

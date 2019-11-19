@@ -77,25 +77,12 @@ some parameters that influence the behaviour of the alarm clock app:
   
   Example: ```kitchen: 50, bedroom: 120, bathroom: 300```
 
-- **Parameter** `ringtone_status` for different ringtone status in each room:<br/>
-  
-  Scheme: ```siteId1: status1, siteId2: status2, siteId3: status3, [...]``` <br/> 
-  Unit: Status with _on_ or _off_
-  
-  Example: ```kitchen: off, bedroom: on, bathroom: on```
-
-- **Parameter** `dict_siteIds`:<br/>
+- **Parameter** `dict_siteids`:<br/>
   Important if you have a multi-room setup of Snips! These are pairs of room names and siteIds of these rooms.
+  The first entry will be taken if you didn't say a specific room in your speech command.
   
   Scheme: ```room1: siteId1, room2: siteId2, room3: siteId3, [...]```<br/>
   Default: `Schlafzimmer:default`
-
-- **Parameter** `default_room`:<br/>
-  Important if you have a multi-room setup of Snips!<br/>
-  Here must be the name of the room in which the alarm is to be set, if no room was said in the command.
-  
-  Scheme: ```roomname```<br/>
-  Default: `Schlafzimmer`
 
 #### Examples of multi-room configurations
 
@@ -103,10 +90,7 @@ some parameters that influence the behaviour of the alarm clock app:
 
 ![Example 1](resources/MultiroomExample1.png)
 
-Parameters values in the [Snips console](https://console.snips.ai/) in this app:
-
-- dict_site-id: `Wohnzimmer:main, Küche:kitchen, Büro:office, Schlafzimmer:bedroom`
-- default_room: `Schlafzimmer`
+Parameters dict_siteids for this setup: `Schlafzimmer:bedroom, Wohnzimmer:main, Küche:kitchen, Büro:office`
 
 ## IV. Usage
 
@@ -176,74 +160,7 @@ The ringtone
 
 ![img](resources/Snips-Alarmclock-ringing.png)
 
-### 3. MQTT messages
-
-#### In messages
-
-##### external/alarmclock/in/getAllAlarms
-
-You should subscribe to `external/alarmclock/out/allAlarms` before publishing this message. Then you will get all
-alarms.
-
-No JSON Payload required.
-
-##### hermes/external/alarmclock/in/stopRinging
-
-JSON Payload (I'm working on it):
-
-| Key | Value |
-|-----|-------|
-|siteId	| *String* - Site where the alarmclock should stop ringing|
-
-#### Out messages
-
-##### external/alarmclock/out/newAlarm
-
-JSON Payload: `data` (example access name)
-
-| Key | Value |
-|-----|-------|
-|new|*JSON Object* - Alarm details: datetime object and siteId (see below: 'new')|
-|all|*Dictionary* - Includes all alarms (with the new one; see below: 'all')|
-
-'new' - JSON Object: `data['new']`
-
-| Key | Value |
-|-----|-------|
-|datetime|*String* - Python object which includes date and time|
-|siteId|*String* - Site where the user created the alarm|
-
-'all' - Dictionary: `data['all']`
-
-| Dict-Keys (description) | Dict-Values (description)|
-|-----|-------|
-|datetime (*String* - Includes date and time; can be parsed into `datetime` object with `strptime` from module `datetime` (see below))|siteId (*String* - Site where the user created the alarm)|
-
-An example parsing with Python is in `examples/exaple_parsing_newAlarm.py`
-
-
-##### external/alarmclock/out/allAlarms
-
-todo
-
-
-##### external/alarmclock/out/ringing
-
-JSON Payload:
-
-| Key | Value |
-|-----|-------|
-|siteId|*String* - Site where the alarmclock is ringing|
-|room|*String* - Room name where the alarmclock is ringing|
-
 ## V. Troubleshooting
-
-- I can't receive some MQTT messages from the Alarmclock.
-
-    Some MQTT clients may have a package size limit, so you won be able to receive messages with a larger
-    payload than the limit size until you increase this. E.g. in the library `PubSubClient` for the Arduino the package
-    limit is 128 bytes. In the file `<Arduino libraries folder>/PubSubClient/src/PubSubClient.h` the constant 
-    `MQTT_MAX_PACKET_SIZE` must be increased. How much? This depends on how many alarms you will create.
 
 - The time is wrong on my device.
 
@@ -252,11 +169,7 @@ JSON Payload:
 ## VI. Coming :soon:
 
 - Ask for missed alarms [############_]
-- New setting: snooze en/disabled (then don't end session)
-- Captcha exercises against oversleeping [______________________]
-- Internationalisation [############__]
 - Nice README [#######__________]
-- Send alarm data over MQTT [###_________________]
 - Maybe: periodical alarms (daily, weekly); before: change clock thread to schedule module
 
 
