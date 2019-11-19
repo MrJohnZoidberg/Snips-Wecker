@@ -5,6 +5,7 @@ from .alarm import Alarm
 from .alarmctl import AlarmControl
 
 # Error values
+CLOCK_ERR_SUCCESS = 0
 CLOCK_ERR_TIME_PAST = 1
 CLOCK_ERR_TIME_EARLY = 2
 CLOCK_ERR_INSUFFICIENT_INFO = 3
@@ -356,7 +357,8 @@ class AlarmClock:
             alarms = [alarm for alarm in filtered_alarms if alarm.datetime == dtobject]
             for alarm in alarms:
                 filtered_alarms_sorted.append(alarm)
-        return 0, filtered_alarms_sorted, {'future_part': future_part, 'time_part': time_part, 'room_part': room_part}
+        word_dict = {'future_part': future_part, 'time_part': time_part, 'room_part': room_part}
+        return CLOCK_ERR_SUCCESS, filtered_alarms_sorted, word_dict
 
     def get_roomstr(self, alarm_siteids, siteid):
         room_str = ""
