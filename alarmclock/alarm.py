@@ -8,6 +8,7 @@ class Alarm:
         self.site = site
         self.ringing = False
         self.sun_rising = False
+        self.passed = False
 
     @property
     def datetime_str(self, str_format="%Y-%m-%d %H:%M"):
@@ -16,10 +17,6 @@ class Alarm:
     @datetime_str.setter
     def datetime_str(self, datetime_str, str_format="%Y-%m-%d %H:%M"):
         self.datetime = datetime.datetime.strptime(datetime_str, str_format)
-
-    @property
-    def passed(self):
-        return self.datetime < datetime.datetime.now()
 
     @property
     def seconds_to(self):

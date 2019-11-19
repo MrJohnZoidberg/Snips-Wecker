@@ -40,7 +40,8 @@ class AlarmControl:
                     payload = {'minutes': minutes_until_alarm, 'room': alarm.site.room}
                     self.mqtt_client.publish('homeassistant/sunriseStart', json.dumps(payload))
                     alarm.sun_rising = True
-                if now_time == alarm.datetime:
+                if now_time >= alarm.datetime:
+                    alarm.passed = True
                     self.start_ringing(alarm)
             time.sleep(5)
 
@@ -69,6 +70,9 @@ class AlarmControl:
         :param site: The site object (site of the user)
         :return: Nothing
         """
+        if not site.ringing_alarm:
+            return
+        self.alarms.remove(site.ringing_alarm)
         site.ringing_alarm = None
         site.ringtone_id = None
         site.timeout_thread.cancel()  # cancel timeout thread from siteId
@@ -78,7 +82,6 @@ class AlarmControl:
         )
 
     def timeout_reached(self, site):
-        site.ringing_alarm.missed = True
         self.stop_ringing(site)
 
     def on_message_playfinished(self, *args):
@@ -146,8 +149,8 @@ class AlarmControl:
             f.write(json.dumps(self.get_unpacked_objects_list()))
 
     def restore(self):
+        alarms = list()
         with open(self.saved_alarms_path, "r") as f:
-            alarms = list()
             try:
                 alarms_list = json.load(f)
                 for alarm_dict in alarms_list:
@@ -188,7 +191,5 @@ class AlarmControl:
 
     def delete_multi(self, alarms):
         for alarm in alarms:
-            if alarm.site.sun_rising_alarm == alarm:
-                alarm.site.sun_rising_alarm = None
             self.alarms.remove(alarm)
         self.save()
