@@ -37,7 +37,7 @@ class AlarmControl:
             for alarm in self.get_alarms():
                 if not alarm.passed and alarm.site.sun_rising_alarm is not alarm and \
                         now_time + datetime.timedelta(minutes=30) >= alarm.datetime:
-                    minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() / 60)
+                    minutes_until_alarm = int((alarm.datetime - now_time).total_seconds() // 60)
                     payload = {'minutes': minutes_until_alarm, 'room': alarm.site.room}
                     self.mqtt_client.publish('homeassistant/sunriseStart', json.dumps(payload))
                     alarm.site.sun_rising_alarm = alarm
