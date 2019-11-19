@@ -157,8 +157,6 @@ class AlarmClock:
             else:
                 return error_string(rc)
 
-        filtered_alarms.sort(reverse=True)  # sort from old to new (say oldest alarms first)
-
         count_part, end_part = self.get_alarm_words(filtered_alarms)
         response = "Du hast {room_part} {future_part} {time_part} {num_part} verpasst{end}".format(
             room_part=words_dict['room_part'],
