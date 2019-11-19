@@ -41,25 +41,12 @@ class AlarmClock:
         self.mqtt_client = mqtt_client
 
     def new_alarm(self, slots, siteid):
-
         """
         Callend when creating a new alarm. Logic: see ../resources/Snips-Alarmclock-newAlarm.png
         :param slots: The slots of the intent from the NLU
         :param siteid: The siteId of the device where the user has spoken
-        :return: Dictionary with some keys:
-                    'rc' - Return code: Numbers representing normal or error message.
-                                0 - Everything good, alarm was created (other keys below are available)
-                                1 - This room is not configured (if slot 'room' is "hier")
-                                2 - Room 'room' is not configured (if slot 'room' is not "hier")
-                                3 - The slots are not properly filled
-                                4 - Time of the alarm is in the past
-                                5 - Difference of now-time and alarm-time too small
-                    'fpart' - Part of the sentence which describes the future
-                    'rpart' - Room name of the new alarm (context-dependent)
-                    'hours' - Alarm time (hours)
-                    'minutes' - Alarm time (minutes)
+        :return: response
         """
-
         if not slots:
             return error_string(CLOCK_ERR_INSUFFICIENT_INFO)
         elif not self.alarmctl.sites_dict:
@@ -67,26 +54,25 @@ class AlarmClock:
 
         if len(self.alarmctl.sites_dict) > 1:
             room_slot = slots.get('room')
-            if room_slot:
-                if room_slot == "hier":
-                    if siteid not in self.dict_siteids.values():
-                        return error_string(CLOCK_ERR_ROOM) + room_slot
-                    alarm_site_id = siteid
-                    room_part = room_slot
-                else:
-                    if room_slot not in self.dict_siteids.keys():
-                        return error_string(CLOCK_ERR_ROOM) + room_slot
-                    alarm_site_id = self.dict_siteids[room_slot]
-                    if siteid == self.dict_siteids[room_slot]:
-                        room_part = "hier"
-                    else:
-                        room_part = "im Raum {room}".format(room=room_slot)
-            else:
+            if not room_slot:
                 alarm_site_id = self.dict_siteids[self.default_room]
                 if siteid == self.dict_siteids[self.default_room]:
                     room_part = "hier"
                 else:
                     room_part = "im Raum {room}".format(room=self.default_room)
+            elif room_slot == "hier":
+                if siteid not in self.dict_siteids.values():
+                    return error_string(CLOCK_ERR_ROOM) + room_slot
+                alarm_site_id = siteid
+                room_part = room_slot
+            else:
+                if room_slot not in self.dict_siteids.keys():
+                    return error_string(CLOCK_ERR_ROOM) + room_slot
+                alarm_site_id = self.dict_siteids[room_slot]
+                if siteid == self.dict_siteids[room_slot]:
+                    room_part = "hier"
+                else:
+                    room_part = "im Raum {room}".format(room=room_slot)
         else:
             alarm_site_id = self.dict_siteids[self.default_room]
             room_part = ""
@@ -95,10 +81,12 @@ class AlarmClock:
             return error_string(CLOCK_ERR_NO_TIME)
 
         alarm = Alarm(self.alarmctl.sites_dict[alarm_site_id], ftime.dtslot_to_dtobj(slots['time']['value']))
+
         if alarm.passed:
             return error_string(CLOCK_ERR_TIME_PAST)
         if alarm.seconds_to < 120:
             return error_string(CLOCK_ERR_TIME_EARLY)
+
         self.alarmctl.add(alarm)
         response = "Der Wecker wird {future_part} um {h} Uhr {min} {room_part} klingeln.".format(
             future_part=self.get_delta_description(alarm.datetime),
@@ -106,28 +94,17 @@ class AlarmClock:
             min=alarm.minute,
             room_part=room_part
         )
-        return self.del_multi_spaces(response)
+        return self.delete_multi_spaces(response)
 
     def get_alarms(self, slots, siteid):
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_alarms(), slots, siteid)
-
         if rc > 0:
             if words_dict.get('room'):
                 return error_string(rc) + words_dict.get('room')
             else:
                 return error_string(rc)
 
-        alarm_count = len(filtered_alarms)
-        if alarm_count <= 1:
-            if alarm_count == 0:
-                count_part = "keine Alarme"
-                end_part = "."
-            else:
-                count_part = "einen Alarm"
-                end_part = " "
-        else:
-            count_part = "{num} Alarme".format(num=alarm_count)
-            end_part = ". "
+        count_part, end_part = self.get_alarm_words(filtered_alarms)
         response = "Es gibt {room_part} {future_part} {time_part} {num_part}{end}".format(
             room_part=words_dict['room_part'],
             future_part=words_dict['future_part'],
@@ -135,16 +112,15 @@ class AlarmClock:
             num_part=count_part,
             end=end_part
         )
-        if alarm_count > 5:
+        if len(filtered_alarms) > 5:
             response += "Die nächsten fünf sind: "
             filtered_alarms = filtered_alarms[:5]
 
-        response = self.add_alarms_part(response, siteid, filtered_alarms, words_dict, alarm_count)
-        return self.del_multi_spaces(response)
+        response = self.add_alarms_part(response, siteid, filtered_alarms, words_dict)
+        return self.delete_multi_spaces(response)
 
     def get_next_alarm(self, slots, siteid):
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_alarms(), slots, siteid)
-
         if rc > 0:
             if words_dict.get('room'):
                 return error_string(rc) + words_dict.get('room')
@@ -153,7 +129,6 @@ class AlarmClock:
 
         if filtered_alarms:
             next_alarm = filtered_alarms[0]
-
             if words_dict['room_part']:
                 room_part = ""
             else:
@@ -166,14 +141,12 @@ class AlarmClock:
                 room_part=room_part
             )
         else:
-            response = "Es gibt {room_part} {future_part} {time_part} {num_part}{end}".format(
+            response = "Es gibt {room_part} {future_part} {time_part} keine Alarme.".format(
                 room_part=words_dict['room_part'],
                 future_part=words_dict['future_part'],
-                time_part=words_dict['time_part'],
-                num_part="keine Alarme",
-                end="."
+                time_part=words_dict['time_part']
             )
-        return self.del_multi_spaces(response)
+        return self.delete_multi_spaces(response)
 
     def get_missed_alarms(self, slots, siteid):
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_missed_alarms(),
@@ -186,17 +159,7 @@ class AlarmClock:
 
         filtered_alarms.sort(reverse=True)  # sort from old to new (say oldest alarms first)
 
-        alarm_count = len(filtered_alarms)
-        if alarm_count <= 1:
-            if alarm_count == 0:
-                count_part = "keinen Alarm"
-                end_part = "."
-            else:
-                count_part = "einen Alarm"
-                end_part = " "
-        else:
-            count_part = "{num} Alarme".format(num=alarm_count)
-            end_part = ". "
+        count_part, end_part = self.get_alarm_words(filtered_alarms)
         response = "Du hast {room_part} {future_part} {time_part} {num_part} verpasst{end}".format(
             room_part=words_dict['room_part'],
             future_part=words_dict['future_part'],
@@ -204,11 +167,25 @@ class AlarmClock:
             num_part=count_part,
             end=end_part
         )
-        response = self.add_alarms_part(response, siteid, filtered_alarms, words_dict, alarm_count)
+        response = self.add_alarms_part(response, siteid, filtered_alarms, words_dict)
         self.alarmctl.delete_multi(filtered_alarms)  # Like a mailbox: Say missed messages and delete them after that.
-        return self.del_multi_spaces(response)
+        return self.delete_multi_spaces(response)
 
-    def add_alarms_part(self, response, siteid, filtered_alarms, words_dict, alarm_count):
+    @staticmethod
+    def get_alarm_words(filtered_alarms):
+        alarm_count = len(filtered_alarms)
+        if alarm_count == 0:
+            count_part = "keine Alarme"
+            end_part = "."
+        elif alarm_count == 1:
+            count_part = "einen Alarm"
+            end_part = " "
+        else:
+            count_part = "{num} Alarme".format(num=alarm_count)
+            end_part = ". "
+        return count_part, end_part
+
+    def add_alarms_part(self, response, siteid, filtered_alarms, words_dict):
         for alarm in filtered_alarms:
             dtobj = alarm.datetime
             # If room and/or time not said in speech command, the alarms were not filtered with that.
@@ -237,27 +214,17 @@ class AlarmClock:
                 response += ", "
             else:
                 response += "."
-            if alarm_count > 1 and dtobj == filtered_alarms[-2].datetime:
+            if len(filtered_alarms) > 1 and dtobj == filtered_alarms[-2].datetime:
                 response += " und "
         return response
 
     def delete_alarms(self, slots, siteid):
         """
-                Called when the user want to delete multiple alarms. If user said room and/or date the alarms with these
-                properties will be deleted. Otherwise all alarms will be deleted.
-                :param slots: The slots of the intent from Snips
-                :param siteid: The siteId where the user triggered the intent
-                :return: Dictionary with some keys:
-                    'rc' - Return code: Numbers representing normal or error message.
-                                0 - Everything good (other keys below are available)
-                                1 - This room is not configured (if slot 'room' is "hier")
-                                2 - Room 'room' is not configured (if slot 'room' is not "hier")
-                                3 - Date is in the past
-                    'matching_alarms' - List with datetime objects which will be deleted on confirmation
-                    'future_part' - Part of the sentence which describes the future
-                    'room_part' - Room name of the alarms (context-dependent)
-                    'alarm_count' - Number of matching alarms (if alarms are ringing in two rooms at
-                                    one time, this means two alarms)
+        Called when the user want to delete multiple alarms. If user said room and/or date the alarms with these
+        properties will be deleted. Otherwise all alarms will be deleted.
+        :param slots: The slots of the intent from Snips
+        :param siteid: The siteId where the user triggered the intent
+        :return: sentence
         """
         rc, filtered_alarms, words_dict = self.filter_alarms(self.alarmctl.get_alarms(), slots, siteid)
 
@@ -297,7 +264,7 @@ class AlarmClock:
                 time_part=words_dict['time_part'],
                 room_part=words_dict['room_part']
             )
-        return self.del_multi_spaces(sentence)
+        return self.delete_multi_spaces(sentence)
 
     def filter_alarms(self, alarms, slots, siteid, timeslot_with_past=False):
         """Helper function which filters alarms with datetime and rooms"""
@@ -307,38 +274,37 @@ class AlarmClock:
         # fill the list with all alarms and then filter it
         filtered_alarms = [alarm for alarm in alarms]
         dt_format = "%Y-%m-%d %H:%M"
-        if slots.get('time'):
-            if slots['time']['kind'] == "InstantTime":
-                dtobj = ftime.dtslot_to_dtobj(slots['time']['value'])
-                future_part = self.get_delta_description(dtobj, only_days=True)
-                if slots['time']['grain'] in ['Hour', 'Minute', 'Second']:
-                    if not timeslot_with_past and dtobj < datetime.datetime.now():
-                        return CLOCK_ERR_TIME_PAST, None, None
-                    filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime == dtobj]
-                    time_part = "um {h}:{min}".format(h=ftime.get_alarm_hour(dtobj),
-                                                      min=ftime.get_alarm_minute(dtobj))
-                else:
-                    if (dtobj.date() - datetime.datetime.now().date()).days < 0:
-                        return CLOCK_ERR_TIME_PAST, None, None
-                    filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime.date() == dtobj.date()]
-            elif slots['time']['kind'] == "TimeInterval":
-                time_from = None
-                time_to = None
-                if slots['time']['from']:
-                    time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
-                if slots['time']['to']:
-                    time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
-                if not time_from and time_to:
-                    filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime <= time_to]
-                elif not time_to and time_from:
-                    filtered_alarms = [alarm for alarm in filtered_alarms if time_from <= alarm.datetime]
-                else:
-                    filtered_alarms = [alarm for alarm in filtered_alarms if time_from <= alarm.datetime <= time_to]
-                future_part = self.get_interval_part(time_from, time_to)
+        if slots.get('time') and slots['time']['kind'] == "InstantTime":
+            dtobj = ftime.dtslot_to_dtobj(slots['time']['value'])
+            future_part = self.get_delta_description(dtobj, only_days=True)
+            if slots['time']['grain'] in ['Hour', 'Minute', 'Second']:
+                if not timeslot_with_past and dtobj < ftime.get_now_time():
+                    return CLOCK_ERR_TIME_PAST, None, None
+                filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime == dtobj]
+                time_part = "um {h}:{min}".format(h=ftime.get_alarm_hour(dtobj), min=ftime.get_alarm_minute(dtobj))
             else:
-                return CLOCK_ERR_NO_TIME, None, None
-        if 'room' in slots.keys():
-            room_slot = slots['room']
+                if (dtobj.date() - ftime.get_now_time().date()).days < 0:
+                    return CLOCK_ERR_TIME_PAST, None, None
+                filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime.date() == dtobj.date()]
+        elif slots.get('time') and slots['time']['kind'] == "TimeInterval":
+            time_from = None
+            time_to = None
+            if slots['time']['from']:
+                time_from = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['from']), dt_format)
+            if slots['time']['to']:
+                time_to = datetime.datetime.strptime(ftime.alarm_time_str(slots['time']['to']), dt_format)
+            if not time_from and time_to:
+                filtered_alarms = [alarm for alarm in filtered_alarms if alarm.datetime <= time_to]
+            elif not time_to and time_from:
+                filtered_alarms = [alarm for alarm in filtered_alarms if time_from <= alarm.datetime]
+            else:
+                filtered_alarms = [alarm for alarm in filtered_alarms if time_from <= alarm.datetime <= time_to]
+            future_part = self.get_interval_part(time_from, time_to)
+        elif slots.get('time'):
+            return CLOCK_ERR_NO_TIME, None, None
+
+        room_slot = slots.get('room')
+        if room_slot:
             if room_slot == "hier":
                 if siteid not in self.dict_siteids.values():
                     return CLOCK_ERR_ROOM, None, None
@@ -350,6 +316,7 @@ class AlarmClock:
 
             filtered_alarms = [alarm for alarm in filtered_alarms if alarm.get_siteid() == context_siteid]
             room_part = self.get_roomstr([context_siteid], siteid)
+
         filtered_dtobjects_sorted = [alarm.datetime for alarm in filtered_alarms]
         filtered_dtobjects_sorted.sort()
         filtered_alarms_sorted = list()
@@ -361,18 +328,17 @@ class AlarmClock:
         return CLOCK_ERR_SUCCESS, filtered_alarms_sorted, word_dict
 
     def get_roomstr(self, alarm_siteids, siteid):
-        room_str = ""
+        room_str = str()
         if len(self.alarmctl.sites_dict) > 1:
             for iter_siteid in alarm_siteids:
                 if iter_siteid == siteid:
                     room_str += "hier"
                 else:
                     room_str += "im Raum {room}".format(room=self.alarmctl.sites_dict[iter_siteid].room)
-                if len(alarm_siteids) > 1:
-                    if iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
-                        room_str += ", "
-                    if iter_siteid == alarm_siteids[-2]:
-                        room_str += " und "
+                if len(alarm_siteids) > 1 and iter_siteid != alarm_siteids[-1] and iter_siteid != alarm_siteids[-2]:
+                    room_str += ", "
+                if len(alarm_siteids) > 1 and iter_siteid == alarm_siteids[-2]:
+                    room_str += " und "
         return room_str
 
     def get_interval_part(self, from_time, to_time):
@@ -407,21 +373,22 @@ class AlarmClock:
             )
         else:
             from_part = ""
-        return "{} {}".format(from_part, to_part)
+        return "{from_part} {to_part}".format(from_part=from_part, to_part=to_part)
 
     @staticmethod
-    def del_multi_spaces(sentence):
+    def delete_multi_spaces(sentence):
         return " ".join(sentence.split())
 
     @staticmethod
     def get_delta_description(dtobj, only_days=False):
         weekdays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
         alarm_weekday = weekdays[dtobj.weekday()]
-        delta_seconds = int(abs((dtobj - datetime.datetime.now()).total_seconds()))
+        now_time = ftime.get_now_time()
+        delta_seconds = int(abs((dtobj - now_time).total_seconds()))
         delta_minutes = delta_seconds // 60
         delta_hours = delta_minutes // 60
-        delta_days = (dtobj.date() - datetime.datetime.now().date()).days
-        if not dtobj < datetime.datetime.now():
+        delta_days = (dtobj.date() - now_time.date()).days
+        if not dtobj < now_time:
             if not only_days and delta_days == 0:
                 minutes_remain = (delta_seconds % 3600) // 60
                 if delta_hours == 1:  # for word fix in German

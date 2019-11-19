@@ -22,11 +22,6 @@ def get_now_time(only_date=False):
     return now_time
 
 
-def get_delta_obj(alarm_time, only_date=False):
-    delta_obj = (alarm_time - get_now_time(only_date))  # calculate the days between alarm and now
-    return delta_obj
-
-
 def get_alarm_hour(alarm_time):
     if alarm_time.hour == 1:  # word correction
         alarm_hour = "ein"
