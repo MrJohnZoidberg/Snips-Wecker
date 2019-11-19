@@ -7,6 +7,7 @@ class Alarm:
         self.datetime = datetime_obj
         self.site = site
         self.ringing = False
+        self.sun_rising = False
 
     @property
     def datetime_str(self, str_format="%Y-%m-%d %H:%M"):
